@@ -1,0 +1,24 @@
+:root {
+  --buzhi-ocean: #a8d8f0;
+  --buzhi-ice: #c9f4ff;
+  --buzhi-iris: #cdbdff;
+  --buzhi-pearl: #f9c8e5;
+  --buzhi-glass-white: #f5fbff;
+  --buzhi-ink: #285777;
+  --buzhi-ink-muted: #426b83;
+  --buzhi-focus: #205b9c;
+  --buzhi-glass-fill: rgba(245, 251, 255, .58);
+  --buzhi-glass-border: rgba(255, 255, 255, .86);
+  --buzhi-glass-shadow: 0 12px 36px rgba(53, 117, 158, .18);
+  --buzhi-glass-blur: 20px;
+  --buzhi-radius-card: 22px;
+  --buzhi-radius-control: 14px;
+  --buzhi-speed-fast: 180ms;
+  --buzhi-speed-medium: 360ms;
+  --buzhi-ease-soft: cubic-bezier(.4,0,.2,1);
+  --buzhi-ease-note: cubic-bezier(.34,1.56,.64,1);
+  --buzhi-ease-tape: cubic-bezier(.25,.1,.25,1);
+  --buzhi-font-title: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --buzhi-font-label: 'LXGW Marker Gothic', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --buzhi-font-body: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
