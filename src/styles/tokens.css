@@ -20,5 +20,6 @@
   --buzhi-ease-tape: cubic-bezier(.25,.1,.25,1);
   --buzhi-font-title: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --buzhi-font-label: 'LXGW Marker Gothic', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --buzhi-font-mono: 'Maple Mono', 'Consolas', monospace;
   --buzhi-font-body: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
