@@ -1,4 +1,5 @@
 import {spawn} from 'node:child_process';
+import {DatabaseSync} from 'node:sqlite';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -139,5 +140,19 @@ assert.equal(await publicPage.locator('.office-layout .task-card').count(),6);
 await publicPage.goto(root+'/checkin.html');
 await publicPage.locator('#checkin-button').click();
 await publicPage.waitForFunction(()=>document.querySelector('#checkin-button')?.disabled);
+// Exercise actual deletion only on an isolated disposable test database.
+const disposable=await api('register',{nickname:'自动化测试待清理'});assert.equal(disposable.status,200);
+const protectedAccount=await api('register',{nickname:'自动化测试保留'});assert.equal(protectedAccount.status,200);
+await api('checkin',{},protectedAccount.data.token);
+const isolated=new DatabaseSync(join(dir,'test.sqlite'));
+isolated.prepare('UPDATE users SET created_at=? WHERE id IN (?,?)').run('2026-01-01T00:00:00.000Z',disposable.data.id,protectedAccount.data.id);
+isolated.close();
+const dryRun=await api('admin/test-cleanup',undefined,admin);
+assert(dryRun.data.ids.includes(disposable.data.id));
+assert(!dryRun.data.ids.includes(protectedAccount.data.id));
+const cleared=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:dryRun.data.ids},admin);assert.equal(cleared.status,200);
+assert(cleared.data.deleted>=1);
+const deletedSession=await api('me',undefined,disposable.data.token);assert.notEqual(deletedSession.status,200);
+const preservedSession=await api('me',undefined,protectedAccount.data.token);assert.equal(preservedSession.status,200);
 console.log('PASS remote account and admin: register, code redemption, check-in, recovery, overview, protected admin UI, published/draft notices, home/mailbox publish-update-delete sync');
 }finally{await browser?.close();processServer.kill('SIGTERM');rmSync(dir,{recursive:true,force:true})}
