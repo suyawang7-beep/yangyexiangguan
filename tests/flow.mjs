@@ -88,6 +88,10 @@ try{
   await reducePage.locator('#bzMailboxNotices .bz-announcement').first().waitFor();
   const reduceAnim=await reducePage.locator('#bzMailboxNotices .bz-announcement').first().evaluate(el=>getComputedStyle(el).animationName);
   assert.equal(reduceAnim,'none');await reducePage.close();
-  console.log('PASS 11/11 flow assertions; reference motion and reduced-motion checks passed');
+  assert.equal(await page.locator('#buzhi-immersive-v3').count(),1);
+  await page.goto(url);
+  const ocean=await page.locator('#home .hero').evaluate(e=>getComputedStyle(e,'::after').animationName);
+  assert.match(ocean,/bzTide/);
+  console.log('PASS 11/11 flow assertions; ocean depth, origami motion and reduced-motion checks passed');
 }catch(e){console.error('FAILED after '+passed+' checks:',e);process.exitCode=1}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
