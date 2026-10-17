@@ -104,10 +104,10 @@ try{
   await page.goto(url+'#/collection');
   await page.locator('[data-gallery-mode="fan"]').click();
   assert.equal(await page.locator('.bz-collection').getAttribute('data-display'),'fan');
-  await page.locator('[data-gallery-mode="ring"]').click();
-  assert.equal(await page.locator('.bz-collection').getAttribute('data-display'),'ring');
+  assert.equal(await page.locator('[data-gallery-mode="ring"]').count(),0);
+  assert.equal(await page.locator('[data-gallery-mode="grid"]').count(),0);
   await page.locator('[data-bz-filter="UR"]').click();
-  await page.waitForFunction(()=>document.querySelector('.bz-collection')?.dataset.display==='ring');
+  await page.waitForFunction(()=>document.querySelector('.bz-collection')?.dataset.display==='fan');
   await page.goto(url+'#/passport');
   await page.locator('#bzPassportPage.active').waitFor();
   await page.locator('#bzPassportLaunch').click();
