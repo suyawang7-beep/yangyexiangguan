@@ -26,7 +26,7 @@ try{
   assert.match(await page.locator('.bz-pass-id').textContent(),/^唯一通行证编号|BZI-/);
   assert.match(await page.locator('.bz-pass-note').textContent(),/隐私提醒/);
   await page.locator('#bzCopyId').click();
-  assert.match(await page.locator('#bzCopyStatus').textContent(),/编号已复制|复制失败/);
+  await page.locator('#bzCopyStatus').getByText(/编号已复制|复制失败/).waitFor({timeout:5000});
   await page.locator('#closeModal').click();
   await page.goto(url+'#/office');
   console.log('OFFICE DEBUG',JSON.stringify(await page.evaluate(()=>({hash:location.hash,inner:document.getElementById('innerContent')?.innerHTML.slice(0,650),newUI:!!document.querySelector('[data-task="letter"]'),legacy:!!document.querySelector('.office-task'),account:!!localStorage.getItem('buzhi-account-local-v1')}))));
