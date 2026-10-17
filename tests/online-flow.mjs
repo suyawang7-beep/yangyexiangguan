@@ -22,7 +22,10 @@ const badAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:B
 const imageUpload=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp},admin);assert.equal(imageUpload.status,200);
 const servedAsset=await fetch(root+'/assets/cards/SSR-1.webp');assert.equal(servedAsset.status,200);assert.equal(servedAsset.headers.get('content-type'),'image/webp');
 assert.equal((await servedAsset.arrayBuffer()).byteLength,24);
+const versionBefore=(await fetch(root+'/api/assets-manifest').then(x=>x.json())).versions['cards/SSR-1.webp'];
 const overwrite=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp},admin);assert.equal(overwrite.status,200);
+const versionAfter=(await fetch(root+'/api/assets-manifest').then(x=>x.json())).versions['cards/SSR-1.webp'];assert(versionAfter>=versionBefore);
+const cacheResponse=await fetch(root+'/assets/cards/SSR-1.webp');assert.match(cacheResponse.headers.get('cache-control')||'',/no-store/);
 const versions=await api('admin/assets/versions?name='+encodeURIComponent('cards/SSR-1.webp'),undefined,admin);
 assert.equal(versions.status,200);assert(versions.data.length>=1);
 const restore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:versions.data[0].version},admin);
