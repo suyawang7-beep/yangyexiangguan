@@ -2,6 +2,7 @@ FROM node:24-bookworm-slim
 WORKDIR /app
 COPY index.html ./index.html
 COPY admin ./admin
+COPY ui-preview ./ui-preview
 COPY assets ./assets
 COPY server ./server
 ENV NODE_ENV=production
