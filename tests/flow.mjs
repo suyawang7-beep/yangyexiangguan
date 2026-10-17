@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const server=createServer((req,res)=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html)});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-const url='http://127.0.0.1:'+server.address().port+'/';
+const url='http://127.0.0.1:'+server.address().port+'/?e2e=1';
 const browser=await chromium.launch({headless:true});
 let passed=0;
 try{
@@ -48,7 +48,7 @@ try{
   await page.locator('#bzDraw').click();
   assert.match(await page.locator('#bzDialogText').textContent(),/50 金币/);passed++;
   // Extended rules suite: pool composition, first draw, duplicate claim, deterministic UR + duplicates, storage failure rollback.
-  const pool=await page.evaluate(()=>({cards:CARD_SET.map(c=>c.rarity),price:PRICE,first:CARD_SET.filter(c=>['SSR','SR'].includes(c.rarity)).map(c=>c.rarity)}));
+  const pool=await page.evaluate(()=>({cards:window.__buzhiTest.cardRarities,price:window.__buzhiTest.price,first:window.__buzhiTest.firstRarities}));
   assert.deepEqual(Object.fromEntries(['UR','SSR','SR','R','N'].map(x=>[x,pool.cards.filter(k=>k===x).length])),{UR:1,SSR:2,SR:4,R:4,N:5});
   assert.equal(pool.price,50);assert.equal(pool.first.length,6);assert(!pool.first.includes('UR'));passed++;
   await page.goto(url+'#/office');
@@ -57,16 +57,16 @@ try{
   assert.equal(old.done.filter(x=>x==='letter').length,1);passed++;
   await page.evaluate(()=>{const a=JSON.parse(localStorage.getItem('buzhi-account-local-v1'));a.ledger.push({amount:125,reason:'test top-up',date:new Date().toISOString()});localStorage.setItem('buzhi-account-local-v1',JSON.stringify(a))});
   await page.reload();await page.goto(url+'#/post-office');
-  await page.evaluate(()=>{secureIndex=()=>0});
+  await page.evaluate(()=>{window.__buzhiTest.forceIndex(0)});
   await page.locator('#bzDraw').click();await page.locator('#bzDialogOK').click();
   await page.goto(url+'#/collection');
   await page.locator('[data-bz-filter="UR"]').click();assert.match(await page.locator('.bz-collection').textContent(),/拥有 ×1/);passed++;
-  await page.goto(url+'#/post-office');await page.evaluate(()=>{secureIndex=()=>0});
+  await page.goto(url+'#/post-office');await page.evaluate(()=>{window.__buzhiTest.forceIndex(0)});
   await page.locator('#bzDraw').click();await page.locator('#bzDialogOK').click();
   await page.goto(url+'#/collection');await page.locator('[data-bz-filter="UR"]').click();assert.match(await page.locator('.bz-collection').textContent(),/拥有 ×2/);passed++;
   await page.goto(url+'#/post-office');
   const beforeFailure=await page.evaluate(()=>JSON.parse(localStorage.getItem('buzhi-account-local-v1')));
-  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='buzhi-account-local-v1')throw Error('storage blocked');return original.call(this,k,v)};secureIndex=()=>0});
+  await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='buzhi-account-local-v1')throw Error('storage blocked');return original.call(this,k,v)};window.__buzhiTest.forceIndex(0)});
   await page.locator('#bzDraw').click();assert.match(await page.locator('#bzDialogText').textContent(),/操作已撤销/);
   const afterFailure=await page.evaluate(()=>JSON.parse(localStorage.getItem('buzhi-account-local-v1')));
   assert.deepEqual(afterFailure,beforeFailure);passed++;
