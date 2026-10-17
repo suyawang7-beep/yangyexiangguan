@@ -24,7 +24,8 @@ const schema=[
 'CREATE TABLE IF NOT EXISTS draws(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id TEXT NOT NULL REFERENCES users(id),card_id TEXT NOT NULL,rarity TEXT NOT NULL,created_at TEXT NOT NULL)',
 'CREATE TABLE IF NOT EXISTS announcements(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,body TEXT NOT NULL,published INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)',
 'CREATE TABLE IF NOT EXISTS admin_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,action TEXT NOT NULL,details TEXT NOT NULL,created_at TEXT NOT NULL)',
-'CREATE TABLE IF NOT EXISTS visual_settings(key TEXT PRIMARY KEY,enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),updated_at TEXT NOT NULL)'
+'CREATE TABLE IF NOT EXISTS visual_settings(key TEXT PRIMARY KEY,enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),updated_at TEXT NOT NULL)',
+'CREATE TABLE IF NOT EXISTS asset_layouts(name TEXT PRIMARY KEY,settings TEXT NOT NULL,updated_at TEXT NOT NULL)'
 ];
 for(const statement of schema)db.exec(statement);
 const TASKS=new Set(['letter','memory','quiz','creative','support','commission']);
@@ -63,6 +64,9 @@ const ASSET_NAMES=new Set(['characters/zhizhi.webp','characters/caicai.webp','de
 function assetPath(name){if(!ASSET_NAMES.has(name))throw error(400,'素材位置无效');return resolve(ASSET_DIR,name)}
 function versionFolder(name){return resolve(ASSET_DIR,'history',name)}
 function assetVersions(name){assetPath(name);const folder=versionFolder(name);if(!existsSync(folder))return [];return readdirSync(folder).filter(f=>/^[0-9TZ.-]+-[a-f0-9]{12}\.webp$/.test(f)).sort().reverse().slice(0,20).map(f=>({version:f,size:statSync(resolve(folder,f)).size}))}
+const ASSET_LAYOUT_DEFAULT={scale:100,x:50,y:50,opacity:100,fit:'contain',layer:0};
+function getAssetLayouts(){const out={};for(const row of db.prepare('SELECT name,settings FROM asset_layouts').all()){if(ASSET_NAMES.has(row.name)){try{out[row.name]=JSON.parse(row.settings)}catch{}}}return out}
+function saveAssetLayout(b){const name=String(b.name||'');assetPath(name);const settings=b.settings;if(!settings||typeof settings!=='object'||Array.isArray(settings)||Object.keys(settings).length!==6)throw error(400,'布局参数不完整');const fields=['scale','x','y','opacity','fit','layer'];if(fields.some(k=>!Object.hasOwn(settings,k)))throw error(400,'布局参数不完整');for(const [k,min,max] of [['scale',30,250],['x',0,100],['y',0,100],['opacity',0,100],['layer',-5,5]])if(typeof settings[k]!=='number'||!Number.isFinite(settings[k])||settings[k]<min||settings[k]>max)throw error(400,'布局数值超出范围');if(!['contain','cover'].includes(settings.fit))throw error(400,'裁切方式不受支持');db.prepare('INSERT INTO asset_layouts(name,settings,updated_at) VALUES(?,?,?) ON CONFLICT(name) DO UPDATE SET settings=excluded.settings,updated_at=excluded.updated_at').run(name,JSON.stringify(settings),now());auditAdmin('asset.layout',{name,settings});return {name,settings}}
 function assetStatus(){return [...ASSET_NAMES].map(name=>({name,uploaded:existsSync(assetPath(name)),url:'/assets/'+name,versions:assetVersions(name).length}))}
 function backupAsset(name){const filepath=assetPath(name);if(!existsSync(filepath))return null;const folder=versionFolder(name);mkdirSync(folder,{recursive:true});const version=now().replace(/[:]/g,'-')+'-'+randomBytes(6).toString('hex')+'.webp';copyFileSync(filepath,resolve(folder,version));return version}
 function saveAsset(b){const name=String(b.name||'');const filepath=assetPath(name),raw=String(b.base64||'');if(!/^[A-Za-z0-9+/]+={0,2}$/.test(raw)||raw.length>5600000)throw error(400,'图片内容无效或超过 4 MB');const bytes=Buffer.from(raw,'base64');if(bytes.length<24||bytes.length>4*1024*1024||bytes.toString('ascii',0,4)!=='RIFF'||bytes.toString('ascii',8,12)!=='WEBP'||!['VP8 ','VP8L','VP8X'].includes(bytes.toString('ascii',12,16)))throw error(400,'仅允许有效的 WebP 图片（最大 4 MB）');mkdirSync(dirname(filepath),{recursive:true});const temp=filepath+'.'+rand(8)+'.tmp';try{writeFileSync(temp,bytes,{flag:'wx',mode:0o600});const previous=backupAsset(name);renameSync(temp,filepath);auditAdmin('asset.upload',{name,size:bytes.length,previous})}finally{if(existsSync(temp))unlinkSync(temp)}return {name,size:bytes.length,url:'/assets/'+name}}
@@ -93,7 +97,7 @@ else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
 else if(path==='/api/announcements'&&req.method==='GET')data=announcements(false);
-else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries([...ASSET_NAMES].map(name=>[name,existsSync(assetPath(name))]))};
+else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries([...ASSET_NAMES].map(name=>[name,existsSync(assetPath(name))])),layouts:getAssetLayouts()};
 else if(path==='/api/catalog'&&req.method==='GET')data={cards:cardCatalog,cost:50,firstDrawRarities:['SSR','SR'],timezone:'Asia/Shanghai',nicknameMaxLength:20};
 else if(path==='/api/visual-settings'&&req.method==='GET')data=getVisualSettings();
 else if(path==='/api/admin/announcements'&&req.method==='GET'){admin(req);data=announcements(true)}
@@ -103,6 +107,7 @@ else if(path==='/api/admin/users'&&req.method==='GET'){admin(req);data=listUsers
 else if(path==='/api/admin/codes'&&req.method==='POST'){admin(req);data=codes(b);auditAdmin('codes.generate',{taskId:data.taskId,count:data.codes.length})}
 else if(path==='/api/admin/overview'&&req.method==='GET'){admin(req);data=overview()}
 else if(path==='/api/admin/assets'&&req.method==='GET'){admin(req);data=assetStatus()}
+else if(path==='/api/admin/assets/layout'&&req.method==='POST'){admin(req);data=saveAssetLayout(b)}
 else if(path==='/api/admin/assets/upload'&&req.method==='POST'){admin(req);data=saveAsset(b)}
 else if(path==='/api/admin/assets/versions'&&req.method==='GET'){admin(req);data=assetVersions(String(new URL(req.url,'http://localhost').searchParams.get('name')||''))}
 else if(path==='/api/admin/assets/restore'&&req.method==='POST'){admin(req);data=restoreAsset(b)}
