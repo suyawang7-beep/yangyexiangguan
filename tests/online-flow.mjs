@@ -14,13 +14,20 @@ try{
 let ready=false;for(let i=0;i<50;i++){try{const res=await fetch(root+'/health');if(res.ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}
 assert(ready,'server did not start: '+logs);
 const admin='test-only-secret-not-for-production-0000';
-const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,18);
+const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,26);
 const mockWebp=Buffer.concat([Buffer.from('RIFF'),Buffer.from([16,0,0,0]),Buffer.from('WEBPVP8 '),Buffer.alloc(8)]).toString('base64');
 const rejectAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp});assert.equal(rejectAsset.status,403);
 const badAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:Buffer.from('not an image').toString('base64')},admin);assert.equal(badAsset.status,400);
 const imageUpload=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp},admin);assert.equal(imageUpload.status,200);
 const servedAsset=await fetch(root+'/assets/cards/SSR-1.webp');assert.equal(servedAsset.status,200);assert.equal(servedAsset.headers.get('content-type'),'image/webp');
 assert.equal((await servedAsset.arrayBuffer()).byteLength,24);
+const overwrite=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp},admin);assert.equal(overwrite.status,200);
+const versions=await api('admin/assets/versions?name='+encodeURIComponent('cards/SSR-1.webp'),undefined,admin);
+assert.equal(versions.status,200);assert(versions.data.length>=1);
+const restore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:versions.data[0].version},admin);
+assert.equal(restore.status,200);
+const badRestore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:'../../secret'},admin);
+assert.equal(badRestore.status,400);
 const assetAfter=await api('admin/assets',undefined,admin);assert(assetAfter.data.some(x=>x.name==='cards/SSR-1.webp'&&x.uploaded));
 let c=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(c.status,200);
 let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,0);
