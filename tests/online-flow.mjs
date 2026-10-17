@@ -119,6 +119,10 @@ await page.goto(root+'/legacy#/office');
 assert.match(await page.locator('.bz-account-chip').textContent(),/35/);
 const publicPage=await browser.newPage();
 // Public routes use the shared ui-preview layouts while all rewards remain server-backed.
+await publicPage.goto(root+'/');
+await publicPage.locator('.desktop-nav').waitFor();
+await publicPage.waitForFunction(()=>document.querySelector('.world')?.dataset.effectsReady==='true');
+assert.equal(await publicPage.locator('a[href="effects.html"]').count(),0);
 await publicPage.goto(root+'/passport.html');
 await publicPage.locator('#passport-form').waitFor();
 await publicPage.locator('#nickname').fill('新版页面测试');
