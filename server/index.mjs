@@ -29,6 +29,8 @@ const schema=[
 for(const statement of schema)db.exec(statement);
 const TASKS=new Set(['letter','memory','quiz','creative','support','commission']);
 const CARDS=[{id:'UR-1',rarity:'UR'},...Array.from({length:2},(_,i)=>({id:'SSR-'+(i+1),rarity:'SSR'})),...Array.from({length:4},(_,i)=>({id:'SR-'+(i+1),rarity:'SR'})),...Array.from({length:4},(_,i)=>({id:'R-'+(i+1),rarity:'R'})),...Array.from({length:5},(_,i)=>({id:'N-'+(i+1),rarity:'N'}))];
+const CARD_TITLES=['岛屿与永恒','许愿的瞬间','与你共赴星海','海风来信','今日晴朗','雪啾旧梦','岛上的花','贝壳耳语','停靠的心愿','漂流的旋律','一片新绿','浪花一朵','小岛邮戳','口袋星光','来客留名','晚安小啾'];
+const cardCatalog=CARDS.map((c,i)=>({...c,previewId:'BZ-'+String(i+1).padStart(2,'0'),name:CARD_TITLES[i],image:'/assets/cards/'+c.id+'.webp'}));
 const sha=s=>createHash('sha256').update(String(s)).digest('hex'),rand=n=>randomBytes(n).toString('base64url'),now=()=>new Date().toISOString(),day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const error=(status,message)=>Object.assign(new Error(message),{status});
 const eq=(a,b)=>{const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&timingSafeEqual(x,y)};
@@ -76,6 +78,7 @@ else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
 else if(path==='/api/announcements'&&req.method==='GET')data=announcements(false);
+else if(path==='/api/catalog'&&req.method==='GET')data={cards:cardCatalog,cost:50,firstDrawRarities:['SSR','SR'],timezone:'Asia/Shanghai',nicknameMaxLength:20};
 else if(path==='/api/visual-settings'&&req.method==='GET')data=getVisualSettings();
 else if(path==='/api/admin/announcements'&&req.method==='GET'){admin(req);data=announcements(true)}
 else if(path==='/api/admin/announcements'&&req.method==='POST'){admin(req);data=saveAnnouncement(b);auditAdmin('announcement.save',{id:b.id??null,published:b.published===true})}
