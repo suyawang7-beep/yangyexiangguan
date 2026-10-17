@@ -10,7 +10,7 @@
   const SVG = 'http://www.w3.org/2000/svg';
   const featureStyles = document.createElement('link');
   featureStyles.rel = 'stylesheet';
-  featureStyles.href = new URL('effects.css', document.currentScript.src).href;
+  featureStyles.href = new URL('effects.css?v=20261017-nav2', document.currentScript.src).href;
   document.head.append(featureStyles);
   const motionSubscribers = new Set();
   const sync = () => motionSubscribers.forEach((callback) => callback());
@@ -20,7 +20,7 @@
   const bird = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 33C-1 13 18 2 32 14l8-2-2 9c10 17-17 24-29 12Z" fill="#f5fbff" stroke="#598eaf" stroke-width="2"/><path d="m35 24 9 3-9 3" fill="#e7bf7b"/><circle cx="29" cy="22" r="2" fill="#285777"/><path d="M12 28q8-8 14 0" fill="none" stroke="#aacde3" stroke-width="3"/><path d="m17 41-3 5m12-5 3 5" stroke="#598eaf" stroke-width="2"/></svg>';
 
   function shellLinks() {
-    document.querySelector('.desktop-nav').insertAdjacentHTML('beforeend', `<a href="effects.html" ${page === 'effects' ? 'aria-current="page"' : ''}>特效体验 ✦</a>`);
+    document.querySelector('.desktop-nav').insertAdjacentHTML('beforeend', `<a href="islanders.html" ${page === 'islanders' ? 'aria-current="page"' : ''}>岛民画廊</a><a href="effects.html" ${page === 'effects' ? 'aria-current="page"' : ''}>特效体验 ✦</a>`);
     document.querySelector('.footer-links').insertAdjacentHTML('beforeend', '<a href="effects.html">特效体验</a><a href="islanders.html">岛民画廊</a>');
   }
 

@@ -163,12 +163,7 @@
     if (state.passport) primary = state.history.length ? link('collection', '查看我的回忆', 'btn primary') : link('draw', '去抽第一张卡', 'btn primary');
     return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">A birthday rendezvous · 2026</div><h1>🐭雾岛吱菜Gina<span>🐭の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.17 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}</div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="assets/island.svg" alt="两位女孩在海洋玻璃光晕里一起庆生的示意插画" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div><span class="art-caption">双人主视觉示意 · 待替换正式立绘</span></div></section>
       <aside class="news-strip glass"><strong>✦ 岛上来信</strong><p>海风已经把邀请送达。10月17—25日，来不吱岛收藏一段生日回忆吧。</p><a href="mailbox.html">查看岛主信箱 ${icon('arrow')}</a></aside>
-      <section><div class="section-heading"><div><div class="eyebrow">Your little island adventure</div><h2>接下来，想去哪里？</h2></div><small>赴约 / 做任务 / 收集回忆</small></div><div class="destination-grid">${[
-        ['office', '替庆典做一点小事，把快乐和金币一起装进口袋。'],
-        ['draw', '花50金币寄出期待，拆开属于你的生日回忆。'],
-        ['collection', '相遇的瞬间都有位置，把喜欢的卡片好好收起来。'],
-        ['checkin', '今天也来小岛报到，让一天天的陪伴连成星光。'],
-      ].map(([key, description], index) => `<a class="destination glass" href="${PATHS[key][0]}"><span class="number">0${index + 1}</span>${icon(PATHS[key][2])}<h3>${PATHS[key][1]}</h3><p>${description}</p><span class="arrow">↗</span></a>`).join('')}</div></section><aside class="island-story"><p>菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p><a href="mailbox.html">读读岛主的来信 ↗</a></aside>`;
+      <aside class="island-story"><p>菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p><a href="mailbox.html">读读岛主的来信 ↗</a></aside>`;
   }
 
   function renderPassport() {
@@ -464,6 +459,6 @@
   renderShell();
   renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL(PAGE === 'home' ? 'effects.js?v=20261017-island' : 'effects.js', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261017-nav2', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
