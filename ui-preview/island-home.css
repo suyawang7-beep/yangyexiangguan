@@ -6,8 +6,12 @@ body[data-page="home"] .world{--ink:#214d62;--muted:#3d6274;--island-glass:linea
 .scene-cloud{animation:island-cloud 19s ease-in-out infinite alternate;opacity:.72;filter:drop-shadow(0 12px 12px #39758e12)}
 .scene-cloud.cloud-two{animation-duration:25s;animation-delay:-11s;opacity:.55}
 .scene-cloud.cloud-three{animation-duration:22s;animation-delay:-7s;opacity:.48}
-.scene-shore{fill:none;stroke:#edfff5;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:island-shore 6s ease-out infinite}
-.scene-shore.shore-two{animation-delay:-3s}
+.scene-shore{fill:none;stroke:#edfff5;stroke-width:3;transform-box:fill-box;transform-origin:center;animation:island-shore 9s linear infinite}
+.scene-shore.shore-two{animation-delay:-3s}.scene-shore.shore-three{animation-delay:-6s}
+.home-sea-ripple{position:fixed;inset:0;z-index:-1;width:100%;height:100vh;height:100svh;overflow:hidden;pointer-events:none}
+.home-sea-ripple circle{fill:none;stroke:#efffff;stroke-width:2;opacity:0;animation:home-sea-spread 2.8s cubic-bezier(.2,.6,.3,1) both}
+.home-sea-ripple circle:nth-child(2){animation-delay:.2s;stroke-opacity:.55}
+.home-sea-ripple circle:nth-child(3){animation-delay:.4s;stroke-opacity:.35}
 .scene-tree{transform-box:fill-box;transform-origin:50% 100%;animation:island-breeze 5.5s ease-in-out infinite alternate}
 .scene-tree.tree-two{animation-delay:-2.5s}
 .scene-boat{transform-box:fill-box;transform-origin:center;animation:island-boat 5s ease-in-out infinite alternate}
@@ -48,7 +52,8 @@ body[data-page="home"] .scene-note{display:flex;gap:7px;align-items:center;margi
 body[data-page="home"] .scene-note i{width:5px;height:5px;background:#72aa9c;border-radius:50%;box-shadow:0 0 0 3px #a9d8ce55}
 body[data-page="home"] .scene-note:after{content:'';height:1px;width:40px;background:#649b9e66}
 @keyframes island-cloud{from{translate:-18px 0}to{translate:24px -8px}}
-@keyframes island-shore{0%{scale:.99;opacity:.65}100%{scale:1.12;opacity:0}}
+@keyframes island-shore{0%{scale:.99;opacity:0}12%{opacity:.85}65%{opacity:.45}100%{scale:1.42;opacity:0}}
+@keyframes home-sea-spread{0%{r:2px;opacity:.8}70%{opacity:.25}100%{r:var(--wave-reach);opacity:0}}
 @keyframes island-breeze{from{rotate:-2deg}to{rotate:3deg}}
 @keyframes island-boat{from{translate:0 0;rotate:-2deg}to{translate:3px -5px;rotate:2deg}}
 @keyframes island-bird{from{translate:-14px 3px}to{translate:31px -8px}}

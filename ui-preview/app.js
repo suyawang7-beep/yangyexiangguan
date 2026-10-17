@@ -246,6 +246,7 @@
     function apply() {
       const enabled = saved && !reduced.matches;
       world.dataset.motion = enabled ? 'on' : 'off';
+      if (!enabled) world.querySelectorAll('.home-sea-ripple').forEach((wave) => wave.remove());
       button.setAttribute('aria-pressed', String(enabled));
       button.querySelector('span').textContent = reduced.matches ? '随系统关闭' : `动效 · ${enabled ? '开' : '关'}`;
       button.disabled = reduced.matches;
@@ -268,6 +269,21 @@
     });
     document.addEventListener('pointerdown', (event) => {
       if (world.dataset.motion !== 'on' || event.target.closest('input,select,dialog')) return;
+      if (PAGE === 'home') {
+        const wave = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        wave.classList.add('home-sea-ripple'); wave.setAttribute('aria-hidden', 'true');
+        wave.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
+        wave.style.setProperty('--wave-reach', `${Math.hypot(innerWidth, innerHeight) * .95}px`);
+        for (let i = 0; i < 3; i++) {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', event.clientX); circle.setAttribute('cy', event.clientY); circle.setAttribute('r', '2');
+          wave.append(circle);
+        }
+        world.querySelectorAll('.home-sea-ripple').forEach((old, index, waves) => { if (index < waves.length - 2) old.remove(); });
+        wave.lastElementChild.addEventListener('animationend', () => wave.remove(), { once: true });
+        world.append(wave); setTimeout(() => wave.remove(), 10000);
+        return;
+      }
       const ripple = document.createElement('span');
       ripple.className = 'ripple'; ripple.style.left = `${event.clientX}px`; ripple.style.top = `${event.clientY}px`;
       document.body.append(ripple); setTimeout(() => ripple.remove(), 850);
@@ -458,6 +474,6 @@
   renderShell();
   renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261017-story3', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261017-water4', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();

@@ -10,7 +10,7 @@
   const SVG = 'http://www.w3.org/2000/svg';
   const featureStyles = document.createElement('link');
   featureStyles.rel = 'stylesheet';
-  featureStyles.href = new URL('effects.css?v=20261017-story3', document.currentScript.src).href;
+  featureStyles.href = new URL('effects.css?v=20261017-water4', document.currentScript.src).href;
   document.head.append(featureStyles);
   const motionSubscribers = new Set();
   const sync = () => motionSubscribers.forEach((callback) => callback());
@@ -110,6 +110,7 @@
       <image class="scene-land" href="assets/island-scenery.svg" width="1600" height="1000"/>
       <g class="scene-shore"><path d="M774 424c45-119 223-166 375-139 157-59 354 16 381 141 64 141-51 258-212 278-198 56-451-9-514-128-32-55-58-111-30-152Z"/></g>
       <g class="scene-shore shore-two"><path d="M774 424c45-119 223-166 375-139 157-59 354 16 381 141 64 141-51 258-212 278-198 56-451-9-514-128-32-55-58-111-30-152Z"/></g>
+      <g class="scene-shore shore-three"><path d="M774 424c45-119 223-166 375-139 157-59 354 16 381 141 64 141-51 258-212 278-198 56-451-9-514-128-32-55-58-111-30-152Z"/></g>
       <g transform="translate(913 445)"><g class="scene-tree"><path d="M0 27q6-36-1-64" stroke="#a9a383" stroke-width="8" stroke-linecap="round"/><path d="M-1-37q-51-34-64 4 32-17 64-4Z" fill="#72ad9b"/><path d="M-1-37q-11-55 26-49-18 20-26 49Z" fill="#b8d8a9"/><path d="M-1-37q36-35 64-4-34-6-64 4Z" fill="#91c5a4"/><path d="M-1-37q-35 5-36 38 13-21 36-38Z" fill="#88bea1"/><path d="M-1-37q35 3 37 35-19-22-37-35Z" fill="#acd0a9"/></g></g>
       <g transform="translate(1353 487) scale(.8)"><g class="scene-tree tree-two"><path d="M0 27q6-36-1-64" stroke="#a9a383" stroke-width="8" stroke-linecap="round"/><path d="M-1-37q-51-34-64 4 32-17 64-4Z" fill="#72ad9b"/><path d="M-1-37q-11-55 26-49-18 20-26 49Z" fill="#b8d8a9"/><path d="M-1-37q36-35 64-4-34-6-64 4Z" fill="#91c5a4"/><path d="M-1-37q-35 5-36 38 13-21 36-38Z" fill="#88bea1"/><path d="M-1-37q35 3 37 35-19-22-37-35Z" fill="#acd0a9"/></g></g>
       <g transform="translate(1293 744)"><g class="scene-boat"><ellipse cy="19" rx="43" ry="8" fill="#397b9822"/><path d="m-41 0 18 23h43L39 0Z" fill="#fff4e7"/><path d="m-34 5 13 14h37L28 5Z" fill="#b6c7d6"/><path d="M-3 0v-79" stroke="#9e9da5" stroke-width="3"/><path d="M-7-72-35-10H-7Z" fill="#fff9ee"/><path d="M2-77v67h32Z" fill="#ebc1d4"/><path d="M-5-83 16-79-5-72Z" fill="#c2b3d4"/></g></g>
@@ -144,11 +145,16 @@
       float surface(vec2 uv,float t){vec2 n=vec2(.1),N=vec2(.1);float scale=7.;mat2 m=rotate2D(.5);
         for(int j=0;j<8;j++){uv=m*uv;n=m*n;vec2 q=uv*scale+float(j)+n+(.5+.5*float(j))*(mod(float(j),2.)-1.)*t;n+=sin(q);N+=cos(q)/scale;scale*=1.2;}
         return pow(N.x+N.y+.1,2.);}
-      void main(){float t=u_time*.00028;vec2 uv=vec2(vUv.x*u_ratio,1.-vUv.y);
+      float spreading(vec2 uv,vec2 origin,float delay){
+        float age=mod(u_time+delay,10.);float front=length(uv-origin)-age*.27;
+        float fade=smoothstep(0.,.65,age)*(1.-smoothstep(7.,10.,age));
+        return sin(front*45.)*exp(-front*front*26.)*fade;}
+      void main(){float t=u_time*.28;vec2 uv=vec2(vUv.x*u_ratio,1.-vUv.y);
         float outer=noise(uv*.65+vec2(0.,t*.15));float s=surface(uv*2.+outer*.15,t);
-        vec2 imageUV=vUv;imageUV+=vec2(outer*.008+s*.013,outer*.006+s*.008);
+        float wave=spreading(uv,vec2(u_ratio*.16,.73),0.)+spreading(uv,vec2(u_ratio*.79,.4),5.);
+        vec2 imageUV=vUv;imageUV+=vec2(outer*.012+s*.018+wave*.012,outer*.009+s*.011+wave*.016);
         vec3 color=texture2D(u_image,imageUV).rgb;float light=pow(clamp(s*1.2,0.,1.),1.5);
-        color=mix(color,vec3(.91,1.,.98),light*.64);gl_FragColor=vec4(color,1.);}`;
+        color*=1.+wave*.06;color=mix(color,vec3(.91,1.,.98),clamp(light*.7+max(wave,0.)*.18,0.,.8));gl_FragColor=vec4(color,1.);}`;
     function compile(type, source) {
       const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader);
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { gl.deleteShader(shader); return null; }
@@ -180,7 +186,7 @@
       frame = 0; if (!enabled() || lost) return;
       if (now - previous >= 45) {
         clock += Math.min(now - previous, 100); previous = now;
-        gl.uniform1f(time, clock); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.uniform1f(time, clock / 1000); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
       frame = requestAnimationFrame(render);
     }
@@ -188,7 +194,7 @@
       const scale = Math.min(devicePixelRatio || 1, innerWidth < 700 ? .8 : 1.15);
       canvas.width = Math.round(innerWidth * scale); canvas.height = Math.round(innerHeight * scale);
       gl.viewport(0, 0, canvas.width, canvas.height); gl.uniform1f(ratio, innerWidth / innerHeight);
-      gl.uniform1f(time, clock); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.uniform1f(time, clock / 1000); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
     addEventListener('resize', resize);
     canvas.addEventListener('webglcontextlost', (event) => { event.preventDefault(); lost = true; cancelAnimationFrame(frame); frame = 0; world.classList.remove('water-ready'); world.dataset.water = 'css-fallback'; });
