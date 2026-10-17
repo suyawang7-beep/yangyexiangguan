@@ -396,11 +396,23 @@
       const button = document.querySelector('#draw-button');
       const stage = document.querySelector('#draw-stage');
       button.disabled = true; button.textContent = '肥啾正在为你送信…';
+      stage.setAttribute('aria-busy', 'true');
       stage.classList.remove('is-revealed'); stage.classList.add('is-drawing');
       document.querySelector('#stage-card').innerHTML = drawBack();
       document.querySelector('#draw-status').textContent = '金币已扣除，回忆已保存。即使刷新也可以在收藏室找到。';
+      let revealTimer;
+      let revealed = false;
+      const finishWhenMotionStops = () => {
+        if (document.querySelector('.world').dataset.motion === 'off' || document.hidden) reveal();
+      };
       const reveal = () => {
+        if (revealed) return;
+        revealed = true;
+        clearTimeout(revealTimer);
+        document.removeEventListener('buzhi:motion', finishWhenMotionStops);
+        document.removeEventListener('visibilitychange', finishWhenMotionStops);
         drawing = false;
+        stage.setAttribute('aria-busy', 'false');
         stage.classList.remove('is-drawing'); stage.classList.add('is-revealed');
         document.querySelector('#stage-card').innerHTML = cardMarkup(card);
         document.querySelector('#draw-result-label').textContent = `${card.rarity} · ${card.name}`;
@@ -412,8 +424,10 @@
           document.querySelector('#draw-pool-description').textContent = '接下来正常卡池包含UR、SSR、SR、R、N，16张卡片每张概率均为1/16。';
         }
       };
-      const noMotion = document.querySelector('.world').dataset.motion === 'off';
-      setTimeout(reveal, noMotion ? 0 : 1450);
+      const noMotion = document.querySelector('.world').dataset.motion === 'off' || document.hidden || stage.dataset.deliveryReady !== 'true';
+      document.addEventListener('buzhi:motion', finishWhenMotionStops);
+      document.addEventListener('visibilitychange', finishWhenMotionStops);
+      revealTimer = setTimeout(reveal, noMotion ? 0 : 3000);
     }));
   }
 
@@ -479,7 +493,7 @@
       ['04', '肥啾任务进度', '完成真实演示任务后，小肥啾向3／6／9任务里程碑前进。', 'office', 'bird'],
       ['05', '沿着地图登岛', '滚动或点下一站，镜头沿路线移动、缩放和转向。', 'guide', 'anchor'],
       ['06', '岛民画廊', '无限横向滑动、错落合影与空间欣赏，预留未来OC入口。', 'islanders', 'heart'],
-      ['07', '拆开生日回忆', '待抽卡片轻轻起伏，揭晓时星光划过，卡面逐渐显现。', 'draw', 'mail'],
+      ['07', '肥啾叼卡与生日流星雨', '肥啾叼着来信轻轻浮动，抽取时带着大流星送达，揭晓后停在卡片旁庆祝。', 'draw', 'mail'],
       ['08', '签到的小小星光', '每日签到完成时短暂绽放，不持续干扰阅读。', 'checkin', 'sun'],
     ].map(([n, name, text, key, motif]) => `<a class="glass effect-entry" href="${key === 'collection' ? 'collection.html#appreciate' : PATHS[key][0]}"><span class="effect-entry-top"><span class="mono">${n}</span>${icon(motif)}</span><h2>${name}</h2><p>${text}</p><span class="effect-entry-bottom">打开体验 ${icon('arrow')}</span></a>`).join('')}</div><div class="info-note">根据你提供的参考代码重写、适配到不吱岛。缩略图网格原案例尚未拿到完整源码；当前卡片放大采用本地实现，没有声称复刻该案例。所有数据仍为本地演示。</div>`;
   }
@@ -490,6 +504,6 @@
   renderShell();
   renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261017-glass5', document.currentScript.src).href;
+  effectsScript.src = new URL(`effects.js?v=${PAGE === 'draw' ? '20261017-courier1' : '20261017-glass5'}`, document.currentScript.src).href;
   document.body.append(effectsScript);
 })();

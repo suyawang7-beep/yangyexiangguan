@@ -54,6 +54,10 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   await page.locator('#claim-pass').click();
   await page.locator('#public-id').waitFor();
   await visit('draw');
+  check(await page.locator('.draw-courier svg').count() === 1, 'One bird courier carries the card, including when reduced motion is enabled');
+  check(await page.locator('.draw-meteor').count() === 18, 'Draw scene provides eighteen staggered meteor trails');
+  check(await page.locator('.draw-meteor-sky').evaluate(el => getComputedStyle(el).display) === 'none', 'Reduced motion hides the meteor sky');
+  const initialState = await context.storageState();
   const firstButton = await layout('#draw-button');
   check(firstButton.top >= 0 && firstButton.bottom <= firstButton.edge - 8,
     `390×844: draw button must be fully above the bottom navigation; got bottom=${firstButton.bottom}, navigation=${firstButton.edge}`);
@@ -105,8 +109,57 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   check(guestButton.bottom <= guestButton.edge - 8, 'Guest registration entry is fully visible in the first mobile viewport');
   check(await passportLink.isVisible(), 'Guest has a visible passport entry');
   await capture('draw-mobile-guest');
+  // Actual animation, with isolated demo identity and unmocked settlement.
+  const animationContext = await browser.newContext({ viewport: { width: 1440, height: 1000 }, storageState: initialState, reducedMotion: 'no-preference' });
+  await animationContext.route('**/*', route => route.request().url().startsWith(base + '/') ? route.continue() : route.abort());
+  const motionPage = await animationContext.newPage();
+  motionPage.on('pageerror', error => errors.push(error.message));
+  await motionPage.goto(`${base}/ui-preview/draw.html`, { waitUntil: 'networkidle' });
+  await motionPage.waitForSelector('[data-delivery-ready="true"]');
+  check(await motionPage.locator('.world').getAttribute('data-motion') === 'on', 'Animation is enabled when permitted by system and preference');
+  if (process.env.UI_PREVIEW_CAPTURE_DIR) await motionPage.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, 'courier-desktop-idle.png') });
+  await motionPage.locator('#draw-button').click();
+  check(await motionPage.locator('#draw-stage.is-drawing').count() === 1, 'Click starts the delivery performance');
+  check(await motionPage.locator('#draw-stage').getAttribute('aria-busy') === 'true', 'Delivery announces its busy state');
+  check(await motionPage.locator('#draw-button').isDisabled(), 'Delivery prevents double clicks');
+  const during = await motionPage.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
+  check(during.balance === 0 && during.history.length === 1, 'Card is durably saved before the performance finishes');
+  check(await motionPage.locator('.draw-meteor').first().evaluate(el => getComputedStyle(el).animationName) === 'birthday-meteor', 'Meteor flight has an active animation');
+  if (process.env.UI_PREVIEW_CAPTURE_DIR) {
+    // Only for a mid-flight evidence frame, not for deciding test outcomes.
+    await motionPage.waitForTimeout(850);
+    await motionPage.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, 'courier-desktop-flight.png') });
+  }
+  await motionPage.locator('#draw-stage.is-revealed').waitFor({ timeout: 6000 });
+  check(await motionPage.locator('#draw-stage').getAttribute('aria-busy') === 'false', 'Delivery clears its busy state at reveal');
+  check(await motionPage.locator('.draw-courier').evaluate(el => getComputedStyle(el).animationName) === 'courier-celebrate', 'Courier celebrates beside the revealed card');
+  await motionPage.reload({ waitUntil: 'networkidle' });
+  check(await motionPage.locator('#draw-button').isDisabled(), 'Result survives reloading after the performance');
+
+  const interruptContext = await browser.newContext({ viewport: { width: 390, height: 844 }, storageState: initialState, reducedMotion: 'no-preference' });
+  await interruptContext.route('**/*', route => route.request().url().startsWith(base + '/') ? route.continue() : route.abort());
+  const interrupted = await interruptContext.newPage();
+  interrupted.on('pageerror', error => errors.push(error.message));
+  await interrupted.goto(`${base}/ui-preview/draw.html`, { waitUntil: 'networkidle' });
+  await interrupted.waitForSelector('[data-delivery-ready="true"]');
+  const mobileMeteors = await interrupted.locator('.draw-meteor').evaluateAll(list => list.filter(el => getComputedStyle(el).display !== 'none').length);
+  check(mobileMeteors === 10, 'Mobile keeps ten trails instead of eighteen');
+  await interrupted.locator('#draw-button').click();
+  if (process.env.UI_PREVIEW_CAPTURE_DIR) {
+    await interrupted.waitForTimeout(650);
+    await interrupted.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, 'courier-mobile-flight.png') });
+  }
+  await interrupted.locator('#motion-toggle').click();
+  await interrupted.locator('#draw-stage.is-revealed').waitFor({ timeout: 1000 });
+  check(await interrupted.locator('.draw-meteor-sky').evaluate(el => getComputedStyle(el).display) === 'none', 'Turning motion off during delivery immediately hides meteors');
+  const afterSkip = await interrupted.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
+  check(afterSkip.balance === 0 && afterSkip.history.length === 1, 'Skipping motion neither charges again nor loses the result');
+  for (const name of ['index', 'passport', 'office', 'checkin', 'draw', 'collection', 'islanders', 'mailbox', 'guide', 'effects']) {
+    await visit(name);
+    check((await page.locator('main').innerText()).trim().length > 0, `${name}: current preview page renders content`);
+  }
   check(errors.length === 0, `No page-level JavaScript errors: ${errors.join('; ')}`);
-  console.log(`PASS ${checks} layout and flow assertions; widths 320/375/390/768/1440, first draw, collection, insufficient coins, guest and reduced motion`);
+  console.log(`PASS ${checks} assertions; five widths, draw settlement, collection, guest, live courier/meteors, reduced/interrupted motion and ten-page render smoke check`);
 })().catch(error => { console.error('FAIL:', error); process.exitCode = 1; }).finally(async () => {
   if (browser) await browser.close();
   await new Promise(resolve => server.close(resolve));

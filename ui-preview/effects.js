@@ -296,8 +296,32 @@
 
   function installDrawEffects() {
     const stage = document.querySelector('#draw-stage'); if (!stage) return;
+    if (stage.dataset.deliveryReady === 'true') return;
     const source = document.querySelector('.pool-preview');
     if (source) { source.classList.add('wave-preview'); Array.from(source.children).forEach((el, i) => el.style.setProperty('--wave-delay', `${-i * .28}s`)); }
+    // The bird carries the actual card mount, not an extra reward or fake result.
+    const delivery = document.createElement('div'); delivery.className = 'draw-delivery';
+    const cardMount = stage.querySelector('#stage-card');
+    cardMount.before(delivery); delivery.append(cardMount);
+    delivery.insertAdjacentHTML('beforeend', `<div class="draw-courier" aria-hidden="true"><svg viewBox="0 0 200 160" fill="none">
+      <ellipse cx="98" cy="143" rx="50" ry="7" fill="#699db8" opacity=".12"/>
+      <path d="m68 132-8 14m9-4-14-1m49-6 4 13m-5-3 14-2" stroke="#a88457" stroke-width="4" stroke-linecap="round"/>
+      <path d="m38 88-23 8 21 13" fill="#cce6ef" stroke="#6393aa" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M37 109C14 85 24 44 53 33c6-21 24-27 39-15 18-14 35-5 40 7 32 1 52 26 48 58-1 33-21 54-61 57-33 3-64-6-82-31Z" fill="#fffdf7" stroke="#6393aa" stroke-width="2.5"/>
+      <path d="M49 97c22 12 57 18 100 2 5 25-17 36-40 36-29 0-49-10-60-38Z" fill="#e3f2f4"/>
+      <g class="courier-wing"><path d="M66 74c-28-13-39 9-27 26 6 10 22 13 40-1" fill="#d4eaf1" stroke="#739eae" stroke-width="2.5" stroke-linecap="round"/><path d="m45 93 18 5" stroke="#a5c7d5" stroke-width="3" stroke-linecap="round"/></g>
+      <g class="courier-eye"><ellipse cx="137" cy="59" rx="5" ry="7" fill="#315b70"/><circle cx="138" cy="57" r="1.5" fill="white"/></g>
+      <ellipse cx="147" cy="78" rx="12" ry="6" fill="#efc0cf" opacity=".7"/>
+      <path d="m170 82 23 15-25 5" fill="#eabf73" stroke="#a88556" stroke-width="2.3" stroke-linejoin="round"/>
+      <path d="m171 94 20 3" stroke="#a88556" stroke-width="1.8"/>
+      <path d="m74 28 8 6m10-11 6 8" stroke="#bed6de" stroke-width="2.5" stroke-linecap="round"/>
+      <g class="courier-happiness" stroke="#a8b5d6" stroke-width="2.5" stroke-linecap="round"><path d="m163 16 3-9m12 18 8-4m-8 17 9 2"/></g>
+    </svg></div>`);
+    const sky = document.createElement('div'); sky.className = 'draw-meteor-sky'; sky.setAttribute('aria-hidden', 'true');
+    sky.innerHTML = Array.from({ length: 18 }, (_, i) => `<i class="draw-meteor" style="--meteor-x:${58 + i * 19 % 83}%;--meteor-y:${-28 + i * 11 % 72}%;--meteor-delay:${(i * .075).toFixed(3)}s;--meteor-duration:${(1.3 + i % 4 * .15).toFixed(2)}s"></i>`).join('');
+    stage.prepend(sky);
+    stage.dataset.deliveryReady = 'true';
+    subscribe(() => { stage.dataset.deliveryMotion = enabled() ? 'on' : 'off'; });
     const sweep = document.createElement('div'); sweep.className = 'reveal-starlight'; sweep.setAttribute('aria-hidden', 'true');
     sweep.innerHTML = '<span>✦</span><i></i><b>✧</b>'; stage.append(sweep);
     new MutationObserver(() => {
