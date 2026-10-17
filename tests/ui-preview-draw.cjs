@@ -50,6 +50,12 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   }
 
   await visit('passport');
+  await page.evaluate(() => document.fonts.ready);
+  check(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily.includes('Buzhi Rounded')), 'The cute rounded font is the actual UI font, not the old serif fallback');
+  check(await page.evaluate(() => [...document.fonts].some(font => font.family === 'Buzhi Rounded' && font.status === 'loaded')), 'The bundled Chinese rounded font successfully loads');
+  check(await page.locator('main .page-heading').count() === 0, 'Passport has its own ticket-office opening instead of the shared numbered header');
+  const claimPosition = await layout('#claim-pass');
+  check(claimPosition.bottom <= claimPosition.edge - 8, 'Passport claim action is above the mobile bottom bar');
   await page.locator('#nickname').fill('拆信布局检查');
   await page.locator('#claim-pass').click();
   await page.locator('#public-id').waitFor();
@@ -157,6 +163,51 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   for (const name of ['index', 'passport', 'office', 'checkin', 'draw', 'collection', 'islanders', 'mailbox', 'guide', 'effects']) {
     await visit(name);
     check((await page.locator('main').innerText()).trim().length > 0, `${name}: current preview page renders content`);
+    check(await page.locator('main .page-heading').count() === 0, `${name}: does not repeat the old numbered header`);
+    check(await page.locator('main h1').count() === 1, `${name}: has one clear primary heading`);
+    check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name}: no mobile horizontal overflow`);
+    await capture(`round-${name}-mobile`);
+  }
+  // Reuse an isolated registered fixture to inspect identity-dependent screens.
+  const savedDemo = initialState.origins[0].localStorage.find(item => item.name === 'buzhi-ui-preview-v3');
+  await page.evaluate(item => localStorage.setItem(item.name, item.value), savedDemo);
+  await visit('checkin');
+  const signPosition = await layout('#checkin-button');
+  check(signPosition.bottom <= signPosition.edge - 8, 'Today\'s sign-in action comes before the calendar and is visible on mobile');
+  await page.locator('#checkin-button').click();
+  check(await page.locator('#checkin-button').isDisabled(), 'Rearranged calendar still completes sign-in');
+  await capture('round-checkin-ready-mobile');
+  await visit('office');
+  await capture('round-office-ready-mobile');
+  await page.locator('.office-verification').evaluate(el => { el.open = true; });
+  await page.locator('#demo-islander').click();
+  await page.locator('[data-task="arrival"]').click();
+  await page.locator('[data-task="wish"]').click();
+  await page.locator('#task-code').fill('ISLAND25');
+  await page.locator('#task-code-form button[type="submit"]').click();
+  const taskState = await page.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
+  check(taskState.tasks.includes('arrival') && taskState.tasks.includes('wish'), 'Pinboard-style task controls still complete arrival and a code task');
+  check(taskState.balance === 85, 'Task board awards exactly 25 after the existing 50+10 balance');
+  await visit('islanders');
+  check(await page.locator('.oc-slide.active .oc-caption strong').evaluate(el => el.getBoundingClientRect().bottom < document.querySelector('.mobile-nav').getBoundingClientRect().top), 'OC name is visible in the first mobile viewport');
+  await page.locator('#oc-next').click();
+  await page.waitForFunction(() => document.querySelector('#oc-step').textContent === '02');
+  check(await page.locator('.oc-slide.active .oc-caption strong').textContent() === '吱吱', 'Poster-style OC gallery still switches characters');
+  await visit('collection');
+  check(await page.locator('[data-layout][aria-pressed="true"]').count() === 1, 'Collection default display and selected mode agree');
+  check(await page.locator('.collection-exhibit').isVisible(), 'Available fan display is active by default');
+  await page.locator('#card-search').fill('不存在的回忆');
+  await page.locator('.exhibit-empty').waitFor();
+  check(await page.locator('.exhibit-empty').isVisible(), 'Rearranged collection filters still show an empty result');
+  await visit('guide');
+  await page.locator('#voyage-next').click();
+  await page.waitForFunction(() => document.querySelector('#voyage-count').textContent === '02 / 06');
+  check(await page.locator('#voyage-location').textContent() === '庆典码头', 'Compact map tour still advances to the next stop');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  for (const name of ['index', 'passport', 'office', 'checkin', 'collection', 'islanders', 'mailbox', 'guide', 'effects']) {
+    await visit(name);
+    check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name}: no desktop horizontal overflow`);
+    await capture(`round-${name}-desktop`);
   }
   check(errors.length === 0, `No page-level JavaScript errors: ${errors.join('; ')}`);
   console.log(`PASS ${checks} assertions; five widths, draw settlement, collection, guest, live courier/meteors, reduced/interrupted motion and ten-page render smoke check`);

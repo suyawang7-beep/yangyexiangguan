@@ -213,7 +213,7 @@
   function installExhibit() {
     const grid = document.querySelector('#collection-grid'); if (!grid) return;
     const controls = document.createElement('div'); controls.className = 'appreciation-toolbar';
-    controls.innerHTML = `<div><span class="eyebrow">Open your memory album</span><p>换一种方式，欣赏这些回忆。</p></div><div class="filter-tabs" aria-label="收藏展示方式">${[['grid','collectionGrid','网格'],['fan','collectionFan','扇形展开'],['circle','collectionRing','圆环欣赏']].filter(([,key])=>allowedMode(key)).map(([mode,,label])=>'<button type="button" data-layout="'+mode+'" aria-pressed="false">'+label+'</button>').join('')}</div>`;
+    controls.innerHTML = `<span class="exhibit-mode-label">${'<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v15H4zM8 2v6m8-6v6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'} 回忆展馆</span><div class="filter-tabs" aria-label="收藏展示方式">${[['grid','collectionGrid','网格'],['fan','collectionFan','扇形展开'],['circle','collectionRing','圆环欣赏']].filter(([,key])=>allowedMode(key)).map(([mode,,label])=>'<button type="button" data-layout="'+mode+'" aria-pressed="false">'+label+'</button>').join('')}</div>`;
     grid.before(controls);
     const exhibit = document.createElement('section'); exhibit.className = 'glass collection-exhibit'; exhibit.hidden = true;
     exhibit.setAttribute('aria-label', '卡片展开欣赏');
@@ -275,6 +275,7 @@
     });
     new MutationObserver(rebuild).observe(grid, { childList: true });
     new ResizeObserver(layout).observe(exhibit);
+    choose(mode);
     const onHash = () => { if (location.hash === '#appreciate' && allowedMode('collectionFan')) { choose('fan'); controls.scrollIntoView({ block: 'start', behavior: enabled() ? 'smooth' : 'auto' }); } };
     addEventListener('hashchange', onHash); onHash();
   }
@@ -376,7 +377,7 @@
     const gallery = document.querySelector('#oc-gallery'); if (!gallery) return;
     const track = gallery.querySelector('#oc-track'); const cards = Array.from(track.children); const n = cards.length;
     let target = 0, position = 0, frame = 0, mode = allowedMode('ocSlider')?'slider':allowedMode('ocStagger')?'stagger':'depth', drag = null, wasDragged = false, tiltX = 0, tiltY = 0;
-    const step = () => Math.min(gallery.clientWidth * .72, 450);
+    const step = () => gallery.clientWidth < 600 ? gallery.clientWidth * .86 : Math.min(gallery.clientWidth * .83, 900);
     function paint() {
       const width = gallery.clientWidth, narrow = width < 600;
       gallery.dataset.mode = mode;

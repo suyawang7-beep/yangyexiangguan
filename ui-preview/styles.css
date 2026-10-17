@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Serif+SC:wght@400;600&display=swap');
+@import url('celebration.css?v=20261017-round1');
 
 :root {
   --ocean:#a8d8f0; --ice:#c9f4ff; --iris:#cdbdff; --pearl:#f9c8e5;
   --ink:#285777; --muted:#506f86; --accent:#286c99; --surface:#f5fbff94;
   --border:#ffffffe0; --shadow:0 14px 40px #517fa51a;
-  --display:'ZCOOL KuaiLe','KaiTi',serif;
-  font-family:'PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --display:'Buzhi Rounded','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  font-family:var(--display);
   color:var(--ink); background:#d9edf7; font-synthesis:none;
 }
 *{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,a{-webkit-tap-highlight-color:transparent}a{color:inherit;text-decoration:none}button{cursor:pointer;color:inherit}button:disabled{cursor:default;opacity:.5}button,input,select{min-height:44px}button{border:0}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #286c99;outline-offset:4px}img{display:block;max-width:100%}h1,h2,h3,p{overflow-wrap:anywhere}h1,h2,h3{font-weight:500}p{line-height:1.85}svg.icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}[hidden]{display:none!important}

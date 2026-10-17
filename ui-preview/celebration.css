@@ -1,0 +1,356 @@
+/* round1: one island, distinct rooms. No account/reward logic or card artwork. */
+@font-face{font-family:'Buzhi Rounded';src:url('assets/fonts/buzhi-rounded.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+body .world :is(h1,h2,h3,.brand strong,.brand-mark,.avatar,.preview-stamp,.hero-copy .subtitle,.postal-margin-note){font-family:var(--display)}
+body .world main{padding-bottom:8px}
+body .world .room-label{display:block;font-size:12px;letter-spacing:1px;color:#527c96;margin-bottom:9px}
+body .world :is(.ticket-office-head,.notice-board-head,.calendar-page-head,.album-cover,.cast-room-head,.letter-room-head,.map-room-head,.playground-head) h1{font-size:clamp(30px,3vw,42px);line-height:1.3;margin:0;letter-spacing:1px}
+body .world :is(.ticket-office-head,.notice-board-head,.album-cover,.cast-room-head,.letter-room-head,.playground-head) p{font-size:14px;color:var(--muted);margin:10px 0 0}
+body .world .room-emblem{width:66px;height:66px;border:1px solid white;border-radius:23px;background:#f5fbff99;display:grid;place-items:center;transform:rotate(-7deg);flex:none;box-shadow:0 8px 18px #477d9d13}
+body .world .room-emblem>.icon{width:33px;height:33px;stroke-width:1.2}
+body .world .btn{font-size:14px;border-radius:16px}
+body .world .empty-state .actions .icon{width:18px;height:18px;margin:0}
+body .world .empty-state .btn{min-height:48px}
+body .world .info-note{font-size:13px}
+body .world .hero-copy h1{font-size:clamp(35px,3.6vw,49px);line-height:1.5}
+body .world .hero-copy .subtitle{font-size:16px;line-height:1.9}
+body .world :is(.hero-date strong,.draw-cost strong,.postal-postmark>strong){font-family:var(--display);font-weight:400}
+body .world .hero-letters{font-size:80px;opacity:.55}
+body .world .hero-art img{max-height:640px;object-fit:contain}
+
+/* Passport = a registration counter and a perforated travel document. */
+body[data-page="passport"] .ticket-office-head{display:flex;align-items:center;gap:22px;padding:30px 0 25px;max-width:1020px;margin:auto}
+body[data-page="passport"] .ticket-gift{margin-left:auto;display:flex;align-items:center;gap:8px;padding:12px 16px;border:1px dashed #779db570;border-radius:30px;font-size:13px;background:#fff6;white-space:nowrap}
+body[data-page="passport"] .passport-grid{max-width:1020px;margin:auto;grid-template-columns:1.08fr .92fr;gap:35px}
+body[data-page="passport"] #passport-form{border-radius:28px;padding:25px 30px;position:relative}
+body[data-page="passport"] #passport-form h2{font-size:23px;margin-bottom:18px}
+body[data-page="passport"] .form-field{gap:7px;margin-bottom:17px}
+body[data-page="passport"] .form-field :is(label,.hint){font-size:12px}
+body[data-page="passport"] .form-field input{min-height:46px;font-size:15px}
+body[data-page="passport"] fieldset{margin-bottom:16px}
+body[data-page="passport"] legend{padding-bottom:7px;font-size:13px}
+body[data-page="passport"] .avatar-option{padding:6px 2px;gap:6px;font-size:11px}
+body[data-page="passport"] .privacy-note{font-size:12px;line-height:1.7;padding:10px 12px;margin-bottom:14px}
+body[data-page="passport"] #passport-form>.small{font-size:12px;margin:10px 0 0}
+body[data-page="passport"] .pass-preview{border-radius:28px;padding:30px;transform:rotate(3deg);margin-top:20px}
+body[data-page="passport"] .pass-preview h3{font-size:28px;line-height:1.5}
+body[data-page="passport"] .pass-preview p{font-size:14px}
+body[data-page="passport"] .ticket{border-radius:26px;position:relative}
+body[data-page="passport"] .ticket:before,body[data-page="passport"] .ticket:after{content:'';position:absolute;top:104px;width:20px;height:20px;border:1px solid white;border-radius:50%;background:#d9edf6}
+body[data-page="passport"] .ticket:before{left:-11px}body[data-page="passport"] .ticket:after{right:-11px}
+body[data-page="passport"] .ticket-body dt{font-size:12px}
+body[data-page="passport"] .ticket-id p{font-size:12px}
+body[data-page="passport"] .ticket-actions{margin-top:14px}
+
+/* Office = pinned glass task notices, with progress as the side column. */
+body[data-page="office"] .notice-board-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:27px 0 22px;border-bottom:1px dashed #86abc16e;margin-bottom:22px}
+body[data-page="office"] .notice-board-head h1{display:flex;gap:12px;align-items:center}
+body[data-page="office"] .notice-board-head h1>.icon{width:35px;height:35px;stroke-width:1.2}
+body[data-page="office"] .board-wallet{display:flex;align-items:center;gap:14px;background:#ffffff82;border:1px solid white;border-radius:22px;padding:16px 24px;min-width:185px;font-size:12px}
+body[data-page="office"] .board-wallet>.icon{width:35px;height:35px;color:#a7854b}
+body[data-page="office"] .board-wallet strong{display:block;font-size:32px;line-height:1.3}
+body[data-page="office"] .welcome-strip{padding:18px 22px;border-radius:20px;margin-bottom:12px}
+body[data-page="office"] .welcome-strip h2{font-size:25px}
+body[data-page="office"] .welcome-strip p{font-size:12px}
+body[data-page="office"] .office-verification{font-size:13px;color:var(--muted);border-bottom:1px dashed #86abc16e;margin:0 0 20px;padding:0 5px 10px;line-height:1.8}
+body[data-page="office"] .office-verification summary{cursor:pointer;min-height:44px;padding:11px 0;color:var(--ink)}
+body[data-page="office"] .office-verification>.btn{font-size:12px}
+body[data-page="office"] .task-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 16px}
+body[data-page="office"] .task-card{grid-template-columns:42px minmax(0,1fr);padding:23px 20px 18px;align-items:start;border-radius:22px;position:relative}
+body[data-page="office"] .task-card:before{content:'';position:absolute;left:26px;top:-6px;width:44px;height:12px;border:1px solid #fff;background:#b9ddecbd;border-radius:8px;transform:rotate(-6deg)}
+body[data-page="office"] .task-card:nth-child(3n+2):before{background:#edd0e4bd;transform:rotate(5deg)}
+body[data-page="office"] .task-card:nth-child(3n):before{background:#d5ccedbd}
+body[data-page="office"] .task-card h3{font-size:16px;line-height:1.5}
+body[data-page="office"] .task-card p{font-size:12px}
+body[data-page="office"] .task-card .task-action{grid-column:2;justify-self:start}
+body[data-page="office"] .task-card .btn{min-height:44px;font-size:12px}
+body[data-page="office"] .sidebar-card{border-radius:24px}
+body[data-page="office"] .milestone p,body[data-page="office"] .ledger li{font-size:12px}
+
+/* Sign-in = today's action above a seven-day celebration calendar. */
+body[data-page="checkin"] .calendar-page-head{display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1100px;margin:auto;padding:25px 0}
+body[data-page="checkin"] .calendar-date{display:grid;grid-template-columns:36px auto;align-items:center;gap:0 12px;padding:12px 18px;border:1px solid white;border-radius:20px;background:#fff7}
+body[data-page="checkin"] .calendar-date>.icon{grid-row:1/3;color:#a98348;width:30px;height:30px}
+body[data-page="checkin"] .calendar-date strong{font-size:24px;font-weight:400}
+body[data-page="checkin"] .calendar-date small{font-size:11px;color:var(--muted)}
+body[data-page="checkin"] .checkin-layout{max-width:1100px;margin:auto;grid-template-columns:1.6fr .8fr;gap:24px}
+body[data-page="checkin"] .checkin-layout>.panel{border-radius:28px;padding:28px}
+body[data-page="checkin"] .checkin-head{margin-bottom:20px}
+body[data-page="checkin"] .checkin-head h2{font-size:26px}
+body[data-page="checkin"] .checkin-head p{font-size:12px}
+body[data-page="checkin"] .checkin-summary{border:0;padding:18px 0 0;gap:12px;border-top:1px dashed #86abc16e}
+body[data-page="checkin"] .checkin-summary p{font-size:13px}
+body[data-page="checkin"] .checkin-summary .btn{min-height:48px;font-size:14px}
+body[data-page="checkin"] .days{margin:22px 0 0;gap:9px}
+body[data-page="checkin"] .day{border-radius:23px 23px 18px 18px;font-size:12px;padding:18px 4px}
+body[data-page="checkin"] .day strong{font-family:var(--display);font-size:25px}
+body[data-page="checkin"] .hidden-card-teaser{max-width:100px;margin:16px auto}
+body[data-page="checkin"] .sidebar-card{border-radius:26px}
+
+/* Collection = album cover, compact filters, then the actual exhibition. */
+body[data-page="collection"] .album-cover{display:flex;align-items:center;justify-content:space-between;gap:35px;padding:26px 0 22px;border-bottom:1px dashed #86abc16e}
+body[data-page="collection"] .album-cover h1{display:flex;align-items:center;gap:12px}
+body[data-page="collection"] .album-cover h1>.icon{width:32px;height:32px}
+body[data-page="collection"] .collection-summary{padding:17px 22px;gap:24px;border-radius:24px;max-width:500px;margin:0}
+body[data-page="collection"] .collection-summary strong{font-family:var(--display);font-size:30px}
+body[data-page="collection"] .collection-summary span{font-size:12px}
+body[data-page="collection"] .collection-summary .summary-action{font-size:12px;min-height:32px;display:flex;align-items:center}
+body[data-page="collection"] .filter-bar{margin:18px 0 7px;gap:15px}
+body[data-page="collection"] .filter-tabs button{font-size:13px;min-height:44px}
+body[data-page="collection"] .filter-controls input,body[data-page="collection"] .filter-controls select{min-height:44px;font-size:13px}
+body[data-page="collection"] .appreciation-toolbar{padding:6px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+body[data-page="collection"] .exhibit-mode-label{display:flex;align-items:center;gap:8px;font-size:13px;white-space:nowrap}
+body[data-page="collection"] .appreciation-toolbar .filter-tabs{width:auto}
+body[data-page="collection"] .appreciation-toolbar .filter-tabs button{font-size:12px;min-height:40px;padding:7px 15px}
+body[data-page="collection"] .collection-exhibit{border-radius:28px;height:460px}
+body[data-page="collection"] .exhibit-caption{font-size:16px}
+body[data-page="collection"] .collection-note{font-size:12px}
+
+/* OC gallery = a character poster, not another row of information panels. */
+body[data-page="islanders"] .cast-room-head{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:27px 0 21px}
+body[data-page="islanders"] .cast-room-head p{margin:0;flex:1;text-align:center;font-size:16px}
+body[data-page="islanders"] .cast-room-head .pill{font-size:11px}
+body[data-page="islanders"] .oc-gallery{height:500px;border-radius:34px}
+body[data-page="islanders"] .oc-count{top:22px;left:27px;z-index:3}
+body[data-page="islanders"] .oc-count>span{font-family:var(--display);font-size:32px}
+body[data-page="islanders"] .oc-slide{width:min(82vw,860px);height:370px;top:48%;border-radius:27px;display:grid;grid-template-columns:.85fr 1.15fr;align-items:stretch}
+body[data-page="islanders"] .oc-art{grid-column:2;grid-row:1;min-width:0}
+body[data-page="islanders"] .oc-art img{width:110%;height:120%;top:-10%;left:-5%}
+body[data-page="islanders"] .oc-caption{grid-column:1;grid-row:1;display:flex;flex-direction:column;justify-content:center;padding:34px;border:0;background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body[data-page="islanders"] .oc-caption small{font-size:13px;line-height:1.8}
+body[data-page="islanders"] .oc-caption strong{font-size:52px;margin:8px 0 12px}
+body[data-page="islanders"] .oc-caption>span{font-size:15px;line-height:1.9}
+body[data-page="islanders"] .oc-slider-controls{bottom:13px;left:27px;right:27px;font-size:12px}
+body[data-page="islanders"] .oc-slider-controls .btn{min-height:44px}
+body[data-page="islanders"] .island-origin{margin:18px 0 0;padding:15px 20px;border-top:1px dashed #86abc16e;font-size:14px;color:var(--muted);line-height:1.9}
+body[data-page="islanders"] .island-origin summary{min-height:44px;cursor:pointer;padding:8px 0;color:var(--ink)}
+body[data-page="islanders"] .island-origin p{margin:10px 0}
+
+/* Mailbox = a letter rack and an opened, readable letter. */
+body[data-page="mailbox"] .letter-room-head{display:flex;align-items:center;gap:23px;padding:28px 0}
+body[data-page="mailbox"] .letter-room-mark{width:92px;height:76px;display:grid;place-items:center;background:linear-gradient(135deg,#fff9,#d0edfa88);border:1px solid white;border-radius:22px;transform:rotate(-9deg)}
+body[data-page="mailbox"] .letter-room-mark>.icon{width:47px;height:47px;stroke-width:1}
+body[data-page="mailbox"] .mail-seal{margin-left:auto;width:88px;height:88px;display:grid;place-content:center;text-align:center;font-size:13px;line-height:1.8;border:1px dashed #8cabc3;border-radius:50%;transform:rotate(12deg);color:var(--muted)}
+body[data-page="mailbox"] .mailbox-layout{grid-template-columns:220px minmax(0,1fr);gap:35px}
+body[data-page="mailbox"] .mailbox-side{border-radius:25px;padding:23px}
+body[data-page="mailbox"] .mailbox-side>.icon{width:40px;height:40px;margin-bottom:12px}
+body[data-page="mailbox"] .mailbox-side h2{font-size:21px;margin:0}
+body[data-page="mailbox"] .mailbox-side p{font-size:12px}
+body[data-page="mailbox"] .mailbox-side nav{display:grid;gap:5px;margin-top:15px;border-top:1px dashed #86abc16e;padding-top:8px}
+body[data-page="mailbox"] .mailbox-side nav a{display:flex;align-items:center;justify-content:space-between;min-height:44px;font-size:13px}
+body[data-page="mailbox"] .mailbox-side nav .icon{width:15px;height:15px}
+body[data-page="mailbox"] .letter{padding:35px clamp(24px,4vw,55px);border-radius:28px;scroll-margin-top:20px}
+body[data-page="mailbox"] .letter h2{font-size:30px;line-height:1.5;max-width:20em}
+body[data-page="mailbox"] .letter p{font-size:15px;line-height:2;max-width:43em}
+body[data-page="mailbox"] .letter time{font-size:12px}
+
+/* Tour = a travel map alongside close, short story stops. */
+body[data-page="guide"] .map-room-head{display:flex;align-items:center;gap:20px;padding:26px 0 22px}
+body[data-page="guide"] .map-room-head>.pill{margin-left:auto;font-size:12px}
+body[data-page="guide"] .guide-topbar{margin-bottom:18px}
+body[data-page="guide"] .guide-topbar .btn{font-size:13px;min-height:44px}
+body[data-page="guide"] .voyage-layout{grid-template-columns:1.1fr .9fr;gap:30px}
+body[data-page="guide"] .voyage-map{height:clamp(300px,48vh,480px);min-height:0;aspect-ratio:auto;border-radius:26px}
+body[data-page="guide"] .voyage-stop{min-height:42vh;align-items:flex-start;padding:25px 0;scroll-margin-top:30px}
+body[data-page="guide"] .voyage-stop:first-child{min-height:42vh;padding-top:0}
+body[data-page="guide"] .voyage-stop:last-child{min-height:48vh}
+body[data-page="guide"] .voyage-stop .panel{width:100%;padding:25px;border-radius:24px}
+body[data-page="guide"] .voyage-stop h2{font-size:27px;margin:14px 0}
+body[data-page="guide"] .voyage-stop p{font-size:14px}
+
+/* Design tools = a small playful bento, not the public birthday entrance. */
+body[data-page="effects"] .playground-head{display:flex;align-items:center;gap:30px;padding:30px 0 20px}
+body[data-page="effects"] .playground-head>span{font-size:84px;line-height:1;color:#92bad6;transform:rotate(-12deg);text-shadow:0 0 30px white}
+body[data-page="effects"] .playground-note{font-size:13px;border-bottom:1px dashed #86abc16e;padding:0 0 18px;margin-bottom:24px;color:var(--muted)}
+body[data-page="effects"] .effects-index{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+body[data-page="effects"] .effect-entry{border-radius:27px;padding:25px;min-height:220px}
+body[data-page="effects"] .effect-entry:first-child{grid-column:span 2;background:linear-gradient(130deg,#ffffff7d,#bbe8f64d)}
+body[data-page="effects"] .effect-entry h2{font-size:24px;line-height:1.5}
+body[data-page="effects"] .effect-entry p{font-size:13px}
+
+@media(max-width:950px){
+  body[data-page="office"] .task-list{grid-template-columns:1fr}
+  body[data-page="collection"] .album-cover{gap:20px}
+  body[data-page="collection"] .collection-summary{max-width:370px;gap:15px}
+  body[data-page="islanders"] .oc-slide{width:80vw;grid-template-columns:1fr 1.1fr}
+  body[data-page="islanders"] .oc-caption{padding:25px}
+  body[data-page="islanders"] .oc-caption strong{font-size:42px}
+  body[data-page="islanders"] .cast-room-head p{display:none}
+}
+@media(max-width:620px){
+  body .world .site-header{padding:14px 17px 9px;gap:5px}
+  body .world .brand{gap:6px}
+  body .world .brand strong{font-size:19px;letter-spacing:1px}
+  body .world .brand small{font-size:6px;letter-spacing:1.4px}
+  body .world .brand-mark{width:30px;height:32px;font-size:19px}
+  body .world .header-actions{gap:4px}
+  body .world .wallet{padding:7px 8px;font-size:11px;gap:4px}
+  body .world .motion-toggle{padding:7px;min-width:48px;font-size:9px;gap:4px}
+  body .world .passport-link{width:30px;padding:5px}
+  body .world .desktop-nav a[href="islanders.html"]{font-size:10px;padding:7px 2px}
+  body .world .demo-line{font-size:9px;padding:9px 0}
+  body .world .room-label{font-size:11px;margin-bottom:6px}
+  body .world :is(.ticket-office-head,.notice-board-head,.calendar-page-head,.album-cover,.cast-room-head,.letter-room-head,.map-room-head,.playground-head) h1{font-size:28px;letter-spacing:0}
+  body .world :is(.ticket-office-head,.notice-board-head,.album-cover,.letter-room-head,.playground-head) p{font-size:12px;line-height:1.7;margin-top:7px}
+  body .world .room-emblem{width:44px;height:44px;border-radius:16px}
+  body .world .room-emblem>.icon{width:25px;height:25px}
+  body .world .hero-copy{padding:24px 18px 20px}
+  body .world .hero-copy h1{font-size:33px;line-height:1.5;margin:13px 0}
+  body .world .hero-copy .subtitle{font-size:14px}
+  body .world .hero-date{margin:15px 0}
+  body .world .hero-copy .btn{font-size:12px;padding:10px 13px}
+  body .world .hero-art{min-height:330px}
+  body .world .hero-art img{max-height:440px}
+  body[data-page="home"] .world .home-hero{display:grid;grid-template-columns:1fr;gap:0;padding:17px 20px 16px;margin-top:17px;border:1px solid #ffffffe0;border-radius:28px;background:linear-gradient(135deg,#ffffff78,#e9f9ff40);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  body[data-page="home"] .world .hero-copy{display:contents}
+  body[data-page="home"] .world .hero-copy:before{display:none}
+  body[data-page="home"] .world .hero-letters{display:none}
+  body[data-page="home"] .world .hero-copy>.scene-note{grid-row:1;margin:0;font-size:10px}
+  body[data-page="home"] .world .hero-copy>.eyebrow{grid-row:2;margin:9px 0 4px;font-size:7px;letter-spacing:1.4px}
+  body[data-page="home"] .world .hero-copy h1{grid-row:3;font-size:29px;line-height:1.35;margin:5px 0 8px}
+  body[data-page="home"] .world .hero-copy .subtitle{grid-row:4;font-size:13px;line-height:1.65;margin:0}
+  body[data-page="home"] .world .hero-art{grid-row:5;width:100%;height:205px;min-height:205px;max-width:none;margin:0;align-self:center}
+  body[data-page="home"] .world .hero-art img{width:265px;height:225px;margin:0;max-width:100%;object-fit:contain}
+  body[data-page="home"] .world :is(.floating-note,.birthday-seal,.art-caption){display:none}
+  body[data-page="home"] .world .hero-date{grid-row:6;margin:5px 0 12px;gap:15px}
+  body[data-page="home"] .world .hero-date strong{font-size:34px}
+  body[data-page="home"] .world .hero-date small{font-size:9px}
+  body[data-page="home"] .world .hero-date i{width:24px}
+  body[data-page="home"] .world .hero-copy>.actions{grid-row:7;gap:8px}
+  body[data-page="home"] .world .hero-copy>.actions .btn{padding:10px 13px;font-size:12px;gap:8px}
+  body[data-page="home"] .world .hero-footnote{grid-row:8;font-size:10px;margin:10px 0 0}
+  body[data-page="home"] .world .home-extras{grid-row:9;margin:8px 0 0;gap:17px}
+  body[data-page="passport"] .ticket-office-head{padding:17px 0;gap:12px;flex-wrap:wrap}
+  body[data-page="passport"] .ticket-office-head p{margin-top:5px}
+  body[data-page="passport"] .ticket-gift{display:none}
+  body[data-page="passport"] .passport-grid{grid-template-columns:1fr;gap:18px}
+  body[data-page="passport"] #passport-form{padding:19px 21px;border-radius:24px}
+  body[data-page="passport"] #passport-form h2{font-size:21px;margin-bottom:13px}
+  body[data-page="passport"] .form-field{margin-bottom:13px}
+  body[data-page="passport"] .avatar-options{gap:3px}
+  body[data-page="passport"] .avatar{width:41px;height:41px}
+  body[data-page="passport"] .pass-preview{margin:0;transform:none;padding:22px}
+  body[data-page="passport"] .pass-preview .mini-art{height:150px}
+  body[data-page="passport"] .ticket{padding:21px}
+  body[data-page="passport"] .ticket-header{padding-bottom:14px}
+  body[data-page="passport"] .ticket-body{padding:17px 0;gap:15px}
+  body[data-page="passport"] .ticket-id{padding-top:15px}
+  body[data-page="passport"] .ticket-id label{font-size:12px}
+  body[data-page="passport"] .preview-stamp{font-size:17px;margin-top:12px}
+  body[data-page="passport"] .ticket-actions .btn{font-size:12px;gap:8px;padding:10px 13px}
+  body[data-page="office"] .notice-board-head{padding:18px 0;margin-bottom:16px;gap:12px;align-items:flex-start}
+  body[data-page="office"] .notice-board-head h1{font-size:27px;gap:6px}
+  body[data-page="office"] .notice-board-head h1>.icon{width:24px;height:24px}
+  body[data-page="office"] .notice-board-head p{max-width:210px}
+  body[data-page="office"] .board-wallet{min-width:72px;padding:11px 9px;gap:5px;align-items:flex-start;font-size:9px;border-radius:19px}
+  body[data-page="office"] .board-wallet>.icon{width:16px;height:16px;margin-top:3px}
+  body[data-page="office"] .board-wallet strong{font-size:25px}
+  body[data-page="office"] .welcome-strip{padding:16px}
+  body[data-page="office"] .welcome-strip h2{font-size:22px}
+  body[data-page="office"] .welcome-strip p{font-size:11px}
+  body[data-page="office"] .welcome-strip .pill{margin-top:8px}
+  body[data-page="office"] .office-verification{font-size:12px;margin-bottom:19px}
+  body[data-page="office"] .task-list{gap:18px}
+  body[data-page="office"] .task-card{padding:18px 16px;grid-template-columns:36px minmax(0,1fr)}
+  body[data-page="office"] .task-card h3{font-size:15px}
+  body[data-page="office"] .task-card .task-action{grid-column:2}
+  body[data-page="checkin"] .calendar-page-head{padding:18px 0;gap:12px}
+  body[data-page="checkin"] .calendar-date{padding:9px 11px;grid-template-columns:22px auto;gap:0 6px;border-radius:17px}
+  body[data-page="checkin"] .calendar-date>.icon{width:20px;height:20px}
+  body[data-page="checkin"] .calendar-date strong{font-size:18px}
+  body[data-page="checkin"] .calendar-date small{font-size:9px}
+  body[data-page="checkin"] .checkin-layout{grid-template-columns:1fr;gap:20px}
+  body[data-page="checkin"] .checkin-layout>.panel{padding:21px;border-radius:25px}
+  body[data-page="checkin"] .checkin-head{margin-bottom:13px;gap:12px}
+  body[data-page="checkin"] .checkin-head h2{font-size:24px}
+  body[data-page="checkin"] .checkin-head p{font-size:11px}
+  body[data-page="checkin"] .sun-emblem{width:48px;height:48px}
+  body[data-page="checkin"] .checkin-summary{padding-top:13px;align-items:center;flex-wrap:wrap}
+  body[data-page="checkin"] .checkin-summary p{font-size:12px;margin:0}
+  body[data-page="checkin"] .checkin-summary .btn{width:100%;justify-content:center;font-size:14px}
+  body[data-page="checkin"] .days{margin-top:18px;gap:8px}
+  body[data-page="checkin"] .day{padding:12px 3px;gap:7px}
+  body[data-page="collection"] .album-cover{display:block;padding:18px 0 15px}
+  body[data-page="collection"] .album-cover h1>.icon{width:26px;height:26px}
+  body[data-page="collection"] .collection-summary{margin-top:15px;padding:12px 16px;gap:12px;max-width:none;align-items:center}
+  body[data-page="collection"] .collection-summary strong{font-size:25px}
+  body[data-page="collection"] .collection-summary span{font-size:11px}
+  body[data-page="collection"] .collection-summary .summary-action{margin-left:auto;flex-basis:auto;max-width:90px;font-size:11px;line-height:1.7}
+  body[data-page="collection"] .filter-bar{margin:12px 0 0;gap:8px}
+  body[data-page="collection"] .filter-tabs button{font-size:12px}
+  body[data-page="collection"] .filter-controls{gap:8px}
+  body[data-page="collection"] .filter-controls select{width:112px}
+  body[data-page="collection"] .appreciation-toolbar{padding:7px 0 9px;gap:10px}
+  body[data-page="collection"] .exhibit-mode-label{font-size:12px}
+  body[data-page="collection"] .appreciation-toolbar .filter-tabs{width:auto}
+  body[data-page="collection"] .appreciation-toolbar .filter-tabs button{padding:6px 12px;min-height:36px;font-size:11px}
+  body[data-page="collection"] .collection-exhibit{height:365px;border-radius:24px}
+  body[data-page="collection"] .exhibit-caption{top:15px;font-size:15px}
+  body[data-page="collection"] .exhibit-caption small{font-size:10px}
+  body[data-page="collection"] .exhibit-cards .memory-card{top:51%}
+  body[data-page="islanders"] .cast-room-head{padding:18px 0 15px;gap:10px;align-items:center}
+  body[data-page="islanders"] .cast-room-head .pill{font-size:9px;max-width:125px;line-height:1.7}
+  body[data-page="islanders"] .oc-gallery{height:408px;border-radius:28px}
+  body[data-page="islanders"] .oc-count{top:13px;left:18px}
+  body[data-page="islanders"] .oc-count>span{font-size:26px}
+  body[data-page="islanders"] .oc-slide{width:calc(100% - 46px);height:305px;top:47%;display:flex;flex-direction:column;border-radius:22px}
+  body[data-page="islanders"] .oc-art{flex:1;min-height:0}
+  body[data-page="islanders"] .oc-art img{height:130%;width:110%;top:-16%;left:-5%}
+  body[data-page="islanders"] .oc-caption{display:grid;gap:4px;padding:11px 16px 13px;background:linear-gradient(130deg,#f5fbffd4,#eaf5ff85)!important;border-top:1px solid white;flex:none}
+  body[data-page="islanders"] .oc-caption small{font-size:11px;line-height:1.5}
+  body[data-page="islanders"] .oc-caption strong{font-size:30px;margin:0;line-height:1.2}
+  body[data-page="islanders"] .oc-caption>span{font-size:12px;line-height:1.6}
+  body[data-page="islanders"] .oc-slider-controls{bottom:9px;left:16px;right:16px;font-size:10px;gap:7px}
+  body[data-page="islanders"] .oc-slider-controls>span{font-size:10px}
+  body[data-page="islanders"] .island-origin{margin-top:15px;padding:8px 4px;font-size:13px}
+  body[data-page="mailbox"] .letter-room-head{gap:13px;padding:20px 0}
+  body[data-page="mailbox"] .letter-room-mark{width:55px;height:53px;border-radius:16px;flex:none}
+  body[data-page="mailbox"] .letter-room-mark>.icon{width:30px;height:30px}
+  body[data-page="mailbox"] .mail-seal{display:none}
+  body[data-page="mailbox"] .mailbox-layout{grid-template-columns:1fr;gap:15px}
+  body[data-page="mailbox"] .mailbox-side{display:block;position:static;padding:7px 15px;border-radius:18px}
+  body[data-page="mailbox"] .mailbox-side>:not(nav){display:none}
+  body[data-page="mailbox"] .mailbox-side nav{display:flex;gap:22px;margin:0;padding:0;border:0}
+  body[data-page="mailbox"] .mailbox-side nav a{flex:1;font-size:13px}
+  body[data-page="mailbox"] .letter{padding:23px;border-radius:24px}
+  body[data-page="mailbox"] .letter h2{font-size:25px}
+  body[data-page="mailbox"] .letter p{font-size:14px;line-height:1.95}
+  body[data-page="guide"] .map-room-head{padding:18px 0;gap:12px;flex-wrap:wrap}
+  body[data-page="guide"] .map-room-head h1{font-size:27px}
+  body[data-page="guide"] .map-room-head>.pill{margin:0;display:none}
+  body[data-page="guide"] .guide-topbar{margin-bottom:13px}
+  body[data-page="guide"] .guide-topbar>.pill{display:none}
+  body[data-page="guide"] .voyage-layout{display:block}
+  body[data-page="guide"] .voyage-sticky{top:7px;padding-bottom:8px}
+  body[data-page="guide"] .voyage-map{height:225px;max-height:28svh;min-height:200px;aspect-ratio:auto;border-radius:22px}
+  body[data-page="guide"] .voyage-buttons{margin-top:8px}
+  body[data-page="guide"] .voyage-buttons .btn{font-size:12px;min-height:44px}
+  body[data-page="guide"] .voyage-stop{min-height:36svh;padding:15px 0;scroll-margin-top:300px}
+  body[data-page="guide"] .voyage-stop:first-child{min-height:36svh;padding-top:15px}
+  body[data-page="guide"] .voyage-stop:last-child{min-height:45svh}
+  body[data-page="guide"] .voyage-stop .panel{padding:21px}
+  body[data-page="guide"] .voyage-stop h2{font-size:25px;margin:11px 0}
+  body[data-page="guide"] .voyage-stop p{font-size:13px;margin-bottom:10px}
+  body[data-page="effects"] .playground-head{gap:17px;padding:22px 0 15px}
+  body[data-page="effects"] .playground-head>span{font-size:49px}
+  body[data-page="effects"] .playground-head h1{font-size:27px}
+  body[data-page="effects"] .playground-head .room-label{font-size:10px}
+  body[data-page="effects"] .playground-note{font-size:12px;margin-bottom:16px}
+  body[data-page="effects"] .effects-index{grid-template-columns:1fr 1fr;gap:12px}
+  body[data-page="effects"] .effect-entry{padding:18px 15px;min-height:205px;border-radius:23px}
+  body[data-page="effects"] .effect-entry:first-child{min-height:160px}
+  body[data-page="effects"] .effect-entry h2{font-size:20px;line-height:1.5}
+  body[data-page="effects"] .effect-entry p{font-size:12px}
+}
+@media(max-width:360px){
+  body .world .motion-toggle{min-width:32px;width:32px;flex:none;min-height:36px;padding:7px}
+  body .world .motion-toggle>span{display:none}
+  body[data-page="home"] .world .site-header{gap:4px;padding:10px 9px}
+  body[data-page="home"] .world .header-actions{gap:3px}
+  body[data-page="home"] .world .passport-link{width:30px}
+  body[data-page="checkin"] .calendar-page-head h1{font-size:24px}
+  body[data-page="passport"] .ticket-office-head h1{font-size:24px}
+  body[data-page="home"] .world .hero-copy h1{font-size:25px}
+  body[data-page="home"] .world .hero-art{height:165px;min-height:165px}
+  body[data-page="home"] .world .hero-art img{width:225px;height:185px}
+  body[data-page="home"] .world .hero-copy>.actions .btn{font-size:11px;padding:10px}
+}

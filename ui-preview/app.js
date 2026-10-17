@@ -453,10 +453,59 @@
     dialog.addEventListener('close', () => trigger?.focus());
   }
 
+  // Presentation-only rearrangements. Keep the existing forms, controls and IDs
+  // so account/reward behavior remains independent of each room's composition.
+  function applyPageLayout() {
+    const main = document.querySelector('#main');
+    const replaceOpening = (markup) => { const old = main.querySelector('.page-heading'); if (old) old.outerHTML = markup; };
+    if (PAGE === 'passport') {
+      replaceOpening(`<header class="ticket-office-head"><span class="room-emblem">${icon('ticket')}</span><div><span class="room-label">不吱岛 · 登岛登记处</span><h1>把名字留在小岛</h1><p>领一张生日通行证，留一份属于你的回忆。</p></div><span class="ticket-gift">${icon('coin')} 首次登岛 +50</span></header>`);
+      const privacy = main.querySelector('#passport-form .privacy-note');
+      if (privacy) privacy.textContent = '仅供演示，请勿填写平台 UID 等私密资料。正式核验由主网站接入。';
+      const formTitle = main.querySelector('#passport-form h2');
+      if (formTitle) formTitle.textContent = '领取你的生日通行证';
+    } else if (PAGE === 'office') {
+      replaceOpening(`<header class="notice-board-head"><div><span class="room-label">庆典筹备公告栏</span><h1>${icon('flag')} 岛民事务所</h1><p>做一点小事，把快乐和金币一起装进口袋。</p></div><div class="board-wallet">${icon('coin')}<span>我的庆典金币<strong data-balance>${state.balance}</strong></span></div></header>`);
+      const notice = main.querySelector('.office-layout > div > .info-note');
+      if (notice) {
+        const details = document.createElement('details'); details.className = 'office-verification';
+        details.innerHTML = '<summary>访客与核验岛民有什么不同？</summary>';
+        details.append(...notice.childNodes); notice.replaceWith(details);
+      }
+      const greeting = main.querySelector('.welcome-strip h2'); if (greeting) greeting.textContent = '今天的庆典待办';
+    } else if (PAGE === 'checkin') {
+      replaceOpening(`<header class="calendar-page-head"><div><span class="room-label">每天留一个小脚印</span><h1>小岛签到日历</h1></div><span class="calendar-date">${icon('sun')}<strong>${dateKey().slice(5).replace('-', ' / ')}</strong><small>北京时间</small></span></header>`);
+      const days = main.querySelector('.days'), action = main.querySelector('.checkin-summary');
+      if (days && action) days.before(action);
+      const seventh = main.querySelector('.sidebar-card h3'); if (seventh) seventh.textContent = '七日纪念角';
+    } else if (PAGE === 'collection') {
+      replaceOpening(`<header class="album-cover"><div><span class="room-label">一册属于你的生日回忆</span><h1>${icon('cards')} 回忆收藏室</h1><p>把相遇的瞬间，慢慢收藏。</p></div></header>`);
+      const summary = main.querySelector('.collection-summary'); if (summary) main.querySelector('.album-cover').append(summary);
+    } else if (PAGE === 'islanders') {
+      replaceOpening(`<header class="cast-room-head"><div><span class="room-label">住在不吱岛的人们</span><h1>岛民画廊</h1></div><p>每一位岛民，都有自己的故事。</p><span class="pill pink">角色示意 · 正式 OC 待接入</span></header>`);
+      const modeBar = main.querySelector('.oc-mode-bar'); if (modeBar && modeBar.querySelectorAll('button').length === 1) modeBar.hidden = true;
+      const story = document.createElement('details'); story.className = 'oc-world-intro island-origin';
+      story.innerHTML = '<summary>从雪啾国到不吱岛，读读我们的故事</summary><p>菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p>';
+      main.querySelector('.oc-gallery').after(story);
+    } else if (PAGE === 'mailbox') {
+      replaceOpening(`<header class="letter-room-head"><span class="letter-room-mark">${icon('mail')}</span><div><span class="room-label">给亲爱的岛民</span><h1>岛主来信</h1><p>岛上的近况，和想认真说给你听的话。</p></div><span class="mail-seal" aria-hidden="true">不吱岛<br>寄给你 ♡</span></header>`);
+      const letters = main.querySelectorAll('.letter'); letters.forEach((letter, i) => { letter.id = `island-letter-${i + 1}`; });
+      const side = main.querySelector('.mailbox-side');
+      side.innerHTML = `${icon('mail')}<h2>今天，拆一封信</h2><p>来自菜菜与吱吱</p><nav aria-label="信件目录"><a href="#island-letter-1">生日邀请 ${icon('arrow')}</a><a href="#island-letter-2">庆典小贴士 ${icon('arrow')}</a></nav>`;
+    } else if (PAGE === 'guide') {
+      replaceOpening(`<header class="map-room-head"><span class="room-emblem">${icon('anchor')}</span><div><span class="room-label">沿着海风出发</span><h1>一起逛逛不吱岛</h1></div><span class="pill">6 站小岛旅程 · 随时可跳过</span></header>`);
+    } else if (PAGE === 'effects') {
+      replaceOpening(`<header class="playground-head"><span aria-hidden="true">✦</span><div><span class="room-label">设计审阅专用 · 非正式领奖页面</span><h1>小岛光影游乐场</h1><p>水波、星光和一只送来回忆的肥啾。</p></div></header>`);
+      const intro = main.querySelector('.effects-intro');
+      intro.outerHTML = '<aside class="playground-note">电脑移动鼠标、手机轻触即可体验；右上角可以统一关闭动效。</aside>';
+    }
+  }
+
   function renderPage() {
     const renderers = { home: renderHome, passport: renderPassport, office: renderOffice, checkin: renderCheckin, draw: renderDraw, collection: renderCollection, mailbox: renderMailbox, guide: renderGuide, islanders: renderIslanders, effects: renderEffects };
     const main = document.querySelector('#main');
     main.innerHTML = renderers[PAGE]();
+    applyPageLayout();
     const binders = { passport: bindPassport, office: bindOffice, checkin: bindCheckin, draw: bindDraw, collection: bindCollection };
     binders[PAGE]?.();
     updateWallet();
@@ -489,10 +538,10 @@
     return heading('✦', 'A little playground of light', '不吱岛 · 特效体验', '从这里逐个打开效果。右上角可以统一关闭动效，手机以触控方式体验。') + `<div class="effects-intro glass"><span class="effect-big-star">✦</span><div><h2>海风动起来，回忆展开来。</h2><p>电脑上移动鼠标看看星光。正式角色素材还未接入，当前是可操作的多页面预览。</p></div></div><div class="effects-index">${[
       ['01', '首页水面折射', '流动的水面扭曲与细碎光纹，作为首页海面背景。', 'home', 'wave'],
       ['02', '星光鼠标与点击反馈', '电脑跟随鼠标，手机点击短暂绽放；输入时保留文字光标。', 'home', 'sparkles'],
-      ['03', '展开一册生日回忆', '在网格、扇形和圆环之间切换，可拖动、翻页和查看卡片。', 'collection', 'cards'],
+      ['03', '展开一册生日回忆', '当前开放扇形展馆，可拖动、翻页、筛选和查看卡片；其他排列由设置控制。', 'collection', 'cards'],
       ['04', '肥啾任务进度', '完成真实演示任务后，小肥啾向3／6／9任务里程碑前进。', 'office', 'bird'],
       ['05', '沿着地图登岛', '滚动或点下一站，镜头沿路线移动、缩放和转向。', 'guide', 'anchor'],
-      ['06', '岛民画廊', '无限横向滑动、错落合影与空间欣赏，预留未来OC入口。', 'islanders', 'heart'],
+      ['06', '岛民画廊', '横向欣赏角色海报，阅读名字与身份，预留未来个人 OC 入口。', 'islanders', 'heart'],
       ['07', '肥啾叼卡与生日流星雨', '肥啾叼着来信轻轻浮动，抽取时带着大流星送达，揭晓后停在卡片旁庆祝。', 'draw', 'mail'],
       ['08', '签到的小小星光', '每日签到完成时短暂绽放，不持续干扰阅读。', 'checkin', 'sun'],
     ].map(([n, name, text, key, motif]) => `<a class="glass effect-entry" href="${key === 'collection' ? 'collection.html#appreciate' : PATHS[key][0]}"><span class="effect-entry-top"><span class="mono">${n}</span>${icon(motif)}</span><h2>${name}</h2><p>${text}</p><span class="effect-entry-bottom">打开体验 ${icon('arrow')}</span></a>`).join('')}</div><div class="info-note">根据你提供的参考代码重写、适配到不吱岛。缩略图网格原案例尚未拿到完整源码；当前卡片放大采用本地实现，没有声称复刻该案例。所有数据仍为本地演示。</div>`;
@@ -504,6 +553,6 @@
   renderShell();
   renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL(`effects.js?v=${PAGE === 'draw' ? '20261017-courier1' : '20261017-glass5'}`, document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261017-round1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
