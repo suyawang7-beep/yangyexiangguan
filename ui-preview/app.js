@@ -162,6 +162,8 @@
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
   let managedAssets={};
+  let managedLayouts={};
+  function applyAssetLayout(el,name,isBackground=false){if(!el)return;const v=managedLayouts[name];if(!v)return;el.style.opacity=String(v.opacity/100);el.style.zIndex=String(v.layer);el.style.position=el.style.position||'relative';if(isBackground){el.style.backgroundPosition=v.x+'% '+v.y+'%';el.style.backgroundSize=v.fit==='cover'?'cover':v.scale+'% auto';return}el.style.objectFit=v.fit;el.style.objectPosition=v.x+'% '+v.y+'%';el.style.transform='scale('+(v.scale/100)+')';el.style.transformOrigin=v.x+'% '+v.y+'%'}
   function refreshManagedArtwork(){
     if(!LIVE)return;
     const backgrounds={
@@ -175,12 +177,12 @@
     const selected=backgrounds[PAGE];
     if(selected&&managedAssets[selected[0]]){
       const host=document.querySelector(selected[1]);
-      if(host){host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255,.70),rgba(242,223,252,.55)),url("/assets/'+selected[0]+'?v='+assetVersion+'")';host.style.backgroundSize='cover';host.style.backgroundPosition='center'}
+      if(host){host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255,.70),rgba(242,223,252,.55)),url("/assets/'+selected[0]+'?v='+assetVersion+'")';host.style.backgroundSize='cover';host.style.backgroundPosition='center';applyAssetLayout(host,selected[0],true)}
     }
     const hero=document.querySelector('.hero-art img, .mini-art');
-    if(hero&&managedAssets['decor/home-poster.webp'])hero.src='/assets/decor/home-poster.webp?v='+assetVersion;
+    if(hero&&managedAssets['decor/home-poster.webp']){hero.src='/assets/decor/home-poster.webp?v='+assetVersion;applyAssetLayout(hero,'decor/home-poster.webp')}
     const map=document.querySelector('#map-camera image');
-    if(map&&managedAssets['decor/island-map.webp'])map.setAttribute('href','/assets/decor/island-map.webp?v='+assetVersion);
+    if(map&&managedAssets['decor/island-map.webp']){map.setAttribute('href','/assets/decor/island-map.webp?v='+assetVersion);applyAssetLayout(map,'decor/island-map.webp')}
     document.querySelectorAll('.memory-card').forEach(card=>{
       const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\d{2}/)?.[0];
       const match=liveCatalog.find(item=>item.previewId===label);
@@ -189,17 +191,17 @@
       let img=slot.querySelector('img[data-official-card]');
       if(!img){img=document.createElement('img');img.dataset.officialCard='true';img.alt='官方回忆卡面';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit';slot.replaceChildren(img)}
       const target='/assets/cards/'+match.id+'.webp?v='+assetVersion;
-      if(!img.src.endsWith(target))img.src=target;
+      if(!img.src.endsWith(target))img.src=target;applyAssetLayout(img,'cards/'+match.id+'.webp');
     });
     document.querySelectorAll('#oc-track .oc-slide').forEach((slide,i)=>{
       const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':null;
-      if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img)img.src='/assets/'+file+'?v='+assetVersion}
+      if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img){img.src='/assets/'+file+'?v='+assetVersion;applyAssetLayout(img,file)}}
     });
   }
   let assetVersion=Date.now();
   async function loadManagedArtwork(){
     if(!LIVE)return;
-    try{const data=await liveApi('assets-manifest');managedAssets=data.assets||{};assetVersion=Date.now();refreshManagedArtwork()}catch(e){console.warn('素材清单暂不可用',e)}
+    try{const data=await liveApi('assets-manifest');managedAssets=data.assets||{};managedLayouts=data.layouts||{};assetVersion=Date.now();refreshManagedArtwork()}catch(e){console.warn('素材清单暂不可用',e)}
   }
 
   async function liveApi(path,body){
