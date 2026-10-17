@@ -4,6 +4,7 @@
   const world = document.querySelector('.world');
   if (!world) return;
   const page = document.body.dataset.page;
+  const production = window.__BUZHI_PRODUCTION__ === true;
   const effectDefaults={collectionGrid:false,collectionFan:true,collectionRing:false,ocSlider:true,ocStagger:false,ocDepth:false,effectWater:true,effectStars:true,effectIsland:true,effectProgress:true,effectGuide:true,effectDraw:true,effectCheckin:true};
   let visual={...effectDefaults};
   let effectsConfigured = false;
@@ -29,8 +30,8 @@
   const bird = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 33C-1 13 18 2 32 14l8-2-2 9c10 17-17 24-29 12Z" fill="#f5fbff" stroke="#598eaf" stroke-width="2"/><path d="m35 24 9 3-9 3" fill="#e7bf7b"/><circle cx="29" cy="22" r="2" fill="#285777"/><path d="M12 28q8-8 14 0" fill="none" stroke="#aacde3" stroke-width="3"/><path d="m17 41-3 5m12-5 3 5" stroke="#598eaf" stroke-width="2"/></svg>';
 
   function shellLinks() {
-    document.querySelector('.desktop-nav').insertAdjacentHTML('beforeend', `<a href="islanders.html" ${page === 'islanders' ? 'aria-current="page"' : ''}>岛民画廊</a><a href="effects.html" ${page === 'effects' ? 'aria-current="page"' : ''}>特效体验 ✦</a>`);
-    document.querySelector('.footer-links').insertAdjacentHTML('beforeend', '<a href="effects.html">特效体验</a><a href="islanders.html">岛民画廊</a>');
+    document.querySelector('.desktop-nav')?.insertAdjacentHTML('beforeend', `<a href="islanders.html" ${page === 'islanders' ? 'aria-current="page"' : ''}>岛民画廊</a>${production?'':`<a href="effects.html" ${page === 'effects' ? 'aria-current="page"' : ''}>特效体验 ✦</a>`}`);
+    document.querySelector('.footer-links')?.insertAdjacentHTML('beforeend', (production?'':'<a href="effects.html">特效体验</a>')+'<a href="islanders.html">岛民画廊</a>');
   }
 
   function initStars() {
@@ -446,7 +447,7 @@
     // Bind only after configuration; otherwise the same DOM gets two galleries.
     if (!effectsConfigured) return;
     const homeNote = document.querySelector('.hero-footnote');
-    if (homeNote) homeNote.insertAdjacentHTML('afterend', '<div class="home-extras"><a href="guide.html">沿着海风，看看登岛导览 →</a><a href="effects.html">打开特效体验 ✦</a></div>');
+    if (homeNote) homeNote.insertAdjacentHTML('afterend', '<div class="home-extras"><a href="guide.html">沿着海风，看看登岛导览 →</a>'+(production?'':'<a href="effects.html">打开特效体验 ✦</a>')+'</div>');
     if (page === 'home') document.querySelector('.hero-copy').insertAdjacentHTML('afterbegin', '<p class="scene-note"><i></i>海风正好，小岛等你赴约</p>');
     if (page === 'collection') installExhibit();
     if (page === 'office' && allowedMode('effectProgress')) installProgress();
