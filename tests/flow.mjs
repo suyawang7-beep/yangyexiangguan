@@ -97,6 +97,20 @@ try{
   await page.goto(url+'#/collection');
   assert.equal(await page.locator('.bz-collection .bz-card').count(),16);
   assert.equal(await page.locator('.bz-card.locked .bz-art').count(),0);
-  console.log('PASS 11/11 flow assertions; ocean depth, asset placeholders and reduced-motion checks passed');
+  await page.goto(url+'#/collection');
+  await page.locator('[data-gallery-mode="fan"]').click();
+  assert.equal(await page.locator('.bz-collection').getAttribute('data-display'),'fan');
+  await page.locator('[data-gallery-mode="ring"]').click();
+  assert.equal(await page.locator('.bz-collection').getAttribute('data-display'),'ring');
+  await page.locator('[data-bz-filter="UR"]').click();
+  assert.equal(await page.locator('.bz-collection').getAttribute('data-display'),'ring');
+  await page.goto(url+'#/passport');
+  await page.locator('#bzPassportPage.active').waitFor();
+  await page.locator('#bzPassportLaunch').click();
+  await page.locator('#modal.open').waitFor();
+  await page.goto(url);
+  assert.equal(await page.locator('.bz-tide-canvas').count(),1);
+  assert.equal(await page.locator('.bz-star-canvas').count(),1);
+  console.log('PASS 11/11 flow assertions; three gallery layouts, passport route and immersive effects verified');
 }catch(e){console.error('FAILED after '+passed+' checks:',e);process.exitCode=1}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
