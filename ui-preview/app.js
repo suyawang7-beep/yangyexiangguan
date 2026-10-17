@@ -171,6 +171,7 @@
     state=blank();
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
     state.balance=profile.coins;
+    state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
     state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t);
     state.bonuses=profile.bonuses;
     state.checkins=profile.checkins;
@@ -196,7 +197,7 @@
     const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: '抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
     document.querySelector('#app').innerHTML = `<div class="world" data-motion="on"><div class="ocean" aria-hidden="true"></div><div class="ambient" aria-hidden="true"></div><i class="bubble b1" aria-hidden="true"></i><i class="bubble b2" aria-hidden="true"></i><i class="bubble b3" aria-hidden="true"></i>
       <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark">啾</span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection'].map((key) => navItem(key)).join('')}</nav><div class="header-actions"><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><a class="passport-link" href="passport.html" aria-label="生日通行证">${icon('ticket')}<span>通行证</span></a><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
-      <div class="container"><div class="demo-line"><span><i class="status-dot"></i>本地演示 · 数据仅保存在此浏览器</span><span>${EVENT.name} / 2026.10.17 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div><div class="footer-links"><a href="mailbox.html">岛主信箱</a><a href="passport.html">我的通行证</a><a href="checkin.html">每日签到</a></div>UI 演示预览 · 插画与卡面为示意，正式素材待接入</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
+      <div class="container"><div class="demo-line"><span><i class="status-dot"></i>本地演示 · 数据仅保存在此浏览器</span><span>${EVENT.name} / 2026.10.17 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div><div class="footer-links"><a href="mailbox.html">岛主信箱</a><a href="passport.html">我的通行证</a><a href="checkin.html">每日签到</a></div>插画与卡面为示意 · 庆典账户数据由服务器保存</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
     if(!LIVE)showStorageError();
     setupMotion();
   }
@@ -220,7 +221,7 @@
   function renderOffice() {
     const title = heading('02', 'Little tasks, little happiness', '岛民事务所', '庆典由每一位岛民一起完成。做一点小事，领取金币，也留下一份参与的证明。');
     if (!state.passport) return title + needPassport();
-    return title + `<div class="office-layout"><div><section class="glass welcome-strip"><div><h2>今天，想为小岛做点什么？</h2><p>已完成 ${state.tasks.length} / 7 个不同任务 · 重复签到不计入任务数</p></div><span class="pill ${state.demoIslander ? 'success' : ''}">${state.demoIslander ? '岛民操作演示' : '访客 · 岛民任务需核验'}</span></section>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>正式任务只向已核验岛民开放</strong><br>你可以先完成免费报到。若想体验后续界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button></div>` : ''}<div class="task-list">${TASKS.map((task) => {
+    return title + `<div class="office-layout"><div><section class="glass welcome-strip"><div><h2>今天，想为小岛做点什么？</h2><p>已完成 ${state.tasks.length} / 7 个不同任务 · 重复签到不计入任务数</p></div><span class="pill ${state.demoIslander ? 'success' : ''}">${state.demoIslander ? '岛民操作演示' : '访客 · 岛民任务需核验'}</span></section>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>你可以先完成免费报到。若想体验后续界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button></div>` : ''}<div class="task-list">${TASKS.map((task) => {
       const completed = state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
       return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : '输入完成代码'}</button>`}</div></article>`;
@@ -292,6 +293,14 @@
     grid.innerHTML = cards.length ? cards.map((card) => cardMarkup(card, { owned: Boolean(state.collection[card.id]), quantity: state.collection[card.id]?.quantity || 0, interactive: true })).join('') : `<div class="glass collection-empty">${filters.ownership === 'owned' && !state.history.length ? '你的收藏室还在等第一张卡。去肥啾邮局寄出一份期待吧。' : '暂时没有找到这份回忆，换个条件试试看。'}</div>`;
   }
 
+  async function refreshLiveNotices(){
+    if(!LIVE||!['home','mailbox'].includes(PAGE))return;
+    try{
+      const notices=await liveApi('announcements');
+      if(PAGE==='mailbox'){const host=document.querySelector('.mailbox-layout .letters');if(!host)return;host.replaceChildren();if(!notices.length){const box=document.createElement('article');box.className='glass letter';box.textContent='岛主尚未发布新公告。';host.append(box)}for(const n of notices){const article=document.createElement('article');article.className='glass letter';const h=document.createElement('h2');h.textContent=n.title;const time=document.createElement('time');time.textContent=(n.updated_at||'').slice(0,10);const body=document.createElement('p');body.style.whiteSpace='pre-wrap';body.textContent=n.body;article.append(h,time,body);host.append(article)}}
+      if(PAGE==='home'){const strip=document.querySelector('.news-strip p');if(strip)strip.textContent=notices[0]?.title||'岛主尚未发布新公告。';}
+    }catch(e){console.warn('公告更新失败',e)}
+  }
   function renderMailbox() {
     return heading('06', 'Letters from the island', '岛主信箱', '不吱岛的近况、庆典的小消息，还有那些想认真说给你听的话。') + `<div class="mailbox-layout"><aside class="glass mailbox-side">${icon('mail')}<h2>风替我们寄信</h2><p>来自菜菜与吱吱的庆典来信。<br>目前是公告样例，正式公告由主网站接入。</p></aside><div class="letters"><article class="glass letter"><span class="pill pink">置顶 · 生日邀请</span><h2>把生日，过成一次小岛重逢</h2><time>2026.10.17 / BUZHI ISLAND</time><p>亲爱的岛民：<br>你收到这封信的时候，不吱岛的生日庆典就已经开始啦。</p><p>10月20日是菜菜的生日。吱吱已经把派对的小灯挂好了，海风也把每一张邀请送到了你身边。这一次，想邀请你来做一点小任务、拆一封回忆，然后把我们相遇的瞬间好好收藏。</p><p>活动期间是10月17日至25日，首尾两天都算。无论什么时候登岛，都希望你带走一点快乐。</p><p class="signature">等你赴约的，菜菜 ＆ 吱吱 ♡</p></article><article class="glass letter"><span class="pill">庆典小贴士</span><h2>一张通行证，一份属于你的回忆</h2><time>2026.10.17 / ISLAND GUIDE</time><p>浏览不需要登录。参与前先领取生日通行证，昵称可以重复，但参与者编号不会相同。首次登岛的50金币，恰好够拆开一张生日回忆卡。</p><p>正式岛民任务与实体卡申请需要核验。实体卡将由多张虚拟卡组合兑换，具体规则后续公布，当前预览不开放申请。</p><div class="actions">${link('passport', '领取我的通行证', 'btn')}${link('draw', '前往肥啾邮局', 'btn text')}</div></article></div></div>`;
   }
@@ -548,6 +557,7 @@
     binders[PAGE]?.();
     updateWallet();
     document.dispatchEvent(new CustomEvent('buzhi:render'));
+    if(LIVE)refreshLiveNotices();
   }
 
   function renderGuide() {
