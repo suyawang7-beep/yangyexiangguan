@@ -20,7 +20,7 @@ const schema=[
 ];
 for(const statement of schema)db.exec(statement);
 const TASKS=new Set(['letter','memory','quiz','creative','support','commission']);
-const CARDS=[...Array.from({length:2},(_,i)=>({id:'SSR-'+(i+1),rarity:'SSR'})),...Array.from({length:4},(_,i)=>({id:'SR-'+(i+1),rarity:'SR'})),...Array.from({length:4},(_,i)=>({id:'R-'+(i+1),rarity:'R'})),...Array.from({length:6},(_,i)=>({id:'N-'+(i+1),rarity:'N'}))];
+const CARDS=[{id:'UR-1',rarity:'UR'},...Array.from({length:2},(_,i)=>({id:'SSR-'+(i+1),rarity:'SSR'})),...Array.from({length:4},(_,i)=>({id:'SR-'+(i+1),rarity:'SR'})),...Array.from({length:4},(_,i)=>({id:'R-'+(i+1),rarity:'R'})),...Array.from({length:5},(_,i)=>({id:'N-'+(i+1),rarity:'N'}))];
 const sha=s=>createHash('sha256').update(String(s)).digest('hex'),rand=n=>randomBytes(n).toString('base64url'),now=()=>new Date().toISOString(),day=()=>now().slice(0,10);
 const error=(status,message)=>Object.assign(new Error(message),{status});
 const eq=(a,b)=>{const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&timingSafeEqual(x,y)};
