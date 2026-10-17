@@ -2,6 +2,7 @@
 (() => {
   'use strict';
 
+  const LIVE = window.__BUZHI_PRODUCTION__ === true;
   const PAGE = document.body.dataset.page || 'home';
   const KEY = 'buzhi-ui-preview-v3';
   const EVENT = { name: '菜菜生日会', birthday: '2026年10月20日', period: '10月17日 — 10月25日' };
@@ -75,7 +76,7 @@
     ['N', '来客留名', 'flag', '岛民', '不必大声宣布，我们记得你来过。'],
     ['N', '晚安小啾', 'bird', '小岛日常', '把今天的故事合上，明天继续相见。'],
   ].map(([rarity, name, motif, characters, story], index) => ({ id: `BZ-${String(index + 1).padStart(2, '0')}`, rarity, name, motif, characters, story }));
-  const TASKS = [
+  let TASKS = [
     { id: 'arrival', title: '向不吱岛报到', text: '领好通行证，留下你今天赴约的足迹。', reward: 0, motif: 'flag' },
     { id: 'wish', title: '给菜菜写一句生日祝福', text: '把想说的话交给岛主，领取任务完成代码。', reward: 25, motif: 'heart' },
     { id: 'live', title: '赴一场生日直播的约', text: '在直播里相见，一起留下庆典的回忆。', reward: 25, motif: 'calendar' },
@@ -87,7 +88,7 @@
   const blank = () => ({ version: 3, passport: null, balance: 0, tasks: [], bonuses: [], checkins: [], collection: {}, history: [], ledger: [], demoIslander: false });
   let state = blank();
   let storageError = '';
-  try {
+  if (!LIVE) try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
@@ -98,6 +99,7 @@
   } catch { storageError = '浏览器未能读取演示记录。请允许此页面保存本地数据后再试。'; }
 
   function commit(next) {
+    if(LIVE)throw Error('正式数据只能通过服务器保存');
     if (storageError) throw new Error('演示记录暂时无法保存，请先处理页面上的提示。');
     try { localStorage.setItem(KEY, JSON.stringify(next)); }
     catch { storageError = '浏览器空间不足或禁止保存，刚才的操作没有扣币、领奖或修改记录。'; showStorageError(); throw new Error(storageError); }
@@ -148,13 +150,54 @@
     return state.ledger.length ? `<ul class="ledger">${state.ledger.slice(0, 6).map((entry) => `<li><span>${esc(entry.label)}</span><b class="${entry.amount < 0 ? 'negative' : ''}">${entry.amount > 0 ? '+' : ''}${entry.amount}</b></li>`).join('')}</ul>` : '<p class="small muted">还没有收支，庆典的故事等你开启。</p>';
   }
 
+  const LIVE_TASKS=[
+    {id:'arrival',title:'首次报到',text:'领取通行证即自动完成',reward:0,motif:'flag'},
+    {id:'letter',title:'生日来信',text:'完成后向岛主领取专属代码',reward:25,motif:'heart'},
+    {id:'memory',title:'岛屿回忆',text:'分享一次相遇与回忆',reward:25,motif:'mail'},
+    {id:'quiz',title:'默契小测',text:'完成小测后领取代码',reward:25,motif:'star'},
+    {id:'creative',title:'创作展投稿',text:'完成投稿后领取代码',reward:25,motif:'cards'},
+    {id:'support',title:'直播应援',text:'完成应援后领取代码',reward:25,motif:'music'},
+    {id:'commission',title:'临时委托',text:'接受岛主发布的活动委托',reward:25,motif:'bird'}
+  ];
+  let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
+  let liveCatalog=[];
+  async function liveApi(path,body){
+    const resp=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{...(liveToken?{'Authorization':'Bearer '+liveToken}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+    let result;try{result=await resp.json()}catch{throw Error('账户服务器暂时不可用')}
+    if(!resp.ok)throw Error(result.error||'操作未完成');
+    return result;
+  }
+  function takeProfile(profile){
+    state=blank();
+    state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
+    state.balance=profile.coins;
+    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t);
+    state.bonuses=profile.bonuses;
+    state.checkins=profile.checkins;
+    state.demoIslander=true;
+    for(const [index,item] of profile.draws.entries()){
+      const card=liveCatalog.find(c=>c.id===item.card_id);
+      if(!card)continue;
+      const id=card.previewId;
+      const entry=state.collection[id]||{quantity:0,firstAt:Date.parse(item.created_at)};
+      entry.quantity++;state.collection[id]=entry;
+      state.history.push({id:'server-'+index,cardId:id,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
+    }
+    renderPage();
+  }
+  async function liveInit(){
+    TASKS=LIVE_TASKS;
+    try{const catalog=await liveApi('catalog');liveCatalog=catalog.cards}catch(e){toast(e.message)}
+    if(liveToken){try{takeProfile(await liveApi('me'))}catch{liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}}
+    else renderPage();
+  }
   function renderShell() {
     document.title = `${PATHS[PAGE][1]} · 不吱岛生日庆典`;
     const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: '抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
     document.querySelector('#app').innerHTML = `<div class="world" data-motion="on"><div class="ocean" aria-hidden="true"></div><div class="ambient" aria-hidden="true"></div><i class="bubble b1" aria-hidden="true"></i><i class="bubble b2" aria-hidden="true"></i><i class="bubble b3" aria-hidden="true"></i>
       <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark">啾</span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection'].map((key) => navItem(key)).join('')}</nav><div class="header-actions"><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><a class="passport-link" href="passport.html" aria-label="生日通行证">${icon('ticket')}<span>通行证</span></a><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
       <div class="container"><div class="demo-line"><span><i class="status-dot"></i>本地演示 · 数据仅保存在此浏览器</span><span>${EVENT.name} / 2026.10.17 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div><div class="footer-links"><a href="mailbox.html">岛主信箱</a><a href="passport.html">我的通行证</a><a href="checkin.html">每日签到</a></div>UI 演示预览 · 插画与卡面为示意，正式素材待接入</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
-    showStorageError();
+    if(!LIVE)showStorageError();
     setupMotion();
   }
 
@@ -169,9 +212,9 @@
     const title = heading('01', 'Your invitation to the island', '生日通行证', '起一个岛上昵称，选一枚庆典头像，把这次赴约变成专属于你的回忆。');
     if (state.passport) {
       const [label, color] = AVATARS[state.passport.avatar];
-      return title + `<div class="passport-grid"><div><section class="glass ticket"><div class="ticket-header"><span class="avatar" style="--avatar:${color}">啾</span><div><small>BUZHI ISLAND BIRTHDAY PASS</small><h2>${esc(state.passport.nickname)}</h2><span class="pill">访客 · ${label}</span></div></div><dl class="ticket-body"><div><dt>当前庆典</dt><dd>${EVENT.name}</dd></div><div><dt>生日岛主</dt><dd>菜菜</dd></div><div><dt>正式生日</dt><dd>${EVENT.birthday}</dd></div><div><dt>活动期间 · 含首尾两天</dt><dd>${EVENT.period}</dd></div></dl><div class="ticket-id"><label for="public-id">唯一参与者编号</label><div class="copy-row"><input id="public-id" readonly value="${esc(state.passport.id)}" aria-describedby="id-help"><button type="button" id="copy-id">${icon('copy')}</button></div><p id="id-help">编号可以私信给岛主核对身份，但不能当作登录密码。</p></div><div class="preview-stamp">See you on the island ♡</div></section><div class="actions ticket-actions">${link('draw', state.history.length ? '去肥啾邮局' : '去抽第一张卡', 'btn primary')}${link('office', '看看庆典任务', 'btn')}</div></div><aside><section class="glass panel"><h2>赴约成功，欢迎上岛</h2><p class="small muted">你的通行证、金币和卡片会保存在当前浏览器里。刷新后可以继续。</p><div class="draw-cost"><span>我的庆典金币</span><span><strong data-balance>${state.balance}</strong> 枚</span></div><p class="small muted">访客与正式岛民是不同身份。填写昵称、领通行证，都不代表已通过直播粉丝团核验。</p></section><div class="info-note"><strong>记得保留同一台设备</strong><br>此预览没有接通正式账户，换设备无法恢复。正式版将提供受保护的身份恢复方式，也不会公开完整平台 UID。</div></aside></div>`;
+      return title + `<div class="passport-grid"><div><section class="glass ticket"><div class="ticket-header"><span class="avatar" style="--avatar:${color}">啾</span><div><small>BUZHI ISLAND BIRTHDAY PASS</small><h2>${esc(state.passport.nickname)}</h2><span class="pill">访客 · ${label}</span></div></div><dl class="ticket-body"><div><dt>当前庆典</dt><dd>${EVENT.name}</dd></div><div><dt>生日岛主</dt><dd>菜菜</dd></div><div><dt>正式生日</dt><dd>${EVENT.birthday}</dd></div><div><dt>活动期间 · 含首尾两天</dt><dd>${EVENT.period}</dd></div></dl><div class="ticket-id"><label for="public-id">唯一参与者编号</label><div class="copy-row"><input id="public-id" readonly value="${esc(state.passport.id)}" aria-describedby="id-help"><button type="button" id="copy-id">${icon('copy')}</button></div><p id="id-help">编号可以私信给岛主核对身份，但不能当作登录密码。</p></div><div class="preview-stamp">See you on the island ♡</div></section><div class="actions ticket-actions">${link('draw', state.history.length ? '去肥啾邮局' : '去抽第一张卡', 'btn primary')}${link('office', '看看庆典任务', 'btn')}</div></div><aside><section class="glass panel"><h2>赴约成功，欢迎上岛</h2><p class="small muted">你的通行证、金币和卡片会保存在正式服务器中。刷新后仍可继续。</p><div class="draw-cost"><span>我的庆典金币</span><span><strong data-balance>${state.balance}</strong> 枚</span></div><p class="small muted">访客与正式岛民是不同身份。填写昵称、领通行证，都不代表已通过直播粉丝团核验。</p></section><div class="info-note"><strong>记得保留同一台设备</strong><br>如需换设备，请使用通行证编号与恢复密钥找回。正式版将提供受保护的身份恢复方式，也不会公开完整平台 UID。</div></aside></div>`;
     }
-    return title + `<div class="passport-grid"><form class="glass panel" id="passport-form" novalidate><h2>你的登岛信息</h2><div id="form-error" class="form-error" role="alert" tabindex="-1" hidden></div><div class="form-field"><label for="nickname">岛上昵称</label><input id="nickname" name="nickname" placeholder="今天想在岛上叫什么？" autocomplete="nickname" aria-describedby="nickname-hint"><p id="nickname-hint" class="hint">1—24个字符，昵称可以重复，身份由唯一编号区分。</p></div><fieldset><legend>选一枚免费庆典头像</legend><div class="avatar-options">${AVATARS.map(([name, color], index) => `<label class="avatar-option"><input type="radio" name="avatar" value="${index}" ${index === 0 ? 'checked' : ''}><span class="avatar" style="--avatar:${color}">啾</span><span>${name}</span></label>`).join('')}</div></fieldset><div class="privacy-note">这里是外观与流程预览，只需昵称和头像。请勿输入真实平台 UID 或其他私密资料。正式核验入口由主网站接入。</div><button type="submit" class="btn primary full" id="claim-pass">领取我的生日通行证 ${icon('arrow')}</button><p class="small muted">首次登岛赠送 50 金币，恰好够抽一次生日回忆卡。</p></form><aside class="glass pass-preview"><div class="eyebrow">A little promise</div><img class="mini-art" src="assets/island.svg" alt="不吱岛庆生示意插画"><h3>在不吱岛，留一个位置</h3><p>菜菜的生日，也是一次重逢的理由。<br>不管你从哪里来，海风都会记得。</p><span class="pill pink">10.17 — 10.25 · 菜菜生日会</span><div class="preview-stamp">Your story starts here.</div></aside></div>`;
+    return title + `<div class="passport-grid"><form class="glass panel" id="passport-form" novalidate><h2>你的登岛信息</h2><div id="form-error" class="form-error" role="alert" tabindex="-1" hidden></div><div class="form-field"><label for="nickname">岛上昵称</label><input id="nickname" name="nickname" placeholder="今天想在岛上叫什么？" autocomplete="nickname" aria-describedby="nickname-hint"><p id="nickname-hint" class="hint">1—20个字符，昵称可以重复，身份由唯一编号区分。</p></div><fieldset><legend>选一枚免费庆典头像</legend><div class="avatar-options">${AVATARS.map(([name, color], index) => `<label class="avatar-option"><input type="radio" name="avatar" value="${index}" ${index === 0 ? 'checked' : ''}><span class="avatar" style="--avatar:${color}">啾</span><span>${name}</span></label>`).join('')}</div></fieldset><div class="privacy-note">这里是外观与流程预览，只需昵称和头像。请勿输入真实平台 UID 或其他私密资料。正式核验入口由主网站接入。</div><button type="submit" class="btn primary full" id="claim-pass">领取我的生日通行证 ${icon('arrow')}</button><p class="small muted">首次登岛赠送 50 金币，恰好够抽一次生日回忆卡。</p></form><aside class="glass pass-preview"><div class="eyebrow">A little promise</div><img class="mini-art" src="assets/island.svg" alt="不吱岛庆生示意插画"><h3>在不吱岛，留一个位置</h3><p>菜菜的生日，也是一次重逢的理由。<br>不管你从哪里来，海风都会记得。</p><span class="pill pink">10.17 — 10.25 · 菜菜生日会</span><div class="preview-stamp">Your story starts here.</div></aside></div>`;
   }
 
   function renderOffice() {
@@ -181,7 +224,7 @@
       const completed = state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
       return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : '输入完成代码'}</button>`}</div></article>`;
-    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p class="small muted">本地演示可输入 <strong>ISLAND25</strong> 体验领奖；正式任务代码由岛主私信发放。</p><div class="form-field"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
+    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p class="small muted">请填写岛主私信发放的一次性完成代码。</p><div class="form-field"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
   }
 
   function streakCount() {
@@ -307,6 +350,7 @@
   }
 
   function bindPassport() {
+    if(LIVE){bindLivePassport();return}
     document.querySelector('#copy-id')?.setAttribute('aria-label', '复制参与者编号');
     document.querySelector('#copy-id')?.addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(state.passport.id); toast('参与者编号已复制，可以私信给岛主。'); }
@@ -335,6 +379,7 @@
   }
 
   function bindOffice() {
+    if(LIVE){bindLiveOffice();return}
     document.querySelector('#demo-islander')?.addEventListener('click', () => action(() => {
       const next = clone(); next.demoIslander = true; commit(next); renderPage(); toast('已开启本地任务演示，不代表正式岛民核验。');
     }));
@@ -368,6 +413,7 @@
   }
 
   function bindCheckin() {
+    if(LIVE){bindLiveCheckin();return}
     document.querySelector('#checkin-button')?.addEventListener('click', () => action(() => {
       if (!state.passport) return;
       const today = dateKey();
@@ -379,6 +425,7 @@
 
   let drawing = false;
   function bindDraw() {
+    if(LIVE){bindLiveDraw();return}
     document.querySelector('#draw-button')?.addEventListener('click', () => action(() => {
       if (drawing || !state.passport || state.balance < 50) return;
       const eligible = state.history.length === 0 ? CARDS.filter((card) => ['SR', 'SSR'].includes(card.rarity)) : CARDS;
@@ -431,6 +478,46 @@
     }));
   }
 
+  function bindLivePassport(){
+    document.querySelector('#copy-id')?.addEventListener('click',()=>navigator.clipboard.writeText(state.passport.id).then(()=>toast('编号已复制，请妥善保存恢复密钥')));
+    const form=document.querySelector('#passport-form');
+    form?.addEventListener('submit',async e=>{e.preventDefault();const nickname=form.elements.nickname.value.trim();if(!nickname||[...nickname].length>20){toast('昵称请填写 1–20 个字符');return}
+      try{const result=await liveApi('register',{nickname});liveToken=result.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(result.profile);alert('请立即安全保存恢复密钥（只显示这一次）：\\n参与者编号：'+result.id+'\\n恢复密钥：'+result.recoveryKey)}catch(err){toast(err.message)}
+    });
+    const host=document.querySelector('#main');
+    if(!state.passport&&host){
+      const login=document.createElement('section');login.className='glass panel';login.innerHTML='<h2>已有通行证？恢复账户</h2><form id="live-login"><label>唯一参与者编号<input name="id" required autocomplete="off" placeholder="BZI-..."></label><label>恢复密钥<input name="key" required type="password" autocomplete="off"></label><button class="btn primary" type="submit">恢复我的岛民数据</button></form>';
+      host.append(login);
+      login.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget;try{const data=await liveApi('login',{id:f.elements.id.value.trim(),recoveryKey:f.elements.key.value.trim()});liveToken=data.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(data.profile)}catch(err){toast(err.message)}};
+    }
+  }
+  function bindLiveOffice(){
+    const dialog=document.querySelector('#task-dialog');let task=null;
+    document.querySelectorAll('[data-task]').forEach(b=>{b.disabled=false;b.onclick=()=>{task=TASKS.find(t=>t.id===b.dataset.task);if(!task||task.id==='arrival')return;dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.showModal()}});
+    dialog?.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
+    dialog?.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const code=dialog.querySelector('#task-code').value.trim();try{takeProfile(await liveApi('redeem',{taskId:task.id,code}));toast('奖励已存入正式账户')}catch(err){toast(err.message)}});
+  }
+  function bindLiveCheckin(){
+    document.querySelector('#checkin-button')?.addEventListener('click',async()=>{try{takeProfile(await liveApi('checkin',{}));toast('今日签到成功，10 金币已保存')}catch(err){toast(err.message)}});
+  }
+  function bindLiveDraw(){
+    document.querySelector('#draw-button')?.addEventListener('click',async()=>{
+      if(drawing||!state.passport||state.balance<50)return;drawing=true;
+      const button=document.querySelector('#draw-button');button.disabled=true;
+      try{const result=await liveApi('draw',{});const cardInfo=liveCatalog.find(c=>c.id===result.card.id);if(!cardInfo)throw Error('卡片目录缺少映射，请联系岛主');
+        const card=CARDS.find(c=>c.id===cardInfo.previewId);
+        const first=state.history.length===0;takeProfile(result.profile);drawing=true;
+        const stage=document.querySelector('#draw-stage');
+        stage.classList.remove('is-revealed');stage.classList.add('is-drawing');stage.setAttribute('aria-busy','true');
+        document.querySelector('#stage-card').innerHTML=drawBack();
+        document.querySelector('#draw-status').textContent='服务器已扣币并保存收藏，肥啾正在送达…';
+        const show=()=>{if(!drawing)return;drawing=false;stage.classList.remove('is-drawing');stage.classList.add('is-revealed');stage.setAttribute('aria-busy','false');document.querySelector('#stage-card').innerHTML=cardMarkup(card);document.querySelector('#draw-result-label').textContent=card.rarity+' · '+card.name;document.querySelector('#draw-status').textContent='已存入收藏 · '+card.name;button.disabled=state.balance<50;button.textContent='再寄出一份期待 ↗';};
+        setTimeout(show,document.querySelector('.world').dataset.motion==='off'||document.hidden?0:3000);
+        document.addEventListener('buzhi:motion',()=>{if(drawing&&document.querySelector('.world').dataset.motion==='off')show()},{once:true});
+        document.addEventListener('visibilitychange',()=>{if(document.hidden)show()},{once:true});
+      }catch(err){drawing=false;button.disabled=false;toast(err.message)}
+    });
+  }
   function bindCollection() {
     fillCollection();
     document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
@@ -501,8 +588,9 @@
   window.addEventListener('storage', (event) => {
     if (event.key === KEY) location.reload();
   });
+  if(LIVE)TASKS=LIVE_TASKS;
   renderShell();
-  renderPage();
+  if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
   effectsScript.src = new URL(`effects.js?v=${PAGE === 'draw' ? '20261017-courier1' : '20261017-glass5'}`, document.currentScript.src).href;
   document.body.append(effectsScript);
