@@ -1,7 +1,7 @@
 import http from 'node:http';
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes,createHash,timingSafeEqual} from 'node:crypto';
-import {mkdirSync,readFileSync,existsSync} from 'node:fs';
+import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
@@ -9,6 +9,8 @@ const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'ut
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
 if(ADMIN.length<32)throw Error('Set a random ADMIN_TOKEN of at least 32 characters');
 mkdirSync(dirname(DB_PATH),{recursive:true});
+const ASSET_DIR=resolve(process.env.ASSET_DIR||resolve(dirname(DB_PATH),'assets'));
+mkdirSync(ASSET_DIR,{recursive:true});
 const db=new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;');
 const schema=[
@@ -55,9 +57,13 @@ function listUsers(){return db.prepare('SELECT u.id,u.nickname,u.created_at,COAL
 function announcements(adminView=false){return db.prepare('SELECT id,title,body,published,created_at,updated_at FROM announcements '+(adminView?'':'WHERE published=1 ')+'ORDER BY id DESC LIMIT 100').all()}
 function saveAnnouncement(b){const title=String(b.title||'').trim(),body=String(b.body||'').trim(),published=b.published===true?1:0,id=b.id==null?null:Number(b.id);if(!title||title.length>80||!body||body.length>1500)throw error(400,'公告标题须为 1–80 字，正文须为 1–1500 字');if(id!==null&&(!Number.isSafeInteger(id)||id<1))throw error(400,'公告编号无效');return tx(()=>{const t=now();if(id===null)db.prepare('INSERT INTO announcements(title,body,published,created_at,updated_at) VALUES(?,?,?,?,?)').run(title,body,published,t,t);else{const result=db.prepare('UPDATE announcements SET title=?,body=?,published=?,updated_at=? WHERE id=?').run(title,body,published,t,id);if(!result.changes)throw error(404,'公告不存在')}return announcements(true)})}
 function deleteAnnouncement(b){const id=Number(b.id);if(!Number.isSafeInteger(id)||id<1)throw error(400,'公告编号无效');const result=db.prepare('DELETE FROM announcements WHERE id=?').run(id);if(!result.changes)throw error(404,'公告不存在');return {deleted:id}}
-function readBody(req){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>8192){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
+const ASSET_NAMES=new Set(['characters/zhizhi.webp','characters/caicai.webp',...['UR-1',...Array.from({length:2},(_,i)=>'SSR-'+(i+1)),...Array.from({length:4},(_,i)=>'SR-'+(i+1)),...Array.from({length:4},(_,i)=>'R-'+(i+1)),...Array.from({length:5},(_,i)=>'N-'+(i+1))].map(id=>'cards/'+id+'.webp')]);
+function assetPath(name){if(!ASSET_NAMES.has(name))throw error(400,'素材位置无效');return resolve(ASSET_DIR,name)}
+function assetStatus(){return [...ASSET_NAMES].map(name=>({name,uploaded:existsSync(assetPath(name)),url:'/assets/'+name}))}
+function saveAsset(b){const name=String(b.name||'');const filepath=assetPath(name),raw=String(b.base64||'');if(!/^[A-Za-z0-9+/]+={0,2}$/.test(raw)||raw.length>5600000)throw error(400,'图片内容无效或超过 4 MB');const bytes=Buffer.from(raw,'base64');if(bytes.length<24||bytes.length>4*1024*1024||bytes.toString('ascii',0,4)!=='RIFF'||bytes.toString('ascii',8,12)!=='WEBP'||!['VP8 ','VP8L','VP8X'].includes(bytes.toString('ascii',12,16)))throw error(400,'仅允许有效的 WebP 图片（最大 4 MB）');mkdirSync(dirname(filepath),{recursive:true});const temp=filepath+'.'+rand(8)+'.tmp';try{writeFileSync(temp,bytes,{flag:'wx',mode:0o600});renameSync(temp,filepath)}finally{if(existsSync(temp))unlinkSync(temp)}auditAdmin('asset.upload',{name,size:bytes.length});return {name,size:bytes.length,url:'/assets/'+name}}
+function readBody(req,maxSize=8192){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>maxSize){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
 function send(res,code,data){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))}
-http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;if(req.method==='GET'&&new RegExp('^/assets/(characters|cards)/[a-zA-Z0-9-]+[.]webp$').test(path)){const file=resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req):{};let data;
+http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;if(req.method==='GET'&&new RegExp('^/assets/(characters|cards)/[a-zA-Z0-9-]+[.]webp$').test(path)){const name=path.slice('/assets/'.length);if(!ASSET_NAMES.has(name))throw error(404,'素材不存在');const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:8192):{};let data;
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
@@ -72,6 +78,8 @@ else if(path==='/api/admin/announcements/delete'&&req.method==='POST'){admin(req
 else if(path==='/api/admin/users'&&req.method==='GET'){admin(req);data=listUsers()}
 else if(path==='/api/admin/codes'&&req.method==='POST'){admin(req);data=codes(b);auditAdmin('codes.generate',{taskId:data.taskId,count:data.codes.length})}
 else if(path==='/api/admin/overview'&&req.method==='GET'){admin(req);data=overview()}
+else if(path==='/api/admin/assets'&&req.method==='GET'){admin(req);data=assetStatus()}
+else if(path==='/api/admin/assets/upload'&&req.method==='POST'){admin(req);data=saveAsset(b)}
 else if(path==='/api/admin/visual-settings'&&req.method==='GET'){admin(req);data=getVisualSettings()}
 else if(path==='/api/admin/visual-settings'&&req.method==='POST'){admin(req);data=saveVisualSettings(b)}
 else if(path==='/api/admin/user'&&req.method==='GET'){admin(req);data=userDetail(String(new URL(req.url,'http://localhost').searchParams.get('id')||''))}
