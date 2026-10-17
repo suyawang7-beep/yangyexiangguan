@@ -1,0 +1,55 @@
+name: Publish birthday preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui-preview/**'
+      - '.github/pages/**'
+      - '.github/workflows/preview-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages-preview
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Prepare preview files only
+        shell: bash
+        run: |
+          set -euo pipefail
+          preview_site="$RUNNER_TEMP/buzhi-pages"
+          mkdir -p "$preview_site"
+          cp -R ui-preview "$preview_site/ui-preview"
+          cp .github/pages/index.html "$preview_site/index.html"
+          test -s "$preview_site/ui-preview/index.html"
+          test -s "$preview_site/ui-preview/app.js"
+          test -s "$preview_site/ui-preview/effects.js"
+      - name: Upload preview
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/buzhi-pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy preview
+        id: deployment
+        uses: actions/deploy-pages@v4
