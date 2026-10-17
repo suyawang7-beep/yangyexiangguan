@@ -161,6 +161,47 @@
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
+  let managedAssets={};
+  function refreshManagedArtwork(){
+    if(!LIVE)return;
+    const backgrounds={
+      home: ['decor/home-background.webp','.home-hero'],
+      office:['decor/office-background.webp','.office-layout'],
+      checkin:['decor/checkin-background.webp','.checkin-layout'],
+      draw:['decor/post-office-background.webp','.postal-experience'],
+      collection:['decor/collection-background.webp','.collection-summary'],
+      mailbox:['decor/mailbox-background.webp','.mailbox-layout']
+    };
+    const selected=backgrounds[PAGE];
+    if(selected&&managedAssets[selected[0]]){
+      const host=document.querySelector(selected[1]);
+      if(host){host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255,.70),rgba(242,223,252,.55)),url("/assets/'+selected[0]+'?v='+assetVersion+'")';host.style.backgroundSize='cover';host.style.backgroundPosition='center'}
+    }
+    const hero=document.querySelector('.hero-art img, .mini-art');
+    if(hero&&managedAssets['decor/home-poster.webp'])hero.src='/assets/decor/home-poster.webp?v='+assetVersion;
+    const map=document.querySelector('#map-camera image');
+    if(map&&managedAssets['decor/island-map.webp'])map.setAttribute('href','/assets/decor/island-map.webp?v='+assetVersion);
+    document.querySelectorAll('.memory-card').forEach(card=>{
+      const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\\d{2}/)?.[0];
+      const match=liveCatalog.find(item=>item.previewId===label);
+      if(!match||!managedAssets['cards/'+match.id+'.webp'])return;
+      const slot=card.querySelector('.card-picture');if(!slot)return;
+      let img=slot.querySelector('img[data-official-card]');
+      if(!img){img=document.createElement('img');img.dataset.officialCard='true';img.alt='官方回忆卡面';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit';slot.replaceChildren(img)}
+      const target='/assets/cards/'+match.id+'.webp?v='+assetVersion;
+      if(!img.src.endsWith(target))img.src=target;
+    });
+    document.querySelectorAll('#oc-track .oc-slide').forEach((slide,i)=>{
+      const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':null;
+      if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img)img.src='/assets/'+file+'?v='+assetVersion}
+    });
+  }
+  let assetVersion=Date.now();
+  async function loadManagedArtwork(){
+    if(!LIVE)return;
+    try{const data=await liveApi('assets-manifest');managedAssets=data.assets||{};assetVersion=Date.now();refreshManagedArtwork()}catch(e){console.warn('素材清单暂不可用',e)}
+  }
+
   async function liveApi(path,body){
     const resp=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{...(liveToken?{'Authorization':'Bearer '+liveToken}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
     let result;try{result=await resp.json()}catch{throw Error('账户服务器暂时不可用')}
@@ -191,6 +232,7 @@
     try{const catalog=await liveApi('catalog');liveCatalog=catalog.cards}catch(e){toast(e.message)}
     if(liveToken){try{takeProfile(await liveApi('me'))}catch{liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}}
     else renderPage();
+    await loadManagedArtwork();
   }
   function activeAsset(name,fallback){
     if(!LIVE)return fallback;
@@ -647,7 +689,7 @@
     updateWallet();
     document.dispatchEvent(new CustomEvent('buzhi:render'));
     if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/island-map.svg':'assets/island.svg'}});
-    if(LIVE)refreshLiveNotices();
+    if(LIVE){refreshLiveNotices();refreshManagedArtwork()};
   }
 
   function renderGuide() {
