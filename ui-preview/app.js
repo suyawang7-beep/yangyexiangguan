@@ -491,6 +491,26 @@
     }));
   }
 
+  function showRecoveryOnce(id, recoveryKey) {
+    const dialog = document.createElement('dialog');
+    dialog.id = 'recovery-once'; dialog.className = 'detail-dialog recovery-dialog';
+    dialog.setAttribute('aria-labelledby', 'recovery-heading');
+    dialog.innerHTML = `<h2 id="recovery-heading">请保存你的登岛凭证</h2><p>恢复密钥只显示一次，请保存在自己的安全位置。换设备或重新登录时，需要同时提供编号与密钥。不要公开分享密钥。</p><div class="form-field"><label for="recovery-participant">参与者编号（可公开）</label><input id="recovery-participant" readonly autocomplete="off"></div><div class="form-field"><label for="recovery-secret">恢复密钥（请保密）</label><input id="recovery-secret" readonly autocomplete="off" spellcheck="false"></div><div class="actions"><button type="button" class="btn" id="recovery-copy">复制编号与密钥</button><button type="button" class="btn primary" id="recovery-saved">我已安全保存</button></div><p class="small muted">编号本身不是登录密码。此窗口关闭后不会再次展示密钥。</p>`;
+    document.querySelector('.world').append(dialog);
+    dialog.querySelector('#recovery-participant').value = id;
+    dialog.querySelector('#recovery-secret').value = recoveryKey;
+    dialog.querySelector('#recovery-copy').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(`不吱岛参与者编号：${dialog.querySelector('#recovery-participant').value}\n恢复密钥（请保密）：${dialog.querySelector('#recovery-secret').value}`);
+        toast('已复制，请保存到自己的安全位置，不要公开分享');
+      } catch { toast('暂时无法自动复制，请手动选中编号和密钥保存'); }
+    };
+    dialog.querySelector('#recovery-saved').onclick = () => dialog.close();
+    dialog.addEventListener('cancel', event => { event.preventDefault(); toast('请先保存凭证，再点击“我已安全保存”'); });
+    dialog.addEventListener('close', () => { dialog.replaceChildren(); dialog.remove(); document.querySelector('#copy-id')?.focus(); }, { once: true });
+    dialog.showModal();
+  }
+
   function bindLivePassport(){
     document.querySelector('#copy-id')?.addEventListener('click',()=>navigator.clipboard.writeText(state.passport.id).then(()=>toast('编号已复制，请妥善保存恢复密钥')));
     const form=document.querySelector('#passport-form');
