@@ -418,7 +418,10 @@ let pending=false;const obs=new MutationObserver(()=>{if(pending)return;pending=
 'use strict';
 const root=document.querySelector('.world');if(!root)return;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-let display='grid';let count=0;
+const visualDefaults={collectionGrid:false,collectionFan:true,collectionRing:false,ocSlider:true,ocStagger:false,ocDepth:false};
+let visualConfig={...visualDefaults};let display='fan';let count=0;
+fetch('/api/visual-settings',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(c=>{visualConfig={...visualDefaults,...c};display=visualConfig.collectionFan?'fan':visualConfig.collectionGrid?'grid':'ring';const old=document.querySelector('.bz-collection');if(old)old.dataset.galleryReady='';gallery()}).catch(()=>{});
+
 const allowed=()=>!reduced.matches&&!document.documentElement.classList.contains('motion-off')&&!document.hidden;
 const route=()=>location.hash.slice(1)||'/';
 const safeText=x=>String(x||'');
@@ -432,9 +435,9 @@ function syncPassport(){let visible=route()==='/passport';passport.classList.tog
 window.addEventListener('hashchange',()=>requestAnimationFrame(syncPassport));
 syncPassport();
 function gallery(){if(route()!=='/collection')return;const cardsHost=document.querySelector('.bz-collection');if(!cardsHost||cardsHost.dataset.galleryReady==='yes')return;cardsHost.dataset.galleryReady='yes';const controls=document.createElement('div');controls.className='bz-exhibit-controls';controls.setAttribute('role','group');controls.setAttribute('aria-label','收藏展馆布局');
-for(const [value,label] of [['grid','▦ 网格'],['fan','✧ 扇形'],['ring','◉ 圆环']]){const btn=document.createElement('button');btn.type='button';btn.textContent=label;btn.dataset.galleryMode=value;btn.onclick=()=>{display=value;layout(cardsHost,controls)};controls.append(btn)}
-cardsHost.before(controls);
-const hint=document.createElement('p');hint.className='bz-gallery-help';hint.textContent='使用布局按钮切换展馆视角；点击卡片可将它移到最前方。';controls.after(hint);
+for(const [value,label] of [['grid','▦ 网格'],['fan','✧ 扇形'],['ring','◉ 圆环']].filter(([value])=>visualConfig[value==='grid'?'collectionGrid':value==='fan'?'collectionFan':'collectionRing'])){const btn=document.createElement('button');btn.type='button';btn.textContent=label;btn.dataset.galleryMode=value;btn.onclick=()=>{display=value;layout(cardsHost,controls)};controls.append(btn)}
+if(!controls.children.length)return; if(!controls.querySelector('[data-gallery-mode="'+display+'"]'))display=controls.firstElementChild.dataset.galleryMode;const previous=cardsHost.previousElementSibling;if(previous?.classList.contains('bz-exhibit-controls'))previous.remove();cardsHost.before(controls);
+const hint=document.createElement('p');hint.className='bz-gallery-help';hint.textContent='使用布局按钮切换展馆视角；点击卡片可将它移到最前方。';if(controls.nextElementSibling?.classList.contains('bz-gallery-help'))controls.nextElementSibling.remove();controls.after(hint);
 cardsHost.addEventListener('click',e=>{const card=e.target.closest('.bz-card');if(!card)return;const all=[...cardsHost.querySelectorAll('.bz-card')];count=all.indexOf(card);layout(cardsHost,controls)});
 layout(cardsHost,controls)}
 function layout(host,controls){host.dataset.display=display;const list=[...host.querySelectorAll('.bz-card')];controls.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.galleryMode===display)));list.forEach((card,i)=>{let n=list.length||1;const k=(i-count+n)%n;let x=0,y=0,angle=0,scale=1;if(display==='fan'){let spread=Math.min(82,170/Math.max(n-1,1));let offset=(k-(n-1)/2);x=offset*spread;y=23*Math.abs(offset)/Math.max(1,n/2);angle=offset*5.5;scale=1}else if(display==='ring'){const a=(k/n)*Math.PI*2-Math.PI/2;const radius=Math.min(host.clientWidth*.33,240);x=Math.cos(a)*radius;y=Math.sin(a)*Math.min(radius*.50,105);angle=Math.cos(a)*10;scale=.85+(Math.sin(a)+1)*.09}card.style.setProperty('--cx',x+'px');card.style.setProperty('--cy',y+'px');card.style.setProperty('--angle',angle+'deg');card.style.setProperty('--scale',scale);card.style.setProperty('--z',k+1);card.tabIndex=0;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click()}}})}
