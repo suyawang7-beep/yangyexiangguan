@@ -1,0 +1,58 @@
+/* Shared visual polish. Reward-card artwork and .memory-card styles are excluded. */
+.world {
+  --glass-fill:linear-gradient(135deg,#ffffff70,#edfaff32 62%,#ede7fb38);
+  --glass-line:#ffffffc9;
+  --glass-shadow:inset 0 1px 0 #ffffffe6,inset 0 -1px 0 #ffffff45,0 16px 42px #426c8b14;
+  --glass-blur:16px;
+  --glass-control:#f7fcffe3;
+}
+
+/* The old opacity entrance creates a backdrop root, blocking sea refraction
+   from reaching the surfaces within main. Keep the other individual effects. */
+body .world main{animation:none}
+
+body .world :is(.glass,.hero-copy,.birthday-seal,.day,.oc-slide,.info-note,.privacy-note,.detail-dialog,.map-status){
+  background:var(--glass-fill);
+  border:1px solid var(--glass-line);
+  box-shadow:var(--glass-shadow);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(135%);
+  backdrop-filter:blur(var(--glass-blur)) saturate(135%);
+}
+
+/* Light tints distinguish the surfaces without making their contents fade. */
+body .world .ticket{background:linear-gradient(140deg,#ffffff70,#dcefff38 65%,#eed8f13d)}
+body .world .pass-preview{background:linear-gradient(140deg,#ffffff70,#d6f3ff38 58%,#eddef53d)}
+body .world .birthday-seal{background:linear-gradient(125deg,#fff3f975,#f4dbee47)}
+body .world .oc-slide{background:linear-gradient(140deg,#ffffff70,var(--oc-glass-tint,#e2cbe83d),#f5fbff29)}
+body .world .oc-blue{--oc-glass-tint:#b9d9f040}
+body .world .oc-green{--oc-glass-tint:#c5e1d640}
+body .world .oc-purple{--oc-glass-tint:#c7c3e840}
+body .world .oc-slide .oc-caption{
+  background:linear-gradient(130deg,#f5fbffad,#edf8ff66);
+  -webkit-backdrop-filter:blur(9px);
+  backdrop-filter:blur(9px);
+}
+body .world .day.done{background:linear-gradient(135deg,#e8fff682,#bfe3ed70);border-color:#81b2c4}
+body .world .day:last-child:not(.done){background:linear-gradient(135deg,#faf4ff70,#dfd0f43d)}
+body .world .day.current{box-shadow:0 0 0 2px #80b2ce70,var(--glass-shadow)}
+body .world .detail-dialog{background:linear-gradient(135deg,#f5fbffb8,#e5f4ff8f);box-shadow:var(--glass-shadow),0 30px 90px #28577733}
+body .world .detail-dialog::backdrop{background:#244d6a52;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+
+/* Controls retain a readable backing and their existing focus/disabled states. */
+body .world :is(.form-field input,.form-field select,.copy-row input,.filter-controls input,.filter-controls select){background:var(--glass-control)}
+body .world .btn:not(.primary):not(.reward){background:#f5fbffbd}
+body .world .filter-tabs{background:#f4fbff70;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+body .world .filter-tabs button[aria-pressed="true"]{background:#f8fcffdb;box-shadow:inset 0 1px white,0 3px 10px #6284a61a}
+body .world .copy-row button{background:#f5fbffd9}
+
+@media(max-width:620px){
+  .world{--glass-blur:10px}
+  body .world .hero-copy{background:linear-gradient(135deg,#ffffff8c,#edfaff52 65%,#f9edf54d)}
+  body .world .oc-slide .oc-caption{background:linear-gradient(130deg,#f5fbffb8,#edf8ff80)}
+}
+
+/* Preserve legibility when blur is unavailable; no translucent text or images. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  body .world :is(.glass,.hero-copy,.birthday-seal,.day,.oc-slide,.info-note,.privacy-note,.detail-dialog,.map-status){background:#edf9ffed}
+  body .world .oc-slide .oc-caption{background:#f5fbfff2}
+}

@@ -474,6 +474,6 @@
   renderShell();
   renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261017-water4', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261017-glass5', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();

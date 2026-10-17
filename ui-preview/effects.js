@@ -14,8 +14,12 @@
   const SVG = 'http://www.w3.org/2000/svg';
   const featureStyles = document.createElement('link');
   featureStyles.rel = 'stylesheet';
-  featureStyles.href = new URL('effects.css?v=20261017-water4', document.currentScript.src).href;
+  featureStyles.href = new URL('effects.css?v=20261017-glass5', document.currentScript.src).href;
   document.head.append(featureStyles);
+  const glassStyles = document.createElement('link');
+  glassStyles.rel = 'stylesheet'; glassStyles.id = 'glass-surfaces';
+  glassStyles.href = new URL('glass-surfaces.css?v=20261017-glass5', document.currentScript.src).href;
+  document.head.append(glassStyles);
   const motionSubscribers = new Set();
   const sync = () => motionSubscribers.forEach((callback) => callback());
   document.addEventListener('buzhi:motion', sync);

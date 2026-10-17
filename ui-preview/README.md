@@ -33,6 +33,8 @@ StyleKit Skill 0.8.0 的设计原则和移动端指南用于本次实现。在�
 
 新增 `effects.js` / `effects.css`，按用户提供的参考思路用原生 Canvas / WebGL / CSS 实现，不需要远程 GSAP、Three.js 或调参面板。
 
+`glass-surfaces.css` 为各页面板和 OC 展示卡提供统一通透毛玻璃；表单和按钮保留更清晰的底色。用户暂缓调整的回忆卡本体、图案、稀有度和卡背样式不在此文件的修改范围内。
+
 首页另加载 `island-home.css` 和原创 `assets/island-scenery.svg`：被大海环绕的生日海岛、漂云、树叶、海岸波纹和帆船，配合真正的局部毛玻璃。所有新增动效仍受统一开关和系统减少动态效果控制，其他页面不加载首页专用样式。
 
 - 首页 WebGL 水面折射（本地生成海面纹理，不加载第三方图片；不支持 WebGL 时保留 CSS 水波）
