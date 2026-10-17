@@ -235,15 +235,4 @@ async function load(){const seq=++requestSequence;try{const response=await fetch
 window.addEventListener('hashchange',()=>{renderAll();if(location.hash==='#/mailbox')load()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
 renderHome();if(location.hash==='#/mailbox')renderMailbox();load();
-})();</script><script id="buzhi-reference-motion-orchestrator">(function(){
-const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-const fine=matchMedia('(hover:hover) and (pointer:fine)');
-const hero=document.querySelector('#home .hero');
-if(!hero)return;
-let raf=0;
-function stop(){if(raf)cancelAnimationFrame(raf);raf=0;hero.style.setProperty('--px','0px');hero.style.setProperty('--py','0px')}
-function move(e){if(reduced.matches||document.documentElement.classList.contains('motion-off')||!fine.matches)return;if(raf)cancelAnimationFrame(raf);const b=hero.getBoundingClientRect();raf=requestAnimationFrame(()=>{const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;hero.style.setProperty('--px',Math.max(-11,Math.min(11,x*20)).toFixed(1)+'px');hero.style.setProperty('--py',Math.max(-8,Math.min(8,y*14)).toFixed(1)+'px');raf=0})}
-hero.addEventListener('pointermove',move,{passive:true});hero.addEventListener('pointerleave',stop);
-reduced.addEventListener?.('change',stop);
-new MutationObserver(()=>{if(document.documentElement.classList.contains('motion-off'))stop()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
 })();</script></body></html>
