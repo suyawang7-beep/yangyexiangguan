@@ -57,6 +57,37 @@ function codeStats(){return db.prepare('SELECT task_id,COUNT(*) total,SUM(CASE W
 function userDetail(id){if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id))throw error(400,'参与者编号无效');const user=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);if(!user)throw error(404,'岛民不存在');return {user,ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 200').all(id),tasks:db.prepare('SELECT task_id,redeemed_at FROM tasks WHERE user_id=? ORDER BY redeemed_at DESC').all(id),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC LIMIT 90').all(id),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id)}}
 function overview(){return {users:db.prepare('SELECT COUNT(*) AS n FROM users').get().n,redeemed:db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE task_id<>'report'").get().n,draws:db.prepare('SELECT COUNT(*) AS n FROM draws').get().n,codesUnused:db.prepare('SELECT COUNT(*) AS n FROM codes WHERE redeemed_by IS NULL').get().n,announcementsPublished:db.prepare('SELECT COUNT(*) AS n FROM announcements WHERE published=1').get().n}}
 function listUsers(){return db.prepare('SELECT u.id,u.nickname,u.created_at,COALESCE((SELECT SUM(amount) FROM ledger l WHERE l.user_id=u.id),0) coins,(SELECT COUNT(*) FROM tasks t WHERE t.user_id=u.id) tasks,(SELECT COUNT(*) FROM draws d WHERE d.user_id=u.id) draws FROM users u ORDER BY u.created_at DESC LIMIT 100').all()}
+// Existing accounts have no verified-islander field: never delete all 'visitor' profiles.
+function cleanupCandidates(){
+ const cutoff=new Date(Date.now()-24*3600000).toISOString();
+ return db.prepare(`SELECT u.id,u.nickname,u.created_at FROM users u
+ WHERE u.created_at < ?
+ AND (u.nickname LIKE '远程测试%' OR u.nickname LIKE '新版页面测试%' OR u.nickname LIKE '自动化测试%' OR u.nickname LIKE '测试岛民%')
+ AND NOT EXISTS(SELECT 1 FROM checkins c WHERE c.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM draws d WHERE d.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM bonuses b WHERE b.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM codes c WHERE c.redeemed_by=u.id)
+ AND NOT EXISTS(SELECT 1 FROM tasks t WHERE t.user_id=u.id AND t.task_id<>'report')
+ AND NOT EXISTS(SELECT 1 FROM ledger l WHERE l.user_id=u.id AND (l.amount<>50 OR l.reason<>'首次登岛通行证奖励'))
+ ORDER BY u.created_at LIMIT 500`).all(cutoff)
+}
+function cleanupPreview(){
+ const rows=cleanupCandidates();
+ return {count:rows.length,ids:rows.map(r=>r.id),sample:rows.slice(0,20).map(r=>({nickname:r.nickname,created_at:r.created_at})),scope:'仅清理24小时前创建、符合测试昵称、没有任何正式参与行为的账户'};
+}
+function cleanupTestAccounts(b){
+ const preview=cleanupPreview();
+ if(b.confirm!=='确认清理测试账户'||!Array.isArray(b.ids)||JSON.stringify(b.ids)!==JSON.stringify(preview.ids))throw error(409,'候选账户发生变化，请重新预览确认');
+ if(!preview.count)return {deleted:0};
+ const folder=resolve(dirname(DB_PATH),'backups');mkdirSync(folder,{recursive:true});
+ const file=resolve(folder,'before-test-cleanup-'+Date.now()+'-'+randomBytes(5).toString('hex')+'.sqlite');
+ db.exec("VACUUM INTO '"+file.replaceAll("'","''")+"'");
+ return tx(()=>{const delSessions=db.prepare('DELETE FROM sessions WHERE user_id=?'),delLedger=db.prepare('DELETE FROM ledger WHERE user_id=?'),delTasks=db.prepare('DELETE FROM tasks WHERE user_id=?'),delUsers=db.prepare('DELETE FROM users WHERE id=?');
+ for(const id of preview.ids){delSessions.run(id);delLedger.run(id);delTasks.run(id);delUsers.run(id)}
+ auditAdmin('users.test_cleanup',{deleted:preview.count,backup:file.split('/').pop()});
+ return {deleted:preview.count,backupCreated:true}
+ });
+}
 function announcements(adminView=false){return db.prepare('SELECT id,title,body,published,created_at,updated_at FROM announcements '+(adminView?'':'WHERE published=1 ')+'ORDER BY id DESC LIMIT 100').all()}
 function saveAnnouncement(b){const title=String(b.title||'').trim(),body=String(b.body||'').trim(),published=b.published===true?1:0,id=b.id==null?null:Number(b.id);if(!title||title.length>80||!body||body.length>1500)throw error(400,'公告标题须为 1–80 字，正文须为 1–1500 字');if(id!==null&&(!Number.isSafeInteger(id)||id<1))throw error(400,'公告编号无效');return tx(()=>{const t=now();if(id===null)db.prepare('INSERT INTO announcements(title,body,published,created_at,updated_at) VALUES(?,?,?,?,?)').run(title,body,published,t,t);else{const result=db.prepare('UPDATE announcements SET title=?,body=?,published=?,updated_at=? WHERE id=?').run(title,body,published,t,id);if(!result.changes)throw error(404,'公告不存在')}return announcements(true)})}
 function deleteAnnouncement(b){const id=Number(b.id);if(!Number.isSafeInteger(id)||id<1)throw error(400,'公告编号无效');const result=db.prepare('DELETE FROM announcements WHERE id=?').run(id);if(!result.changes)throw error(404,'公告不存在');return {deleted:id}}
@@ -104,6 +135,8 @@ else if(path==='/api/admin/announcements'&&req.method==='GET'){admin(req);data=a
 else if(path==='/api/admin/announcements'&&req.method==='POST'){admin(req);data=saveAnnouncement(b);auditAdmin('announcement.save',{id:b.id??null,published:b.published===true})}
 else if(path==='/api/admin/announcements/delete'&&req.method==='POST'){admin(req);data=deleteAnnouncement(b);auditAdmin('announcement.delete',{id:data.deleted})}
 else if(path==='/api/admin/users'&&req.method==='GET'){admin(req);data=listUsers()}
+else if(path==='/api/admin/test-cleanup'&&req.method==='GET'){admin(req);data=cleanupPreview()}
+else if(path==='/api/admin/test-cleanup'&&req.method==='POST'){admin(req);data=cleanupTestAccounts(b)}
 else if(path==='/api/admin/codes'&&req.method==='POST'){admin(req);data=codes(b);auditAdmin('codes.generate',{taskId:data.taskId,count:data.codes.length})}
 else if(path==='/api/admin/overview'&&req.method==='GET'){admin(req);data=overview()}
 else if(path==='/api/admin/assets'&&req.method==='GET'){admin(req);data=assetStatus()}
