@@ -39,6 +39,9 @@ const layoutPublic=await fetch(root+'/api/assets-manifest').then(r=>r.json());as
 const layoutReject=await api('admin/assets/layout',{name:'cards/SSR-1.webp',settings:{...layoutInput,opacity:110}},admin);assert.equal(layoutReject.status,400);
 const layoutUnauthorized=await api('admin/assets/layout',{name:'cards/SSR-1.webp',settings:layoutInput});assert.equal(layoutUnauthorized.status,403);
 const assetAfter=await api('admin/assets',undefined,admin);assert(assetAfter.data.some(x=>x.name==='cards/SSR-1.webp'&&x.uploaded));
+const initialCleanup=await api('admin/test-cleanup',undefined,admin);assert.equal(initialCleanup.status,200);assert.equal(initialCleanup.data.count,0);
+const deniedCleanup=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:[]});assert.equal(deniedCleanup.status,403);
+const wrongCleanup=await api('admin/test-cleanup',{confirm:'wrong',ids:[]},admin);assert.equal(wrongCleanup.status,409);
 let c=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(c.status,200);
 let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);
 let bad=await api('redeem',{taskId:'letter',code:'wrong'},token);assert.equal(bad.status,400);
