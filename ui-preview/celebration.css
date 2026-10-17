@@ -40,6 +40,9 @@ body[data-page="passport"] .ticket:before{left:-11px}body[data-page="passport"] 
 body[data-page="passport"] .ticket-body dt{font-size:12px}
 body[data-page="passport"] .ticket-id p{font-size:12px}
 body[data-page="passport"] .ticket-actions{margin-top:14px}
+body[data-page="passport"] #live-login{display:grid;gap:16px;max-width:600px}
+body[data-page="passport"] #live-login label{display:grid;gap:7px;font-size:13px}
+body[data-page="passport"] #live-login input{width:100%;min-height:46px;border:1px solid #97bbd17d;border-radius:12px;padding:11px 14px;background:#f5fbffda;color:var(--ink)}
 
 /* Office = pinned glass task notices, with progress as the side column. */
 body[data-page="office"] .notice-board-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:27px 0 22px;border-bottom:1px dashed #86abc16e;margin-bottom:22px}

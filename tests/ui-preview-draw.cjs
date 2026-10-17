@@ -209,6 +209,20 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name}: no desktop horizontal overflow`);
     await capture(`round-${name}-desktop`);
   }
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 680 }]) {
+    await page.setViewportSize(viewport); await visit('index');
+    const home = await page.evaluate(() => ({
+      button: document.querySelector('.hero-copy .actions .primary').getBoundingClientRect().bottom,
+      portrait: document.querySelector('.hero-art img').getBoundingClientRect().bottom,
+      bottomBar: document.querySelector('.mobile-nav').getBoundingClientRect().top,
+      motionRight: document.querySelector('#motion-toggle').getBoundingClientRect().right,
+      width: innerWidth,
+    }));
+    check(home.button < home.bottomBar - 8, `${viewport.width}: home primary action remains above the bottom bar`);
+    check(home.portrait < home.bottomBar, `${viewport.width}: island owners appear in the first home viewport`);
+    check(home.motionRight < home.width, `${viewport.width}: top navigation controls are not clipped`);
+    await capture(`round-index-final-${viewport.width}`);
+  }
   check(errors.length === 0, `No page-level JavaScript errors: ${errors.join('; ')}`);
   console.log(`PASS ${checks} assertions; five widths, draw settlement, collection, guest, live courier/meteors, reduced/interrupted motion and ten-page render smoke check`);
 })().catch(error => { console.error('FAIL:', error); process.exitCode = 1; }).finally(async () => {

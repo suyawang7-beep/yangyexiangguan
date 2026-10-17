@@ -553,11 +553,21 @@
   // so account/reward behavior remains independent of each room's composition.
   function applyPageLayout() {
     const main = document.querySelector('#main');
+    const modeLabel = document.querySelector('.demo-line > span:first-child');
+    if (LIVE && modeLabel) modeLabel.innerHTML = '<i class="status-dot"></i>正式账户 · 数据由服务器保存';
+    const footerNote = document.querySelector('.site-footer > div:last-child')?.lastChild;
+    if (footerNote?.nodeType === Node.TEXT_NODE) footerNote.textContent = LIVE ? '插画与卡面为示意 · 庆典账户数据由服务器保存' : 'UI 演示预览 · 数据仅保存在当前浏览器';
     const replaceOpening = (markup) => { const old = main.querySelector('.page-heading'); if (old) old.outerHTML = markup; };
     if (PAGE === 'passport') {
       replaceOpening(`<header class="ticket-office-head"><span class="room-emblem">${icon('ticket')}</span><div><span class="room-label">不吱岛 · 登岛登记处</span><h1>把名字留在小岛</h1><p>领一张生日通行证，留一份属于你的回忆。</p></div><span class="ticket-gift">${icon('coin')} 首次登岛 +50</span></header>`);
       const privacy = main.querySelector('#passport-form .privacy-note');
-      if (privacy) privacy.textContent = '仅供演示，请勿填写平台 UID 等私密资料。正式核验由主网站接入。';
+      if (privacy) privacy.textContent = LIVE ? '请勿填写平台 UID 等私密资料。注册不代表岛民核验；庆典头像暂为默认示意。' : '仅供演示，请勿填写平台 UID 等私密资料。正式核验由主网站接入。';
+      const hint = main.querySelector('#nickname-hint'); if (hint) hint.textContent = `1—${LIVE ? 20 : 24}个字符，昵称可重复，身份由唯一编号区分。`;
+      const savedNote = main.querySelector('.passport-grid > aside .panel > .small');
+      if (savedNote) savedNote.textContent = LIVE ? '通行证、金币与卡片由服务器保存。请安全保留恢复密钥，以便重新登录。' : '通行证、金币与卡片只保存在当前浏览器。刷新后可以继续，换设备不能自动恢复。';
+      const recoveryNote = main.querySelector('.passport-grid > aside > .info-note');
+      if (recoveryNote) recoveryNote.innerHTML = LIVE ? '<strong>妥善保留恢复密钥</strong><br>恢复密钥只在注册时显示一次。重新登录需要参与者编号和恢复密钥；公开编号本身不是密码。' : '<strong>请使用同一浏览器继续体验</strong><br>本地预览没有正式账户或恢复密钥，换设备不能恢复。正式版不会公开完整平台 UID。';
+      main.querySelector('#copy-id')?.setAttribute('aria-label', '复制参与者编号');
       const formTitle = main.querySelector('#passport-form h2');
       if (formTitle) formTitle.textContent = '领取你的生日通行证';
     } else if (PAGE === 'office') {
@@ -569,11 +579,15 @@
         details.append(...notice.childNodes); notice.replaceWith(details);
       }
       const greeting = main.querySelector('.welcome-strip h2'); if (greeting) greeting.textContent = '今天的庆典待办';
+      const badge = main.querySelector('.welcome-strip > .pill'); if (LIVE && badge) badge.textContent = '已登录访客 · 资格另行核验';
+      const codeHelp = main.querySelector('#task-code-form > .small');
+      if (codeHelp && !LIVE) codeHelp.innerHTML = '本地演示可输入 <strong>ISLAND25</strong> 体验；正式代码由岛主私信发放。';
     } else if (PAGE === 'checkin') {
       replaceOpening(`<header class="calendar-page-head"><div><span class="room-label">每天留一个小脚印</span><h1>小岛签到日历</h1></div><span class="calendar-date">${icon('sun')}<strong>${dateKey().slice(5).replace('-', ' / ')}</strong><small>北京时间</small></span></header>`);
       const days = main.querySelector('.days'), action = main.querySelector('.checkin-summary');
       if (days && action) days.before(action);
       const seventh = main.querySelector('.sidebar-card h3'); if (seventh) seventh.textContent = '七日纪念角';
+      const notice = main.querySelector('main > .info-note'); if (LIVE && notice) notice.textContent = '签到与金币由服务器按北京时间记录，页面以正式账户返回的状态为准。';
     } else if (PAGE === 'collection') {
       replaceOpening(`<header class="album-cover"><div><span class="room-label">一册属于你的生日回忆</span><h1>${icon('cards')} 回忆收藏室</h1><p>把相遇的瞬间，慢慢收藏。</p></div></header>`);
       const summary = main.querySelector('.collection-summary'); if (summary) main.querySelector('.album-cover').append(summary);
@@ -588,6 +602,10 @@
       const letters = main.querySelectorAll('.letter'); letters.forEach((letter, i) => { letter.id = `island-letter-${i + 1}`; });
       const side = main.querySelector('.mailbox-side');
       side.innerHTML = `${icon('mail')}<h2>今天，拆一封信</h2><p>来自菜菜与吱吱</p><nav aria-label="信件目录"><a href="#island-letter-1">生日邀请 ${icon('arrow')}</a><a href="#island-letter-2">庆典小贴士 ${icon('arrow')}</a></nav>`;
+      if (LIVE) {
+        main.querySelector('.letters').id = 'live-notices';
+        side.innerHTML = `${icon('mail')}<h2>来自岛主的消息</h2><p>公告由服务器更新</p><nav aria-label="信件目录"><a href="#live-notices">查看最新来信 ${icon('arrow')}</a></nav>`;
+      }
     } else if (PAGE === 'guide') {
       replaceOpening(`<header class="map-room-head"><span class="room-emblem">${icon('anchor')}</span><div><span class="room-label">沿着海风出发</span><h1>一起逛逛不吱岛</h1></div><span class="pill">6 站小岛旅程 · 随时可跳过</span></header>`);
     } else if (PAGE === 'effects') {

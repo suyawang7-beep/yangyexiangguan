@@ -6,6 +6,7 @@
   const page = document.body.dataset.page;
   const effectDefaults={collectionGrid:false,collectionFan:true,collectionRing:false,ocSlider:true,ocStagger:false,ocDepth:false,effectWater:true,effectStars:true,effectIsland:true,effectProgress:true,effectGuide:true,effectDraw:true,effectCheckin:true};
   let visual={...effectDefaults};
+  let effectsConfigured = false;
   const allowedMode=(name)=>visual[name]!==false;
 
   const enabled = () => world.dataset.motion === 'on' && !document.hidden;
@@ -442,6 +443,9 @@
   }
 
   function pageSetup() {
+    // Production profiles can arrive while visual settings are still loading.
+    // Bind only after configuration; otherwise the same DOM gets two galleries.
+    if (!effectsConfigured) return;
     const homeNote = document.querySelector('.hero-footnote');
     if (homeNote) homeNote.insertAdjacentHTML('afterend', '<div class="home-extras"><a href="guide.html">沿着海风，看看登岛导览 →</a><a href="effects.html">打开特效体验 ✦</a></div>');
     if (page === 'home') document.querySelector('.hero-copy').insertAdjacentHTML('afterbegin', '<p class="scene-note"><i></i>海风正好，小岛等你赴约</p>');
@@ -468,6 +472,7 @@
     if(allowedMode('effectStars'))initStars();
     if(allowedMode('effectWater'))initWater();
     if(allowedMode('effectIsland'))initIsland();
+    effectsConfigured = true;
     pageSetup();world.dataset.effectsReady='true';
   }
   startEffects();

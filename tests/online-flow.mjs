@@ -119,7 +119,7 @@ await publicPage.locator('#draw-button').click();
 await publicPage.locator('#draw-stage.is-revealed').waitFor({timeout:10000});
 assert.match(await publicPage.locator('#draw-result-label').textContent(),/SSR|SR/);
 await publicPage.goto(root+'/collection.html');
-await publicPage.locator('#collection-grid .memory-card').first().waitFor();
+await publicPage.locator('#collection-grid .memory-card').first().waitFor({state:'attached'});
 assert.match(await publicPage.locator('.collection-summary').textContent(),/1/);
 await publicPage.goto(root+'/office.html');
 await publicPage.locator('.office-layout .task-card').first().waitFor();
