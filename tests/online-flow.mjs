@@ -30,12 +30,13 @@ const badRestore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',versi
 assert.equal(badRestore.status,400);
 const assetAfter=await api('admin/assets',undefined,admin);assert(assetAfter.data.some(x=>x.name==='cards/SSR-1.webp'&&x.uploaded));
 let c=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(c.status,200);
-let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,0);
+let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);
 let bad=await api('redeem',{taskId:'letter',code:'wrong'},token);assert.equal(bad.status,400);
-let red=await api('redeem',{taskId:'letter',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,25);
+let red=await api('redeem',{taskId:'letter',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,75);
 let again=await api('redeem',{taskId:'letter',code:c.data.codes[0]},token);assert.notEqual(again.status,200);
-let sign=await api('checkin',{},token);assert.equal(sign.data.coins,35);
+let sign=await api('checkin',{},token);assert.equal(sign.data.coins,85);
 let duplicate=await api('checkin',{},token);assert.equal(duplicate.status,409);
+let firstRealDraw=await api('draw',{},token);assert.equal(firstRealDraw.status,200);assert.equal(firstRealDraw.data.profile.coins,35);assert(['SSR','SR'].includes(firstRealDraw.data.card.rarity));
 let insufficient=await api('draw',{},token);assert.equal(insufficient.status,409);
 let login=await api('login',{id,recoveryKey});assert.equal(login.status,200);assert.equal(login.data.profile.coins,35);
 let unauth=await api('admin/overview');assert.equal(unauth.status,403);
