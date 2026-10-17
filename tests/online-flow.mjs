@@ -104,5 +104,27 @@ assert.equal(await page.locator('#bzIdText').textContent(),id);
 await page.reload();
 await page.goto(root+'/legacy#/office');
 assert.match(await page.locator('.bz-account-chip').textContent(),/35/);
+// Public routes use the shared ui-preview layouts while all rewards remain server-backed.
+await page.goto(root+'/passport.html');
+await page.locator('#passport-form').waitFor();
+await page.locator('#nickname').fill('新版页面测试');
+await page.locator('#claim-pass').click();
+await page.locator('#public-id').waitFor();
+assert.match(await page.locator('#public-id').inputValue(),/^BZI-/);
+await page.goto(root+'/draw.html');
+await page.locator('#draw-button').waitFor();
+assert.match(await page.locator('[data-balance]').first().textContent(),/50/);
+await page.locator('#draw-button').click();
+await page.locator('#draw-stage.is-revealed').waitFor({timeout:10000});
+assert.match(await page.locator('#draw-result-label').textContent(),/SSR|SR/);
+await page.goto(root+'/collection.html');
+await page.locator('#collection-grid .memory-card').first().waitFor();
+assert.match(await page.locator('.collection-summary').textContent(),/1/);
+await page.goto(root+'/office.html');
+await page.locator('.office-layout .task-card').first().waitFor();
+assert.equal(await page.locator('.office-layout .task-card').count(),7);
+await page.goto(root+'/checkin.html');
+await page.locator('#checkin-button').click();
+await page.waitForFunction(()=>document.querySelector('#checkin-button')?.disabled);
 console.log('PASS remote account and admin: register, code redemption, check-in, recovery, overview, protected admin UI, published/draft notices, home/mailbox publish-update-delete sync');
 }finally{await browser?.close();processServer.kill('SIGTERM');rmSync(dir,{recursive:true,force:true})}
