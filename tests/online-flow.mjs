@@ -39,7 +39,7 @@ await page.locator('#enter').click();
 await page.locator('#stats .stat').first().waitFor();
 assert.match(await page.locator('#notices').textContent(),/岛主公告测试/);
 await page.goto(root);
-await page.locator('#bzHomeLatest').getByText('岛主公告测试').waitFor();
+await page.waitForFunction(()=>document.querySelector('#bzHomeLatest')?.textContent.includes('岛主公告测试'));
 assert.match(await page.locator('#bzHomeLatest').textContent(),/岛主公告测试/);
 assert.doesNotMatch(await page.locator('#bzHomeLatest').textContent(),/未发布草稿/);
 await page.goto(root+'#/mailbox');
@@ -53,7 +53,7 @@ let removed=await api('admin/announcements/delete',{id:noticeId},admin);assert.e
 await page.reload();await page.locator('#bzMailboxNotices').getByText('岛主尚未发布新公告。').waitFor();
 assert.doesNotMatch(await page.locator('#bzMailboxNotices').textContent(),/新的正式公告正文/);
 await page.goto(root);
-await page.locator('#bzHomeLatest').getByText('信箱暂时没有新公告').waitFor();
+await page.waitForFunction(()=>document.querySelector('#bzHomeLatest')?.textContent.includes('信箱暂时没有新公告'));
 await page.getByRole('button',{name:/生日通行证/}).first().click();
 await page.locator('#bzLoginId').fill(id);
 await page.locator('#bzLoginKey').fill(recoveryKey);
