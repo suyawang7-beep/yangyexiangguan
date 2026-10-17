@@ -205,7 +205,7 @@
   function installExhibit() {
     const grid = document.querySelector('#collection-grid'); if (!grid) return;
     const controls = document.createElement('div'); controls.className = 'appreciation-toolbar';
-    controls.innerHTML = `<div><span class="eyebrow">Open your memory album</span><p>换一种方式，欣赏这些回忆。</p></div><div class="filter-tabs" aria-label="收藏展示方式"><button type="button" data-layout="grid" aria-pressed="true">网格</button><button type="button" data-layout="fan" aria-pressed="false">扇形展开</button><button type="button" data-layout="circle" aria-pressed="false">圆环欣赏</button></div>`;
+    controls.innerHTML = `<div><span class="eyebrow">Open your memory album</span><p>换一种方式，欣赏这些回忆。</p></div><div class="filter-tabs" aria-label="收藏展示方式"><button type="button" data-layout="fan" aria-pressed="true">扇形展开</button></div>`;
     grid.before(controls);
     const exhibit = document.createElement('section'); exhibit.className = 'glass collection-exhibit'; exhibit.hidden = true;
     exhibit.setAttribute('aria-label', '卡片展开欣赏');
