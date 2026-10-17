@@ -10,7 +10,7 @@
   const SVG = 'http://www.w3.org/2000/svg';
   const featureStyles = document.createElement('link');
   featureStyles.rel = 'stylesheet';
-  featureStyles.href = new URL('effects.css?v=20261017-nav2', document.currentScript.src).href;
+  featureStyles.href = new URL('effects.css?v=20261017-story3', document.currentScript.src).href;
   document.head.append(featureStyles);
   const motionSubscribers = new Set();
   const sync = () => motionSubscribers.forEach((callback) => callback());
@@ -410,7 +410,10 @@
     if (page === 'office') installProgress();
     if (page === 'draw') installDrawEffects();
     if (page === 'guide') installGuide();
-    if (page === 'islanders') installGallery();
+    if (page === 'islanders') {
+      if (!document.querySelector('.oc-world-intro')) document.querySelector('.oc-mode-bar').insertAdjacentHTML('beforebegin', '<p class="oc-world-intro">菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p>');
+      installGallery();
+    }
   }
   // Demo pages replace their own content after a successful claim; only bind the new content.
   document.addEventListener('buzhi:render', pageSetup);

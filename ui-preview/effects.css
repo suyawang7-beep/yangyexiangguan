@@ -74,9 +74,10 @@
 @media(prefers-reduced-motion:reduce){.reveal-starlight{display:none}.starfield{display:none}.world.star-cursor-on,.world.star-cursor-on *{cursor:auto!important}.world.star-cursor-on input,.world.star-cursor-on textarea{cursor:text!important}}
 /* Keep the existing five mobile shortcuts, with the gallery available above. */
 .desktop-nav a{white-space:nowrap}
+.oc-world-intro{max-width:800px;margin:0 0 27px;color:var(--muted);font-size:13px;line-height:2}
 @media(max-width:850px){
  .desktop-nav{display:flex;flex:none;gap:0}
  .desktop-nav a:not([href="islanders.html"]){display:none}
  .desktop-nav a[href="islanders.html"]{min-height:44px;padding:7px 5px;font-size:10px}
 }
-@media(max-width:620px){.site-header{column-gap:7px}}
+@media(max-width:620px){.site-header{column-gap:7px}.oc-world-intro{font-size:12px;margin-bottom:23px}}
