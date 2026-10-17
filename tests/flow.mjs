@@ -12,6 +12,8 @@ let passed=0;
 try{
   const page=await browser.newPage({viewport:{width:390,height:844}});
   page.on('dialog',d=>d.accept());
+  page.on('pageerror',e=>console.error('PAGE ERROR:',e.message));
+  page.on('console',m=>{if(m.type()==='error')console.error('BROWSER CONSOLE:',m.text())});
   await page.goto(url);
   await page.getByRole('button',{name:/生日通行证/}).first().click();
   await page.locator('#nickname').fill('验收岛民');
@@ -21,7 +23,8 @@ try{
   assert.match(id,/^BZI-/);passed++;
   await page.locator('#closeModal').click();
   await page.goto(url+'#/office');
-  await page.locator('[data-task="letter"]').click();
+  console.log('OFFICE DEBUG',JSON.stringify(await page.evaluate(()=>({hash:location.hash,inner:document.getElementById('innerContent')?.innerHTML.slice(0,650),newUI:!!document.querySelector('[data-task="letter"]'),legacy:!!document.querySelector('.office-task'),account:!!localStorage.getItem('buzhi-account-local-v1')}))));
+  await page.locator('[data-task="letter"]').click({timeout:7000});
   await page.locator('#bzDialogCode').fill('ISLAND-DEMO');
   await page.locator('#bzDialogOK').click();
   await page.locator('[data-task="memory"]').click();
