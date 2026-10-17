@@ -29,6 +29,7 @@ const restore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:
 assert.equal(restore.status,200);
 const badRestore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:'../../secret'},admin);
 assert.equal(badRestore.status,400);
+const publicManifest=await fetch(root+'/api/assets-manifest').then(r=>r.json());assert.equal(Object.keys(publicManifest.assets).length,26);assert.equal(publicManifest.assets['cards/SSR-1.webp'],true);assert.equal(publicManifest.assets['decor/home-poster.webp'],false);
 const assetAfter=await api('admin/assets',undefined,admin);assert(assetAfter.data.some(x=>x.name==='cards/SSR-1.webp'&&x.uploaded));
 let c=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(c.status,200);
 let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);
