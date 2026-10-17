@@ -156,7 +156,7 @@ account=load();
 let online=false,authToken=sessionStorage.getItem('buzhi-online-token')||'';
 async function api(path,data){const res=await fetch('/api/'+path,{method:data===undefined?'GET':'POST',headers:{...(data===undefined?{}:{'Content-Type':'application/json'}),...(authToken?{'Authorization':'Bearer '+authToken}:{})},...(data===undefined?{}:{body:JSON.stringify(data)})});const out=await res.json();if(!res.ok)throw Error(out.error||'服务器请求失败');return out}
 function applyRemote(p){const copies={};for(const d of p.draws)copies[d.card_id]=(copies[d.card_id]||0)+1;account={id:p.id,nickname:p.nickname,avatar:AVATARS[0],status:'访客',created:p.created_at,coins:p.coins,ledger:[],done:p.tasks,bonuses:p.bonuses,checkins:p.checkins,draws:p.draws.map(d=>({id:d.card_id,date:d.created_at})),copies,hiddenUnlocked:false};renderCurrent()}
-async function restoreRemote(){try{await fetch('/health').then(r=>{if(!r.ok)throw Error('offline')});online=true;account=null;if(authToken){try{applyRemote(await api('me'))}catch{authToken='';sessionStorage.removeItem('buzhi-online-token')}}renderCurrent()}catch{online=false}}
+async function restoreRemote(){try{await fetch('/health').then(async r=>{if(!r.ok||!r.headers.get('content-type')?.includes('application/json')||!(await r.json()).ok)throw Error('offline')});online=true;account=null;if(authToken){try{applyRemote(await api('me'))}catch{authToken='';sessionStorage.removeItem('buzhi-online-token')}}renderCurrent()}catch{online=false}}
 function remoteError(e){showDialog('操作未完成',e?.message||'网络连接失败，请重试。金币和卡片状态以服务器为准。')}
 restoreRemote();
 function save(){if(account)localStorage.setItem(KEY,JSON.stringify(account))}
