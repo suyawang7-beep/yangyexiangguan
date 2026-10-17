@@ -1,7 +1,7 @@
 import http from 'node:http';
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes,createHash,timingSafeEqual} from 'node:crypto';
-import {mkdirSync,readFileSync} from 'node:fs';
+import {mkdirSync,readFileSync,existsSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
@@ -48,7 +48,7 @@ function saveAnnouncement(b){const title=String(b.title||'').trim(),body=String(
 function deleteAnnouncement(b){const id=Number(b.id);if(!Number.isSafeInteger(id)||id<1)throw error(400,'公告编号无效');const result=db.prepare('DELETE FROM announcements WHERE id=?').run(id);if(!result.changes)throw error(404,'公告不存在');return {deleted:id}}
 function readBody(req){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>8192){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
 function send(res,code,data){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))}
-http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req):{};let data;
+http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;if(req.method==='GET'&&/^\\/assets\\/(characters|cards)\\/[a-zA-Z0-9-]+\\.webp$/.test(path)){const file=resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req):{};let data;
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
