@@ -21,6 +21,12 @@ try{
   await page.locator('#makePassport').click();
   const id=await page.locator('#bzIdText').textContent();
   assert.match(id,/^BZI-/);passed++;
+  assert.equal(await page.locator('.bz-passport-avatar').textContent(),'🐱');
+  assert.match(await page.locator('.bz-pass-name').textContent(),/验收岛民/);
+  assert.match(await page.locator('.bz-pass-id').textContent(),/^唯一通行证编号|BZI-/);
+  assert.match(await page.locator('.bz-pass-note').textContent(),/隐私提醒/);
+  await page.locator('#bzCopyId').click();
+  assert.match(await page.locator('#bzCopyStatus').textContent(),/编号已复制|复制失败/);
   await page.locator('#closeModal').click();
   await page.goto(url+'#/office');
   console.log('OFFICE DEBUG',JSON.stringify(await page.evaluate(()=>({hash:location.hash,inner:document.getElementById('innerContent')?.innerHTML.slice(0,650),newUI:!!document.querySelector('[data-task="letter"]'),legacy:!!document.querySelector('.office-task'),account:!!localStorage.getItem('buzhi-account-local-v1')}))));
@@ -72,6 +78,6 @@ try{
   await page.locator('#bzDraw').click();assert.match(await page.locator('#bzDialogText').textContent(),/操作已撤销/);
   const afterFailure=await page.evaluate(()=>JSON.parse(localStorage.getItem('buzhi-account-local-v1')));
   assert.deepEqual(afterFailure,beforeFailure);passed++;
-  console.log('PASS '+passed+'/11 main-flow and extended rule assertions');
+  console.log('PASS '+passed+'/11 main-flow and extended rule assertions; passport UI checks passed');
 }catch(e){console.error('FAILED after '+passed+' checks:',e);process.exitCode=1}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
