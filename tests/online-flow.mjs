@@ -29,6 +29,18 @@ let publicNotices=await api('announcements');assert.equal(publicNotices.status,2
 let draft=await api('admin/announcements',{title:'未发布草稿',body:'仅管理员可见',published:false},admin);assert.equal(draft.status,200);
 publicNotices=await api('announcements');assert(!publicNotices.data.some(n=>n.title==='未发布草稿'));
 let list=await api('admin/users',undefined,admin);assert.equal(list.status,200);assert(list.data.some(u=>u.id===id));
+const initialVisual=await fetch(root+'/api/visual-settings').then(r=>r.json());
+assert.equal(initialVisual.collectionGrid,false);
+assert.equal(initialVisual.collectionFan,true);
+assert.equal(initialVisual.ocDepth,false);
+const changedVisual={...initialVisual,effectStars:false,effectWater:false};
+const writtenVisual=await api('admin/visual-settings',changedVisual,admin);
+assert.equal(writtenVisual.status,200);
+assert.equal(writtenVisual.data.effectWater,false);
+const readVisual=await fetch(root+'/api/visual-settings').then(r=>r.json());
+assert.equal(readVisual.effectStars,false);
+const badVisual=await api('admin/visual-settings',{...changedVisual,collectionFan:false},admin);
+assert.equal(badVisual.status,400);
 let detail=await api('admin/user?id='+encodeURIComponent(id),undefined,admin);assert.equal(detail.status,200);
 assert.equal(detail.data.user.id,id);assert.equal(detail.data.ledger.reduce((n,x)=>n+x.amount,0),35);
 assert(detail.data.tasks.some(t=>t.task_id==='letter'));assert(detail.data.checkins.length===1);
