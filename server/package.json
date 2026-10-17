@@ -1,0 +1,12 @@
+{
+  "name": "buzhi-island-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs",
+    "check": "node --check index.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
