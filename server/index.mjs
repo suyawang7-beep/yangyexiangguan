@@ -93,6 +93,7 @@ else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
 else if(path==='/api/announcements'&&req.method==='GET')data=announcements(false);
+else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries([...ASSET_NAMES].map(name=>[name,existsSync(assetPath(name))]))};
 else if(path==='/api/catalog'&&req.method==='GET')data={cards:cardCatalog,cost:50,firstDrawRarities:['SSR','SR'],timezone:'Asia/Shanghai',nicknameMaxLength:20};
 else if(path==='/api/visual-settings'&&req.method==='GET')data=getVisualSettings();
 else if(path==='/api/admin/announcements'&&req.method==='GET'){admin(req);data=announcements(true)}
