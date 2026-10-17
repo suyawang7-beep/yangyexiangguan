@@ -80,13 +80,13 @@ try{
   assert.deepEqual(afterFailure,beforeFailure);passed++;
   const motionStyle=await page.locator('#buzhi-reference-motion-v2').count();assert.equal(motionStyle,1);
   await page.goto(url+'#/mailbox');
-  await page.locator('.bz-announcement').first().waitFor();
-  const folded=await page.locator('.bz-announcement').first().evaluate(el=>getComputedStyle(el).animationName);
+  await page.locator('#bzMailboxNotices .bz-announcement').first().waitFor();
+  const folded=await page.locator('#bzMailboxNotices .bz-announcement').first().evaluate(el=>getComputedStyle(el).animationName);
   assert.match(folded,/islandLetter/);
   const reducePage=await browser.newPage({reducedMotion:'reduce'});
   await reducePage.goto(url+'#/mailbox');
-  await reducePage.locator('.bz-announcement').first().waitFor();
-  const reduceAnim=await reducePage.locator('.bz-announcement').first().evaluate(el=>getComputedStyle(el).animationName);
+  await reducePage.locator('#bzMailboxNotices .bz-announcement').first().waitFor();
+  const reduceAnim=await reducePage.locator('#bzMailboxNotices .bz-announcement').first().evaluate(el=>getComputedStyle(el).animationName);
   assert.equal(reduceAnim,'none');await reducePage.close();
   console.log('PASS 11/11 flow assertions; reference motion and reduced-motion checks passed');
 }catch(e){console.error('FAILED after '+passed+' checks:',e);process.exitCode=1}
