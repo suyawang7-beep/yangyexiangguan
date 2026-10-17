@@ -29,6 +29,15 @@ let publicNotices=await api('announcements');assert.equal(publicNotices.status,2
 let draft=await api('admin/announcements',{title:'未发布草稿',body:'仅管理员可见',published:false},admin);assert.equal(draft.status,200);
 publicNotices=await api('announcements');assert(!publicNotices.data.some(n=>n.title==='未发布草稿'));
 let list=await api('admin/users',undefined,admin);assert.equal(list.status,200);assert(list.data.some(u=>u.id===id));
+let detail=await api('admin/user?id='+encodeURIComponent(id),undefined,admin);assert.equal(detail.status,200);
+assert.equal(detail.data.user.id,id);assert.equal(detail.data.ledger.reduce((n,x)=>n+x.amount,0),35);
+assert(detail.data.tasks.some(t=>t.task_id==='letter'));assert(detail.data.checkins.length===1);
+let forbiddenDetail=await api('admin/user?id='+encodeURIComponent(id));assert.equal(forbiddenDetail.status,403);
+let codeStats=await api('admin/code-stats',undefined,admin);assert.equal(codeStats.status,200);assert(codeStats.data.some(x=>x.task_id==='letter'&&x.redeemed>=1));
+let audit=await api('admin/audit',undefined,admin);assert.equal(audit.status,200);
+assert(audit.data.some(x=>x.action==='codes.generate'));assert(audit.data.some(x=>x.action==='announcement.save'));
+assert(!JSON.stringify(audit.data).includes(recoveryKey));
+
 browser=await chromium.launch({headless:true});
 const page=await browser.newPage();
 page.on('pageerror',e=>{throw e});
