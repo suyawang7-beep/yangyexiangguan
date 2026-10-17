@@ -163,7 +163,7 @@
   let liveCatalog=[];
   let managedAssets={};
   let managedLayouts={};
-  function applyAssetLayout(el,name,isBackground=false){if(!el)return;const v=managedLayouts[name];if(!v)return;el.style.opacity=String(v.opacity/100);el.style.zIndex=String(v.layer);el.style.position=el.style.position||'relative';if(isBackground){el.style.backgroundPosition=v.x+'% '+v.y+'%';el.style.backgroundSize=v.fit==='cover'?'cover':v.scale+'% auto';return}el.style.objectFit=v.fit;el.style.objectPosition=v.x+'% '+v.y+'%';el.style.transform='scale('+(v.scale/100)+')';el.style.transformOrigin=v.x+'% '+v.y+'%'}
+  function applyAssetLayout(el,name,isBackground=false){if(!el)return;const v=managedLayouts[name];if(!v)return;if(isBackground){el.style.backgroundPosition=v.x+'% '+v.y+'%';el.style.backgroundSize=v.fit==='cover'?'cover':v.scale+'% auto';return}el.style.opacity=String(v.opacity/100);el.style.zIndex=String(v.layer);el.style.position=el.style.position||'relative';el.style.objectFit=v.fit;el.style.objectPosition=v.x+'% '+v.y+'%';el.style.transform='scale('+(v.scale/100)+')';el.style.transformOrigin=v.x+'% '+v.y+'%'}
   function refreshManagedArtwork(){
     if(!LIVE)return;
     const backgrounds={
