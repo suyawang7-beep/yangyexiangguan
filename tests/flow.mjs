@@ -34,7 +34,9 @@ try{
   let coins=await page.locator('.bz-account-chip b').textContent();
   assert.match(coins,/75/);passed++;
   await page.locator('#bzDraw').click();
-  await page.locator('#bzDialogOK').click();
+  await page.locator('.bz-reveal.revealed .bz-reveal-card').waitFor();
+  assert.match(await page.locator('.bz-reveal-status').textContent(),/NEW/);
+  await page.locator('.bz-reveal-close').click();
   coins=await page.locator('.bz-account-chip b').textContent();
   assert.match(coins,/25/);passed++;
   await page.goto(url+'#/collection');
@@ -58,11 +60,11 @@ try{
   await page.evaluate(()=>{const a=JSON.parse(localStorage.getItem('buzhi-account-local-v1'));a.ledger.push({amount:125,reason:'test top-up',date:new Date().toISOString()});localStorage.setItem('buzhi-account-local-v1',JSON.stringify(a))});
   await page.reload();await page.goto(url+'#/post-office');
   await page.evaluate(()=>{window.__buzhiTest.forceIndex(0)});
-  await page.locator('#bzDraw').click();await page.locator('#bzDialogOK').click();
+  await page.locator('#bzDraw').click();await page.locator('.bz-reveal.revealed .bz-reveal-card').waitFor();assert.equal(await page.locator('.bz-reveal-rarity').textContent(),'UR');await page.locator('.bz-reveal-close').click();
   await page.goto(url+'#/collection');
   await page.locator('[data-bz-filter="UR"]').click();assert.match(await page.locator('.bz-collection').textContent(),/拥有 ×1/);passed++;
   await page.goto(url+'#/post-office');await page.evaluate(()=>{window.__buzhiTest.forceIndex(0)});
-  await page.locator('#bzDraw').click();await page.locator('#bzDialogOK').click();
+  await page.locator('#bzDraw').click();await page.locator('.bz-reveal.revealed .bz-reveal-card').waitFor();assert.equal(await page.locator('.bz-reveal-rarity').textContent(),'UR');await page.locator('.bz-reveal-close').click();
   await page.goto(url+'#/collection');await page.locator('[data-bz-filter="UR"]').click();assert.match(await page.locator('.bz-collection').textContent(),/拥有 ×2/);passed++;
   await page.goto(url+'#/post-office');
   const beforeFailure=await page.evaluate(()=>JSON.parse(localStorage.getItem('buzhi-account-local-v1')));
