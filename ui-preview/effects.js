@@ -102,6 +102,33 @@
     resize();
   }
 
+  function initIsland() {
+    if (page !== 'home') return;
+    const scene = document.createElement('div');
+    scene.className = 'island-scene'; scene.setAttribute('aria-hidden', 'true');
+    scene.innerHTML = `<div class="sea-glimmer"></div><svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" focusable="false">
+      <image class="scene-land" href="assets/island-scenery.svg" width="1600" height="1000"/>
+      <g class="scene-shore"><path d="M774 424c45-119 223-166 375-139 157-59 354 16 381 141 64 141-51 258-212 278-198 56-451-9-514-128-32-55-58-111-30-152Z"/></g>
+      <g class="scene-shore shore-two"><path d="M774 424c45-119 223-166 375-139 157-59 354 16 381 141 64 141-51 258-212 278-198 56-451-9-514-128-32-55-58-111-30-152Z"/></g>
+      <g transform="translate(913 445)"><g class="scene-tree"><path d="M0 27q6-36-1-64" stroke="#a9a383" stroke-width="8" stroke-linecap="round"/><path d="M-1-37q-51-34-64 4 32-17 64-4Z" fill="#72ad9b"/><path d="M-1-37q-11-55 26-49-18 20-26 49Z" fill="#b8d8a9"/><path d="M-1-37q36-35 64-4-34-6-64 4Z" fill="#91c5a4"/><path d="M-1-37q-35 5-36 38 13-21 36-38Z" fill="#88bea1"/><path d="M-1-37q35 3 37 35-19-22-37-35Z" fill="#acd0a9"/></g></g>
+      <g transform="translate(1353 487) scale(.8)"><g class="scene-tree tree-two"><path d="M0 27q6-36-1-64" stroke="#a9a383" stroke-width="8" stroke-linecap="round"/><path d="M-1-37q-51-34-64 4 32-17 64-4Z" fill="#72ad9b"/><path d="M-1-37q-11-55 26-49-18 20-26 49Z" fill="#b8d8a9"/><path d="M-1-37q36-35 64-4-34-6-64 4Z" fill="#91c5a4"/><path d="M-1-37q-35 5-36 38 13-21 36-38Z" fill="#88bea1"/><path d="M-1-37q35 3 37 35-19-22-37-35Z" fill="#acd0a9"/></g></g>
+      <g transform="translate(1293 744)"><g class="scene-boat"><ellipse cy="19" rx="43" ry="8" fill="#397b9822"/><path d="m-41 0 18 23h43L39 0Z" fill="#fff4e7"/><path d="m-34 5 13 14h37L28 5Z" fill="#b6c7d6"/><path d="M-3 0v-79" stroke="#9e9da5" stroke-width="3"/><path d="M-7-72-35-10H-7Z" fill="#fff9ee"/><path d="M2-77v67h32Z" fill="#ebc1d4"/><path d="M-5-83 16-79-5-72Z" fill="#c2b3d4"/></g></g>
+      <path class="scene-light" d="m1431 310-260-39 5 74Z" fill="#fffbd8"/>
+      <g transform="translate(801 209)"><g class="scene-cloud"><path d="M-80 19c-24-8-17-31 3-33 5-39 52-52 75-24 20-30 60-10 59 14 45-2 56 38 20 48-51 11-113 8-157-5Z" fill="#f4ffff"/></g></g>
+      <g transform="translate(1495 183) scale(.85)"><g class="scene-cloud cloud-two"><path d="M-80 19c-24-8-17-31 3-33 5-39 52-52 75-24 20-30 60-10 59 14 45-2 56 38 20 48-51 11-113 8-157-5Z" fill="#f4ffff"/></g></g>
+      <g transform="translate(668 725) scale(.8)"><g class="scene-cloud cloud-three"><path d="M-80 19c-24-8-17-31 3-33 5-39 52-52 75-24 20-30 60-10 59 14 45-2 56 38 20 48-51 11-113 8-157-5Z" fill="#f4ffff"/></g></g>
+      <g class="scene-bird" fill="none" stroke="#f6ffff" stroke-width="3" stroke-linecap="round"><path d="M1085 191q9-12 18 0 9-12 18 0m28 22q7-9 14 0 7-9 14 0m159-67q7-9 14 0 7-9 14 0"/></g>
+    </svg>`;
+    world.prepend(scene);
+    const narrow = matchMedia('(max-width: 620px)');
+    function frameScene() {
+      scene.querySelector('svg').setAttribute('preserveAspectRatio', narrow.matches ? 'xMaxYMid slice' : 'xMidYMid slice');
+    }
+    narrow.addEventListener('change', frameScene); frameScene();
+    subscribe(() => scene.classList.toggle('is-paused', !enabled()));
+    world.dataset.island = 'ready';
+  }
+
   function initWater() {
     if (page !== 'home') return;
     const canvas = document.createElement('canvas'); canvas.className = 'water-surface'; canvas.setAttribute('aria-hidden', 'true');
@@ -121,7 +148,7 @@
         float outer=noise(uv*.65+vec2(0.,t*.15));float s=surface(uv*2.+outer*.15,t);
         vec2 imageUV=vUv;imageUV+=vec2(outer*.008+s*.013,outer*.006+s*.008);
         vec3 color=texture2D(u_image,imageUV).rgb;float light=pow(clamp(s*1.2,0.,1.),1.5);
-        color=mix(color,vec3(.97,1.,1.),light*.46);gl_FragColor=vec4(color,1.);}`;
+        color=mix(color,vec3(.91,1.,.98),light*.64);gl_FragColor=vec4(color,1.);}`;
     function compile(type, source) {
       const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader);
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { gl.deleteShader(shader); return null; }
@@ -136,11 +163,11 @@
     const pos = gl.getAttribLocation(program, 'a_position'); gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
     const textureCanvas = document.createElement('canvas'); textureCanvas.width = 1200; textureCanvas.height = 900;
     const context = textureCanvas.getContext('2d');
-    const gradient = context.createLinearGradient(0, 0, 1200, 900); gradient.addColorStop(0, '#effaff'); gradient.addColorStop(.38, '#d5eff9'); gradient.addColorStop(.7, '#cce6f7'); gradient.addColorStop(1, '#dcd9f2');
+    const gradient = context.createLinearGradient(0, 0, 1200, 900); gradient.addColorStop(0, '#a6dce5'); gradient.addColorStop(.38, '#8cd4df'); gradient.addColorStop(.7, '#86c6d7'); gradient.addColorStop(1, '#75b4cd');
     context.fillStyle = gradient; context.fillRect(0, 0, 1200, 900);
     for (let i = -4; i < 18; i++) {
       context.beginPath(); context.moveTo(i * 135, -80); context.bezierCurveTo(i * 120 - 170, 300, i * 140 + 240, 550, i * 120 - 160, 980);
-      context.strokeStyle = '#ffffff75'; context.lineWidth = 3 + (i % 3); context.stroke();
+      context.strokeStyle = '#e7fffc55'; context.lineWidth = 2 + (i % 3); context.stroke();
     }
     const texture = gl.createTexture(); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -378,6 +405,7 @@
   function pageSetup() {
     const homeNote = document.querySelector('.hero-footnote');
     if (homeNote) homeNote.insertAdjacentHTML('afterend', '<div class="home-extras"><a href="guide.html">沿着海风，看看登岛导览 →</a><a href="effects.html">打开特效体验 ✦</a></div>');
+    if (page === 'home') document.querySelector('.hero-copy').insertAdjacentHTML('afterbegin', '<p class="scene-note"><i></i>海风正好，小岛等你赴约</p>');
     if (page === 'collection') installExhibit();
     if (page === 'office') installProgress();
     if (page === 'draw') installDrawEffects();
@@ -393,6 +421,6 @@
       document.dispatchEvent(new CustomEvent('buzhi:burst', { detail: { x: r.x + r.width / 2, y: r.y + r.height / 2, count: 32 } }));
     }
   }, true);
-  shellLinks(); initStars(); initWater(); pageSetup();
+  shellLinks(); initStars(); initWater(); initIsland(); pageSetup();
   world.dataset.effectsReady = 'true';
 })();

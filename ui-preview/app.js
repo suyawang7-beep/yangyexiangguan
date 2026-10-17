@@ -464,6 +464,6 @@
   renderShell();
   renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js', document.currentScript.src).href;
+  effectsScript.src = new URL(PAGE === 'home' ? 'effects.js?v=20261017-island' : 'effects.js', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();

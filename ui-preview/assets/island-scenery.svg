@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" fill="none">
+  <defs>
+    <linearGradient id="lagoon" x1="700" y1="250" x2="1500" y2="760" gradientUnits="userSpaceOnUse"><stop stop-color="#b7f2e7"/><stop offset="1" stop-color="#6abdc9" stop-opacity=".15"/></linearGradient>
+    <linearGradient id="sand" x1="1000" y1="300" x2="1180" y2="650" gradientUnits="userSpaceOnUse"><stop stop-color="#fff6dd"/><stop offset="1" stop-color="#efd7bc"/></linearGradient>
+    <linearGradient id="grass" x1="860" y1="240" x2="1280" y2="580" gradientUnits="userSpaceOnUse"><stop stop-color="#cce3b5"/><stop offset=".55" stop-color="#a8cfb0"/><stop offset="1" stop-color="#85b7aa"/></linearGradient>
+    <linearGradient id="hill" x1="1100" y1="250" x2="1200" y2="460" gradientUnits="userSpaceOnUse"><stop stop-color="#b3d9be"/><stop offset="1" stop-color="#72a99e"/></linearGradient>
+    <linearGradient id="roof" x1="1000" y1="370" x2="1170" y2="435" gradientUnits="userSpaceOnUse"><stop stop-color="#edbdd0"/><stop offset="1" stop-color="#b38daf"/></linearGradient>
+    <linearGradient id="blue-roof" x1="800" y1="400" x2="1000" y2="500" gradientUnits="userSpaceOnUse"><stop stop-color="#adcddd"/><stop offset="1" stop-color="#789eaf"/></linearGradient>
+    <linearGradient id="tower" x1="1400" y1="260" x2="1460" y2="400" gradientUnits="userSpaceOnUse"><stop stop-color="#fffdf1"/><stop offset="1" stop-color="#c6dce0"/></linearGradient>
+    <filter id="soft-shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#28667e" flood-opacity=".18"/></filter>
+    <g id="tree"><path d="M0 4v35" stroke="#9b997c" stroke-width="7" stroke-linecap="round"/><ellipse cy="-7" rx="29" ry="35" fill="#88b7a0"/><ellipse cx="-10" cy="-17" rx="19" ry="24" fill="#b6d6ad"/><path d="M-17-17q4-16 14-19" stroke="#d6e9bf" stroke-width="3" stroke-linecap="round"/></g>
+    <g id="bush"><ellipse cy="5" rx="34" ry="12" fill="#6ca497" opacity=".25"/><circle cx="-16" r="18" fill="#8ab8a0"/><circle cy="-8" r="24" fill="#acd0ac"/><circle cx="23" cy="2" r="17" fill="#b7d6b2"/><circle cx="-6" cy="-19" r="8" fill="#d1e3bc"/></g>
+    <g id="flower"><path d="M0 0v12" stroke="#6eac9b" stroke-width="2"/><circle cx="-3" cy="-2" r="4" fill="#f5d5df"/><circle cx="3" cy="-2" r="4" fill="#f5d5df"/><circle cy="-7" r="4" fill="#f9e6e7"/><circle r="2.5" fill="#f7e1a0"/></g>
+  </defs>
+  <!-- Original birthday-island scenery; no third-party images or real OC artwork. -->
+  <ellipse cx="1150" cy="532" rx="471" ry="253" fill="url(#lagoon)"/>
+  <path d="M745 408c52-136 244-185 407-158 162-61 391 19 414 167 73 157-46 303-240 318-201 61-490-16-554-152-39-59-62-124-27-175Z" stroke="#d8fff5" stroke-width="4" opacity=".55"/>
+  <path d="M774 424c45-119 223-166 375-139 157-59 354 16 381 141 64 141-51 258-212 278-198 56-451-9-514-128-32-55-58-111-30-152Z" stroke="#f0fff6" stroke-width="2" opacity=".8"/>
+  <g filter="url(#soft-shadow)">
+    <path d="M799 431c30-79 145-127 261-123 126-75 303-28 352 49 93 13 142 75 117 149-10 91-116 149-245 156-120 47-329 7-411-68-62-50-105-100-74-163Z" fill="#d1bda1"/>
+    <path d="M799 414c30-79 145-127 261-123 126-75 303-28 352 49 93 13 142 75 117 149-10 91-116 149-245 156-120 47-329 7-411-68-62-50-105-100-74-163Z" fill="url(#sand)"/>
+    <path d="M829 414c41-63 134-94 234-93 131-66 277-23 335 43 79 16 109 66 86 116-13 71-117 119-215 129-135 30-300-1-376-62-53-42-86-88-64-133Z" fill="url(#grass)"/>
+    <path d="M1008 396c35-129 96-194 166-134 29-96 96-95 153 28 41-24 71-1 92 91-81 61-276 81-411 15Z" fill="url(#hill)"/>
+    <path d="M1135 267c18-15 34-9 48 2m91-13q23 13 40 56" stroke="#dbebc3" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+    <path d="M888 460c89-12 162 8 186 54 32 42 139 30 209 27 57-5 84-32 104-74" stroke="#e8e1c4" stroke-width="22" stroke-linecap="round"/>
+    <path d="M1074 514c-35 27-73 50-66 84" stroke="#eee4c9" stroke-width="14" stroke-linecap="round"/>
+    <g opacity=".55"><ellipse cx="1220" cy="500" rx="57" ry="15" fill="#6d9f98"/><ellipse cx="922" cy="469" rx="69" ry="15" fill="#6d9f98"/></g>
+    <use href="#tree" transform="translate(1015 333) scale(.85)"/><use href="#tree" transform="translate(969 351) scale(.7)"/>
+    <use href="#tree" transform="translate(1339 348) scale(.85)"/><use href="#tree" transform="translate(1371 376) scale(.7)"/>
+    <use href="#bush" transform="translate(1305 316) scale(.7)"/><use href="#bush" transform="translate(1173 371)"/>
+    <use href="#bush" transform="translate(850 409) scale(.85)"/><use href="#bush" transform="translate(1444 459)"/>
+    <g transform="translate(865 367)">
+      <path d="m0 57 70-23 65 34v72l-65 24L0 132Z" fill="#f9f7e9"/>
+      <path d="m70 83 65-15v72l-65 24Z" fill="#c5d9d8"/>
+      <path d="m-13 59 50-61 80 23 35 51-82 21Z" fill="url(#blue-roof)"/>
+      <path d="m37-2 33 95-83-34Z" fill="#c3dce2"/>
+      <path d="M22 91v34l21 6V97Z" fill="#b1d3db" stroke="#fff" stroke-width="3"/>
+      <path d="m87 106 24-7v43l-24 9Z" fill="#83aeb8"/>
+      <path d="m115 85 11-3v16l-11 3Z" fill="#f5f2cc"/>
+      <path d="m38 12 10 27m0 0 10 28" stroke="#eaf7f1" stroke-width="2" opacity=".6"/>
+    </g>
+    <g transform="translate(1127 354)">
+      <path d="m0 67 83-32 82 40v93l-82 29L0 151Z" fill="#fff4e9"/>
+      <path d="m83 105 82-30v93l-82 29Z" fill="#e9cccb"/>
+      <path d="m-14 69 62-76 93 24 42 62-100 38Z" fill="url(#roof)"/>
+      <path d="m48-7 35 124-97-48Z" fill="#f2cdd7"/>
+      <path d="m126 12 17 5v-35l-17-5Z" fill="#fcf4e8"/>
+      <path d="M20 102v29l24 10v-30Z" fill="#c5dce0" stroke="#fff" stroke-width="4"/>
+      <path d="m108 119 32-12v30l-32 12Z" fill="#b5ccdc" stroke="#fff3ed" stroke-width="4"/>
+      <path d="m48 141 20 7v33l-20-9Z" fill="#b9a5bb"/>
+      <path d="m-8 154 91 42 87-29" stroke="#f6e5d8" stroke-width="7"/>
+      <path d="m39 15 25 66m-5-38 55 16" stroke="#fae8ec" stroke-width="2" opacity=".7"/>
+    </g>
+    <g transform="translate(1406 277)">
+      <ellipse cx="27" cy="148" rx="51" ry="19" fill="#8eaea5" opacity=".35"/>
+      <path d="m9 45-12 100q31 18 63-1L47 45Z" fill="url(#tower)"/>
+      <path d="m5 86-3 22q28 14 53 0l-3-22q-24 11-47 0Z" fill="#c2b9d4"/>
+      <path d="M6 45V19h44v26q-20 11-44 0Z" fill="#d5e9e4" stroke="#fff9" stroke-width="2"/>
+      <path d="M28 20v30m-22-5h44" stroke="#7e9ca8" stroke-width="3"/>
+      <path d="m-1 18 29-26 29 26Z" fill="#a494b4"/>
+      <path d="M28-8v-13" stroke="#a494b4" stroke-width="3"/><circle cx="28" cy="-24" r="4" fill="#e7c984"/>
+      <path d="M22 130q6-12 12 0v23H22Z" fill="#86a8b4"/>
+    </g>
+    <g transform="translate(1003 541)">
+      <path d="m-46 0 49 23 66-20-49-24Z" fill="#f9f6e6"/>
+      <path d="m-38-4 42-16 51 19-50 15Z" fill="#fff9f1"/>
+      <path d="m-38-4 42-41L55-1 5 14Z" fill="#ebbbd0"/>
+      <path d="M4-45v58m-42-17 82 10" stroke="#fff8ef" stroke-width="2"/>
+      <path d="M5 14v46m-43-64v41m93-38v41" stroke="#fff6e9" stroke-width="4"/>
+      <path d="m-38 37 43 23 50-20" stroke="#e9cebe" stroke-width="4"/>
+    </g>
+    <use href="#bush" transform="translate(918 538) scale(.75)"/><use href="#bush" transform="translate(1343 564) scale(.8)"/>
+    <use href="#tree" transform="translate(1425 494) scale(.65)"/><use href="#tree" transform="translate(869 463) scale(.5)"/>
+    <g fill="#e9f1cf"><ellipse cx="1103" cy="570" rx="6" ry="3"/><ellipse cx="1325" cy="529" rx="5" ry="3"/><ellipse cx="943" cy="522" rx="5" ry="3"/></g>
+    <use href="#flower" transform="translate(1110 552)"/><use href="#flower" transform="translate(1125 555) scale(.8)"/><use href="#flower" transform="translate(1300 565)"/><use href="#flower" transform="translate(916 497)"/>
+    <g transform="translate(1024 631) rotate(19)">
+      <path d="M-21-18h46v114h-46Z" fill="#bcaa91"/>
+      <path d="M-16-12h36v106h-36Z" fill="#e0c9a6"/>
+      <path d="M-16 0h36m-36 15h36m-36 15h36m-36 15h36m-36 15h36m-36 15h36" stroke="#b6a38b" stroke-width="2"/>
+      <path d="M-24 5v17m50-17v17m-50 32v17m50-17v17m-50 15v17m50-17v17" stroke="#f3e1c2" stroke-width="5" stroke-linecap="round"/>
+    </g>
+  </g>
+  <g opacity=".65" fill="none" stroke="#e3fff6" stroke-linecap="round"><path d="M702 648q46 13 85-5m584 90q55 12 93-9M849 781q45 12 80 0m477-579q38 8 61-2" stroke-width="3"/><path d="M1200 799q20 5 42 0m-579-466q28 8 61 0m680 296q40 7 63-6" stroke-width="2"/></g>
+</svg>

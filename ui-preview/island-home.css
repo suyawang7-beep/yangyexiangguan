@@ -1,0 +1,99 @@
+/* Homepage only: an original island, moving sea and legible frosted surfaces. */
+body[data-page="home"] .world{--ink:#214d62;--muted:#3d6274;--island-glass:linear-gradient(135deg,#ffffffb8,#edfbff86 58%,#f9eafa8c);background:linear-gradient(155deg,#b3e4e9,#76b9cb 80%,#91b6d2)}
+.island-scene{position:fixed;inset:0;height:100vh;height:100svh;z-index:-1;pointer-events:none;overflow:hidden}
+.island-scene svg{display:block;width:100%;height:100%;overflow:visible}
+.island-scene .scene-land{filter:drop-shadow(0 18px 25px #31728612)}
+.scene-cloud{animation:island-cloud 19s ease-in-out infinite alternate;opacity:.72;filter:drop-shadow(0 12px 12px #39758e12)}
+.scene-cloud.cloud-two{animation-duration:25s;animation-delay:-11s;opacity:.55}
+.scene-cloud.cloud-three{animation-duration:22s;animation-delay:-7s;opacity:.48}
+.scene-shore{fill:none;stroke:#edfff5;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:island-shore 6s ease-out infinite}
+.scene-shore.shore-two{animation-delay:-3s}
+.scene-tree{transform-box:fill-box;transform-origin:50% 100%;animation:island-breeze 5.5s ease-in-out infinite alternate}
+.scene-tree.tree-two{animation-delay:-2.5s}
+.scene-boat{transform-box:fill-box;transform-origin:center;animation:island-boat 5s ease-in-out infinite alternate}
+.scene-bird{animation:island-bird 17s ease-in-out infinite alternate}
+.scene-light{animation:island-light 5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:right center}
+.sea-glimmer{position:absolute;inset:0;background:repeating-radial-gradient(ellipse at 9% 80%,transparent 0 53px,#d4ffff20 55px 57px,transparent 61px 115px);mix-blend-mode:screen;opacity:.6;animation:island-glimmer 12s ease-in-out infinite alternate}
+body[data-page="home"] .water-surface{opacity:1;z-index:-2}
+body[data-page="home"] .ocean{z-index:-2;opacity:.3}
+body[data-page="home"] .ambient{opacity:.15}
+body[data-page="home"] .site-header{width:min(1310px,calc(100% - 48px));margin:20px auto 9px;padding:15px 25px;border:1px solid #ffffffbd;border-radius:23px;background:linear-gradient(110deg,#f6ffffaf,#edfbff63);-webkit-backdrop-filter:blur(18px) saturate(135%);backdrop-filter:blur(18px) saturate(135%);box-shadow:inset 0 1px 0 #fff,0 12px 30px #356f8410;position:relative;z-index:5}
+body[data-page="home"] .demo-line{border:0;color:#315c70;text-shadow:0 1px 3px #e7ffff}
+/* An opacity animation on main creates a backdrop root and prevents the glass
+   from sampling the sea behind it, even when its final opacity is one. */
+body[data-page="home"] main{animation:none}
+body[data-page="home"] .home-hero{gap:25px;min-height:690px;padding:20px 0 34px}
+body[data-page="home"] .hero-copy{padding:33px 30px 26px;border:1px solid #ffffffdc;border-radius:27px;background:var(--island-glass);-webkit-backdrop-filter:blur(13px) saturate(130%);backdrop-filter:blur(13px) saturate(130%);box-shadow:inset 0 1px 0 #fff, inset 0 -1px 0 #ffffff73,0 20px 60px #2d62771a}
+body[data-page="home"] .hero-copy:before{content:'';position:absolute;inset:7px;border:1px solid #fff5;border-radius:21px;pointer-events:none}
+body[data-page="home"] .hero-copy h1{font-size:clamp(34px,3.4vw,47px);letter-spacing:0;margin-top:21px}
+body[data-page="home"] .hero-copy .eyebrow{font-size:8px;letter-spacing:2.1px}
+body[data-page="home"] .hero-copy .subtitle{color:#355c70;font-size:15px}
+body[data-page="home"] .hero-copy .hero-footnote{color:#3c6173;line-height:1.8}
+body[data-page="home"] .hero-date{margin:24px 0}
+body[data-page="home"] .hero-letters{top:11px;left:48%;font-family:Georgia,serif;font-size:65px;font-weight:400;font-style:italic;letter-spacing:-2px;color:#f2ffffa3;white-space:normal;max-width:520px;line-height:1.05;transform:rotate(-5deg);text-shadow:0 4px 24px #4e9ba43b}
+body[data-page="home"] .hero-art{min-height:620px;align-items:end;padding-bottom:20px}
+body[data-page="home"] .hero-art>img{width:96%;max-width:540px;margin-bottom:-24px;filter:drop-shadow(0 20px 20px #366e8714)}
+body[data-page="home"] .floating-note{top:122px;right:0;background:linear-gradient(130deg,#ffffffa6,#e3f9ff78);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px #fff,0 14px 35px #3d718b19}
+body[data-page="home"] .birthday-seal{left:0;bottom:65px;background:linear-gradient(120deg,#fff3f9c7,#f4dbeea3);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px white,0 12px 28px #5275821a}
+body[data-page="home"] .art-caption{bottom:3px;background:#f3fcffb8;border:1px solid #fff9;border-radius:30px;padding:5px 11px;color:#466779;font-size:9px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+body[data-page="home"] .glass{background:var(--island-glass);border-color:#ffffffe0;-webkit-backdrop-filter:blur(14px) saturate(125%);backdrop-filter:blur(14px) saturate(125%);box-shadow:inset 0 1px white,0 14px 35px #305b751a}
+body[data-page="home"] .news-strip{margin-top:10px;background:linear-gradient(110deg,#f6ffffce,#e4f6ffc2)}
+body[data-page="home"] .section-heading{padding:17px 20px;margin-top:20px;border-radius:18px;border:1px solid #ffffffab;background:#effbffc7;-webkit-backdrop-filter:blur(13px);backdrop-filter:blur(13px)}
+body[data-page="home"] .destination{background:linear-gradient(135deg,#ffffffc7,#e1f7ff99)}
+body[data-page="home"] .island-story{padding:21px 24px;border:1px solid #ffffffa6;border-radius:20px;background:#effbffb8;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+body[data-page="home"] .site-footer{padding:24px;border-radius:20px;background:#eefaffb8;border:1px solid #ffffff9e;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#3e6478}
+body[data-page="home"] .btn:not(.primary){background:#f4fcffba;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+body[data-page="home"] .home-extras a{color:#365c78}
+body[data-page="home"] .scene-note{display:flex;gap:7px;align-items:center;margin:0 0 15px;font-size:10px;letter-spacing:1px;color:#315d75}
+body[data-page="home"] .scene-note i{width:5px;height:5px;background:#72aa9c;border-radius:50%;box-shadow:0 0 0 3px #a9d8ce55}
+body[data-page="home"] .scene-note:after{content:'';height:1px;width:40px;background:#649b9e66}
+@keyframes island-cloud{from{translate:-18px 0}to{translate:24px -8px}}
+@keyframes island-shore{0%{scale:.99;opacity:.65}100%{scale:1.12;opacity:0}}
+@keyframes island-breeze{from{rotate:-2deg}to{rotate:3deg}}
+@keyframes island-boat{from{translate:0 0;rotate:-2deg}to{translate:3px -5px;rotate:2deg}}
+@keyframes island-bird{from{translate:-14px 3px}to{translate:31px -8px}}
+@keyframes island-light{from{opacity:.08;scale:1 1}to{opacity:.23;scale:1 1.2}}
+@keyframes island-glimmer{from{transform:translate(-1%,-1%) scale(1.02)}to{transform:translate(1%,1%) scale(1.05)}}
+body[data-page="home"] .island-scene.is-paused *,body[data-page="home"] [data-motion="off"] .island-scene *{animation-play-state:paused!important}
+@media(max-width:1050px){
+ body[data-page="home"] .site-header{padding:14px 19px;width:calc(100% - 38px)}
+ body[data-page="home"] .hero-copy{padding:28px 23px 24px}
+ body[data-page="home"] .hero-copy h1{font-size:36px}
+ body[data-page="home"] .hero-art{min-height:580px}
+ body[data-page="home"] .floating-note{top:100px;max-width:190px;padding:13px}
+ body[data-page="home"] .hero-date{gap:12px}
+ body[data-page="home"] .hero-date small{letter-spacing:0}
+ body[data-page="home"] .hero-copy .actions{gap:8px}
+ body[data-page="home"] .hero-copy .btn{padding:12px 14px;gap:9px;font-size:11px}
+}
+@media(max-width:620px){
+ body[data-page="home"] .site-header{width:calc(100% - 24px);margin:12px auto 8px;padding:12px 11px;border-radius:19px;gap:7px}
+ body[data-page="home"] .brand{gap:7px}body[data-page="home"] .brand strong{font-size:19px}
+ body[data-page="home"] .brand-mark{width:31px;height:33px;font-size:20px}body[data-page="home"] .brand small{font-size:6px;letter-spacing:2px}
+ body[data-page="home"] .header-actions{gap:5px}body[data-page="home"] .wallet{padding:8px;font-size:10px;gap:4px}
+ body[data-page="home"] .motion-toggle{padding:8px;gap:4px}body[data-page="home"] .passport-link{width:33px}
+ body[data-page="home"] .home-hero{padding:14px 0 18px;gap:0;min-height:0}
+ body[data-page="home"] .hero-copy{padding:26px 22px 21px;border-radius:23px;order:0;background:linear-gradient(135deg,#ffffffc9,#effbffab 65%,#f9edf5a8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+ body[data-page="home"] .hero-copy h1{font-size:clamp(29px,8.3vw,38px);margin:18px 0 15px;line-height:1.5}
+ body[data-page="home"] .hero-copy .subtitle{font-size:14px;line-height:1.95}
+ body[data-page="home"] .hero-copy .eyebrow{font-size:7px;letter-spacing:1.6px}
+ body[data-page="home"] .hero-date{margin:20px 0;gap:12px}body[data-page="home"] .hero-date strong{font-size:37px}body[data-page="home"] .hero-date small{font-size:9px}
+ body[data-page="home"] .hero-footnote{font-size:10px}
+ body[data-page="home"] .hero-art{min-height:350px;height:auto;margin:8px auto 3px;padding:0;max-width:420px;width:100%;align-items:center}
+ body[data-page="home"] .hero-art>img{width:100%;max-width:390px;margin:-22px 0 -5px}
+ body[data-page="home"] .floating-note{top:35px;right:0;max-width:164px;padding:10px 12px;font-size:8px}
+ body[data-page="home"] .birthday-seal{left:0;bottom:48px;padding:10px 13px;font-size:8px}
+ body[data-page="home"] .birthday-seal strong{font-size:17px}
+ body[data-page="home"] .art-caption{bottom:4px;font-size:8px}
+ body[data-page="home"] .hero-letters{top:auto;bottom:280px;left:4%;font-size:45px;max-width:300px}
+ body[data-page="home"] .news-strip{margin-top:4px}
+ body[data-page="home"] .section-heading{padding:16px 18px}body[data-page="home"] .section-heading h2{font-size:23px}
+ body[data-page="home"] .island-story{padding:18px 20px}body[data-page="home"] .island-story p{font-size:11px}
+ body[data-page="home"] .site-footer{padding:21px 19px;margin-bottom:105px}
+ body[data-page="home"] .mobile-nav{background:#f0fbffbc;-webkit-backdrop-filter:blur(18px) saturate(130%);backdrop-filter:blur(18px) saturate(130%)}
+ body[data-page="home"] .scene-note{font-size:9px;margin-bottom:12px}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ body[data-page="home"] .hero-copy,body[data-page="home"] .glass,body[data-page="home"] .site-header,body[data-page="home"] .section-heading,body[data-page="home"] .island-story,body[data-page="home"] .site-footer{background:#edf9fff2}
+}
+@media(prefers-reduced-motion:reduce){.island-scene *{animation:none!important}}
