@@ -103,7 +103,7 @@ try{
   await page.locator('[data-gallery-mode="ring"]').click();
   assert.equal(await page.locator('.bz-collection').getAttribute('data-display'),'ring');
   await page.locator('[data-bz-filter="UR"]').click();
-  assert.equal(await page.locator('.bz-collection').getAttribute('data-display'),'ring');
+  await page.waitForFunction(()=>document.querySelector('.bz-collection')?.dataset.display==='ring');
   await page.goto(url+'#/passport');
   await page.locator('#bzPassportPage.active').waitFor();
   await page.locator('#bzPassportLaunch').click();
