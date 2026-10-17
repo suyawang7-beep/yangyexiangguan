@@ -182,7 +182,7 @@
     const map=document.querySelector('#map-camera image');
     if(map&&managedAssets['decor/island-map.webp'])map.setAttribute('href','/assets/decor/island-map.webp?v='+assetVersion);
     document.querySelectorAll('.memory-card').forEach(card=>{
-      const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\\d{2}/)?.[0];
+      const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\d{2}/)?.[0];
       const match=liveCatalog.find(item=>item.previewId===label);
       if(!match||!managedAssets['cards/'+match.id+'.webp'])return;
       const slot=card.querySelector('.card-picture');if(!slot)return;
