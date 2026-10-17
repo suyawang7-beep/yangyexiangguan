@@ -30,6 +30,10 @@ try{
   await page.locator('#closeModal').click();
   await page.goto(url+'#/office');
   console.log('OFFICE DEBUG',JSON.stringify(await page.evaluate(()=>({hash:location.hash,inner:document.getElementById('innerContent')?.innerHTML.slice(0,650),newUI:!!document.querySelector('[data-task="letter"]'),legacy:!!document.querySelector('.office-task'),account:!!localStorage.getItem('buzhi-account-local-v1')}))));
+  assert.equal(await page.locator('.bz-office-layout').count(),1);
+  assert.equal(await page.locator('.bz-office-task').count(),7);
+  assert.equal(await page.locator('.bz-office-milestone').count(),3);
+  assert.equal(await page.locator('.bz-office-sidebar').count(),1);
   await page.locator('[data-task="letter"]').click({timeout:7000});
   await page.locator('#bzDialogCode').fill('ISLAND-DEMO');
   await page.locator('#bzDialogOK').click();
