@@ -94,29 +94,3 @@ else if(path==='/api/admin/code-stats'&&req.method==='GET'){admin(req);data=code
 else if(path==='/api/admin/audit'&&req.method==='GET'){admin(req);data=adminAudit()}
 else throw error(404,'未找到');
 send(res,200,data)}catch(e){send(res,e.status||500,{error:e.status?e.message:'内部错误'})}}).listen(PORT,HOST,()=>console.log('Buzhi server listening on '+HOST+':'+PORT));
-).test(path)){const name=path.slice('/assets/'.length);if(!ASSET_NAMES.has(name))throw error(404,'素材不存在');const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path==='/api/admin/assets/upload'&&req.method==='POST')admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:8192):{};let data;
-if(path==='/api/register'&&req.method==='POST')data=register(b);
-else if(path==='/api/login'&&req.method==='POST')data=login(b);
-else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
-else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
-else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
-else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
-else if(path==='/api/announcements'&&req.method==='GET')data=announcements(false);
-else if(path==='/api/visual-settings'&&req.method==='GET')data=getVisualSettings();
-else if(path==='/api/admin/announcements'&&req.method==='GET'){admin(req);data=announcements(true)}
-else if(path==='/api/admin/announcements'&&req.method==='POST'){admin(req);data=saveAnnouncement(b);auditAdmin('announcement.save',{id:b.id??null,published:b.published===true})}
-else if(path==='/api/admin/announcements/delete'&&req.method==='POST'){admin(req);data=deleteAnnouncement(b);auditAdmin('announcement.delete',{id:data.deleted})}
-else if(path==='/api/admin/users'&&req.method==='GET'){admin(req);data=listUsers()}
-else if(path==='/api/admin/codes'&&req.method==='POST'){admin(req);data=codes(b);auditAdmin('codes.generate',{taskId:data.taskId,count:data.codes.length})}
-else if(path==='/api/admin/overview'&&req.method==='GET'){admin(req);data=overview()}
-else if(path==='/api/admin/assets'&&req.method==='GET'){admin(req);data=assetStatus()}
-else if(path==='/api/admin/assets/upload'&&req.method==='POST'){admin(req);data=saveAsset(b)}
-else if(path==='/api/admin/assets/versions'&&req.method==='GET'){admin(req);data=assetVersions(String(new URL(req.url,'http://localhost').searchParams.get('name')||''))}
-else if(path==='/api/admin/assets/restore'&&req.method==='POST'){admin(req);data=restoreAsset(b)}
-else if(path==='/api/admin/visual-settings'&&req.method==='GET'){admin(req);data=getVisualSettings()}
-else if(path==='/api/admin/visual-settings'&&req.method==='POST'){admin(req);data=saveVisualSettings(b)}
-else if(path==='/api/admin/user'&&req.method==='GET'){admin(req);data=userDetail(String(new URL(req.url,'http://localhost').searchParams.get('id')||''))}
-else if(path==='/api/admin/code-stats'&&req.method==='GET'){admin(req);data=codeStats()}
-else if(path==='/api/admin/audit'&&req.method==='GET'){admin(req);data=adminAudit()}
-else throw error(404,'未找到');
-send(res,200,data)}catch(e){send(res,e.status||500,{error:e.status?e.message:'内部错误'})}}).listen(PORT,HOST,()=>console.log('Buzhi server listening on '+HOST+':'+PORT));
