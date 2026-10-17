@@ -75,7 +75,7 @@ const pageNames=new Set(['index.html','passport.html','office.html','checkin.htm
 const previewRoot=resolve(new URL('../ui-preview/',import.meta.url).pathname);
 const suffix=path==='/'?'index.html':path.startsWith('/ui-preview/')?path.slice('/ui-preview/'.length):path.slice(1);
 if(req.method==='GET'&&!path.startsWith('/api/')&&pageNames.has(suffix)&&path!=='/legacy'){
- const html=readFileSync(resolve(previewRoot,suffix),'utf8');
+ const html=readFileSync(resolve(previewRoot,suffix),'utf8').replace('<head>','<head><script>window.__BUZHI_PRODUCTION__=true</script>');
  res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});
  return res.end(html);
 }
