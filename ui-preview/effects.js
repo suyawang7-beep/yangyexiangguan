@@ -4,6 +4,10 @@
   const world = document.querySelector('.world');
   if (!world) return;
   const page = document.body.dataset.page;
+  const effectDefaults={collectionGrid:false,collectionFan:true,collectionRing:false,ocSlider:true,ocStagger:false,ocDepth:false,effectWater:true,effectStars:true,effectIsland:true,effectProgress:true,effectGuide:true,effectDraw:true,effectCheckin:true};
+  let visual={...effectDefaults};
+  const allowedMode=(name)=>visual[name]!==false;
+
   const enabled = () => world.dataset.motion === 'on' && !document.hidden;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const wrap = (v, n) => ((v % n) + n) % n;
@@ -205,14 +209,14 @@
   function installExhibit() {
     const grid = document.querySelector('#collection-grid'); if (!grid) return;
     const controls = document.createElement('div'); controls.className = 'appreciation-toolbar';
-    controls.innerHTML = `<div><span class="eyebrow">Open your memory album</span><p>换一种方式，欣赏这些回忆。</p></div><div class="filter-tabs" aria-label="收藏展示方式"><button type="button" data-layout="fan" aria-pressed="true">扇形展开</button></div>`;
+    controls.innerHTML = `<div><span class="eyebrow">Open your memory album</span><p>换一种方式，欣赏这些回忆。</p></div><div class="filter-tabs" aria-label="收藏展示方式">${[['grid','collectionGrid','网格'],['fan','collectionFan','扇形展开'],['circle','collectionRing','圆环欣赏']].filter(([,key])=>allowedMode(key)).map(([mode,,label])=>'<button type="button" data-layout="'+mode+'" aria-pressed="false">'+label+'</button>').join('')}</div>`;
     grid.before(controls);
     const exhibit = document.createElement('section'); exhibit.className = 'glass collection-exhibit'; exhibit.hidden = true;
     exhibit.setAttribute('aria-label', '卡片展开欣赏');
     exhibit.innerHTML = '<div class="exhibit-sparkle" aria-hidden="true">✦</div><div class="exhibit-caption"><span id="exhibit-title">生日回忆</span><small>拖动切换 · 点击卡片查看详情</small></div><div class="exhibit-cards"></div><div class="exhibit-controls"><button class="btn" type="button" data-exhibit-prev aria-label="上一张卡">←</button><span class="mono" data-exhibit-count></span><button class="btn" type="button" data-exhibit-next aria-label="下一张卡">→</button></div>';
     controls.after(exhibit);
     const holder = exhibit.querySelector('.exhibit-cards');
-    let mode = 'grid', selected = 0, cards = [], drag = null, dragged = false;
+    let mode = allowedMode('collectionFan')?'fan':allowedMode('collectionGrid')?'grid':'circle', selected = 0, cards = [], drag = null, dragged = false;
     function layout() {
       const n = cards.length;
       exhibit.dataset.layout = mode;
@@ -267,7 +271,7 @@
     });
     new MutationObserver(rebuild).observe(grid, { childList: true });
     new ResizeObserver(layout).observe(exhibit);
-    const onHash = () => { if (location.hash === '#appreciate') { choose('fan'); controls.scrollIntoView({ block: 'start', behavior: enabled() ? 'smooth' : 'auto' }); } };
+    const onHash = () => { if (location.hash === '#appreciate' && allowedMode('collectionFan')) { choose('fan'); controls.scrollIntoView({ block: 'start', behavior: enabled() ? 'smooth' : 'auto' }); } };
     addEventListener('hashchange', onHash); onHash();
   }
 
@@ -343,7 +347,7 @@
   function installGallery() {
     const gallery = document.querySelector('#oc-gallery'); if (!gallery) return;
     const track = gallery.querySelector('#oc-track'); const cards = Array.from(track.children); const n = cards.length;
-    let target = 0, position = 0, frame = 0, mode = 'slider', drag = null, wasDragged = false, tiltX = 0, tiltY = 0;
+    let target = 0, position = 0, frame = 0, mode = allowedMode('ocSlider')?'slider':allowedMode('ocStagger')?'stagger':'depth', drag = null, wasDragged = false, tiltX = 0, tiltY = 0;
     const step = () => Math.min(gallery.clientWidth * .72, 450);
     function paint() {
       const width = gallery.clientWidth, narrow = width < 600;
@@ -374,9 +378,9 @@
     function go(next) { target = next; if (!frame) frame = requestAnimationFrame(tick); }
     document.querySelector('#oc-prev').onclick = () => go(Math.round(target) - 1);
     document.querySelector('#oc-next').onclick = () => go(Math.round(target) + 1);
-    document.querySelectorAll('[data-oc-mode]').forEach((button) => button.onclick = () => {
+    document.querySelectorAll('[data-oc-mode]').forEach((button) => {if (!allowedMode(button.dataset.ocMode==='slider'?'ocSlider':button.dataset.ocMode==='stagger'?'ocStagger':'ocDepth'))button.remove();else button.onclick = () => {
       mode = button.dataset.ocMode; document.querySelectorAll('[data-oc-mode]').forEach((el) => el.setAttribute('aria-pressed', String(el === button))); paint();
-    });
+    }});
     track.addEventListener('click', (event) => {
       if (wasDragged) return;
       const card = event.target.closest('[data-oc]'); if (!card) return;
@@ -413,9 +417,9 @@
     if (homeNote) homeNote.insertAdjacentHTML('afterend', '<div class="home-extras"><a href="guide.html">沿着海风，看看登岛导览 →</a><a href="effects.html">打开特效体验 ✦</a></div>');
     if (page === 'home') document.querySelector('.hero-copy').insertAdjacentHTML('afterbegin', '<p class="scene-note"><i></i>海风正好，小岛等你赴约</p>');
     if (page === 'collection') installExhibit();
-    if (page === 'office') installProgress();
-    if (page === 'draw') installDrawEffects();
-    if (page === 'guide') installGuide();
+    if (page === 'office' && allowedMode('effectProgress')) installProgress();
+    if (page === 'draw' && allowedMode('effectDraw')) installDrawEffects();
+    if (page === 'guide' && allowedMode('effectGuide')) installGuide();
     if (page === 'islanders') {
       if (!document.querySelector('.oc-world-intro')) document.querySelector('.oc-mode-bar').insertAdjacentHTML('beforebegin', '<p class="oc-world-intro">菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p>');
       installGallery();
@@ -425,11 +429,17 @@
   document.addEventListener('buzhi:render', pageSetup);
   document.addEventListener('click', (event) => {
     const button = event.target.closest('#checkin-button');
-    if (button && !button.disabled && enabled()) {
+    if (button && !button.disabled && enabled() && allowedMode('effectCheckin')) {
       const r = button.getBoundingClientRect();
       document.dispatchEvent(new CustomEvent('buzhi:burst', { detail: { x: r.x + r.width / 2, y: r.y + r.height / 2, count: 32 } }));
     }
   }, true);
-  shellLinks(); initStars(); initWater(); initIsland(); pageSetup();
-  world.dataset.effectsReady = 'true';
+  async function startEffects(){try{const response=await fetch('/api/visual-settings',{cache:'no-store'});if(response.ok){const data=await response.json();visual={...effectDefaults,...data}}}catch{}
+    shellLinks();
+    if(allowedMode('effectStars'))initStars();
+    if(allowedMode('effectWater'))initWater();
+    if(allowedMode('effectIsland'))initIsland();
+    pageSetup();world.dataset.effectsReady='true';
+  }
+  startEffects();
 })();
