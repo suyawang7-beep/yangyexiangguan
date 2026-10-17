@@ -80,7 +80,7 @@ if(req.method==='GET'&&!path.startsWith('/api/')&&pageNames.has(suffix)&&path!==
  return res.end(html);
 }
 if(req.method==='GET'&&path==='/legacy'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}
-if(req.method==='GET'&&/^(?:\/ui-preview\/)?(?:assets\/[a-zA-Z0-9_/-]+\.(?:svg|webp|png)|[a-zA-Z0-9-]+\.(?:css|js))$/.test(suffix)){
+if(req.method==='GET'&&!(path.startsWith('/assets/')&&path.endsWith('.webp'))&&/^(?:\/ui-preview\/)?(?:assets\/[a-zA-Z0-9_/-]+\.(?:svg|webp|png)|[a-zA-Z0-9-]+\.(?:css|js))$/.test(suffix)){
 const file=resolve(previewRoot,suffix);
 if(!file.startsWith(previewRoot+'/')||!existsSync(file))throw error(404,'预览素材不存在');
 const ext=extname(file);res.writeHead(200,{'content-type':{'.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp','.png':'image/png'}[ext]||'application/octet-stream','cache-control':'public,max-age=120','x-content-type-options':'nosniff'});return res.end(readFileSync(file));
