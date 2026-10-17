@@ -2,7 +2,7 @@ import http from 'node:http';
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync,copyFileSync,readdirSync,statSync} from 'node:fs';
-import {dirname,resolve} from 'node:path';
+import {dirname,resolve,extname} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
@@ -70,7 +70,22 @@ function restoreAsset(b){const name=String(b.name||''),version=String(b.version|
 
 function readBody(req,maxSize=8192){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>maxSize){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
 function send(res,code,data){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))}
-http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;if(req.method==='GET'&&/^\/assets\/(characters|cards|decor)\/[a-zA-Z0-9-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);if(!ASSET_NAMES.has(name))throw error(404,'素材不存在');const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path==='/api/admin/assets/upload'&&req.method==='POST')admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:8192):{};let data;
+http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;
+const pageNames=new Set(['index.html','passport.html','office.html','checkin.html','draw.html','collection.html','mailbox.html','guide.html','islanders.html']);
+const previewRoot=resolve(new URL('../ui-preview/',import.meta.url).pathname);
+const suffix=path==='/'?'index.html':path.startsWith('/ui-preview/')?path.slice('/ui-preview/'.length):path.slice(1);
+if(req.method==='GET'&&!path.startsWith('/api/')&&pageNames.has(suffix)&&path!=='/legacy'){
+ const html=readFileSync(resolve(previewRoot,suffix),'utf8');
+ res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});
+ return res.end(html);
+}
+if(req.method==='GET'&&path==='/legacy'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}
+if(req.method==='GET'&&/^(?:\/ui-preview\/)?(?:assets\/[a-zA-Z0-9_/-]+\.(?:svg|webp|png)|[a-zA-Z0-9-]+\.(?:css|js))$/.test(suffix)){
+const file=resolve(previewRoot,suffix);
+if(!file.startsWith(previewRoot+'/')||!existsSync(file))throw error(404,'预览素材不存在');
+const ext=extname(file);res.writeHead(200,{'content-type':{'.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp','.png':'image/png'}[ext]||'application/octet-stream','cache-control':'public,max-age=120','x-content-type-options':'nosniff'});return res.end(readFileSync(file));
+}
+if(req.method==='GET'&&/^\/assets\/(characters|cards|decor)\/[a-zA-Z0-9-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);if(!ASSET_NAMES.has(name))throw error(404,'素材不存在');const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path==='/api/admin/assets/upload'&&req.method==='POST')admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:8192):{};let data;
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
