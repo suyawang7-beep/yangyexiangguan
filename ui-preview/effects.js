@@ -283,8 +283,7 @@
 
   function installProgress() {
     const track = document.querySelector('.progress-track'); if (!track) return;
-    const welcome = document.querySelector('.welcome-strip p')?.textContent || '';
-    const count = Number(welcome.match(/已完成 (\d+)/)?.[1] || 0);
+    const count = Number(track.dataset.completed || 0);
     const figure = document.createElement('div'); figure.className = 'bird-journey';
     figure.setAttribute('role', 'progressbar'); figure.setAttribute('aria-label', '不同任务完成进度'); figure.setAttribute('aria-valuemin', '0'); figure.setAttribute('aria-valuemax', '9'); figure.setAttribute('aria-valuenow', count);
     const old = Number(sessionStorageSafe('buzhi-progress-last') || count);

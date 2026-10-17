@@ -49,6 +49,46 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, name + '.png'), animations: 'disabled' });
   }
 
+  if (process.argv.includes('--office-only')) {
+    await visit('passport');
+    await page.locator('#nickname').fill('事务所排版检查');
+    await page.locator('#claim-pass').click();
+    await page.locator('#public-id').waitFor();
+    // Existing arrival records must survive removal of their presentation card.
+    await page.evaluate(() => {
+      const key = 'buzhi-ui-preview-v3';
+      const saved = JSON.parse(localStorage.getItem(key));
+      saved.tasks = ['arrival']; localStorage.setItem(key, JSON.stringify(saved));
+    });
+    await visit('office');
+    check(await page.locator('.welcome-strip').count() === 0, 'Remove the entire today-to-do panel, not only its heading');
+    check(await page.locator('.task-list .task-card').count() === 6, 'Keep the six celebration code tasks');
+    check(await page.locator('[data-task="arrival"]').count() === 0, 'Remove the arrival action');
+    check(!/报到|报道/.test(await page.locator('.task-list').innerText()), 'No arrival task card remains');
+    check(await page.locator('.bird-journey').getAttribute('aria-valuenow') === '1', 'Bird progress preserves historical arrival records without the removed panel');
+    await page.locator('.office-verification').evaluate(el => { el.open = true; });
+    await page.locator('#demo-islander').click();
+    await page.locator('[data-task="wish"]').click();
+    await page.locator('#task-code').fill('ISLAND25');
+    await page.locator('#task-code-form button[type="submit"]').click();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
+    check(saved.balance === 75 && saved.tasks.includes('arrival') && saved.tasks.includes('wish'), 'Task reward and existing participation records are unchanged');
+    check(await page.locator('.bird-journey').getAttribute('aria-valuenow') === '2', 'Progress updates after completing a remaining task');
+    check((await page.locator('.ledger').innerText()).includes('25'), 'Coin ledger remains visible');
+    for (const width of [320, 390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const boxes = await page.locator('.task-list .task-card').evaluateAll(cards => cards.map(card => { const r = card.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom }; }));
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: staggered tasks do not overflow`);
+      check(boxes.every((a, i) => boxes.slice(i + 1).every(b => a.right <= b.x || b.right <= a.x || a.bottom <= b.y || b.bottom <= a.y)), `${width}: staggered cards never overlap`);
+      if (width === 1440) check(Math.abs(boxes[0].y - boxes[1].y) >= 20, 'Desktop task cards use visibly staggered rows');
+      else check(Math.abs(boxes[0].x - boxes[1].x) >= 6, `${width}: single-column cards alternate gentle horizontal offsets`);
+      await capture(`office-stagger-${width}`);
+    }
+    check(errors.length === 0, 'No office JavaScript errors');
+    console.log(`PASS ${checks} office assertions; removed panels, preserved records, code reward, bird progress and four-width staggered layout`);
+    return;
+  }
+
   await visit('passport');
   await page.evaluate(() => document.fonts.ready);
   check(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily.includes('Buzhi Rounded')), 'The cute rounded font is the actual UI font, not the old serif fallback');
@@ -181,12 +221,11 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   await capture('round-office-ready-mobile');
   await page.locator('.office-verification').evaluate(el => { el.open = true; });
   await page.locator('#demo-islander').click();
-  await page.locator('[data-task="arrival"]').click();
   await page.locator('[data-task="wish"]').click();
   await page.locator('#task-code').fill('ISLAND25');
   await page.locator('#task-code-form button[type="submit"]').click();
   const taskState = await page.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
-  check(taskState.tasks.includes('arrival') && taskState.tasks.includes('wish'), 'Pinboard-style task controls still complete arrival and a code task');
+  check(taskState.tasks.includes('wish') && await page.locator('[data-task="arrival"]').count() === 0, 'The remaining code task works without an arrival task card');
   check(taskState.balance === 85, 'Task board awards exactly 25 after the existing 50+10 balance');
   await visit('islanders');
   check(await page.locator('.oc-slide.active .oc-caption strong').evaluate(el => el.getBoundingClientRect().bottom < document.querySelector('.mobile-nav').getBoundingClientRect().top), 'OC name is visible in the first mobile viewport');

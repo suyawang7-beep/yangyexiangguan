@@ -123,7 +123,7 @@ await publicPage.locator('#collection-grid .memory-card').first().waitFor({state
 assert.match(await publicPage.locator('.collection-summary').textContent(),/1/);
 await publicPage.goto(root+'/office.html');
 await publicPage.locator('.office-layout .task-card').first().waitFor();
-assert.equal(await publicPage.locator('.office-layout .task-card').count(),7);
+assert.equal(await publicPage.locator('.office-layout .task-card').count(),6);
 await publicPage.goto(root+'/checkin.html');
 await publicPage.locator('#checkin-button').click();
 await publicPage.waitForFunction(()=>document.querySelector('#checkin-button')?.disabled);
