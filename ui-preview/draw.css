@@ -1,0 +1,128 @@
+/* A page-specific postal scene. Shared navigation and reward artwork stay intact. */
+body[data-page="draw"] .postal-experience {
+  position:relative;
+  max-width:1000px;
+  margin:12px auto 0;
+}
+.postal-masthead {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:15px 0;
+  border-bottom:1px solid #729db44a;
+  font-size:12px;
+}
+.postal-location {display:flex;align-items:center;gap:9px;font-weight:600;letter-spacing:1px}
+.postal-location .icon {width:20px;height:20px}
+.postal-location>span,.postal-edition {color:var(--muted);font-weight:400;letter-spacing:.5px}
+.postal-intro {text-align:center;padding:23px 0 0}
+.postal-intro h1 {font-family:var(--display);font-size:clamp(30px,3.4vw,44px);font-weight:400;line-height:1.4;letter-spacing:3px;margin:0}
+.postal-intro h1 em {font-style:normal;color:#547e9b}
+.postal-intro>p {font-size:13px;color:var(--muted);margin:9px 0 0}
+.postal-scene {position:relative;max-width:850px;margin:auto}
+body[data-page="draw"] .draw-stage {
+  width:min(100%,520px);
+  margin:auto;
+  min-height:380px;
+  padding:0;
+  border:0;
+  overflow:visible;
+}
+body[data-page="draw"] .draw-stage:before {
+  width:330px;
+  height:260px;
+  transform:rotate(-12deg);
+  background:radial-gradient(ellipse,#ffffffab,#d2ecf43b 65%,transparent);
+  box-shadow:0 0 0 26px #ffffff26,0 0 0 55px #ffffff1a;
+}
+body[data-page="draw"] #stage-card {position:relative;z-index:1}
+body[data-page="draw"] .draw-stage .memory-card {width:225px}
+body[data-page="draw"] .draw-result-label {top:7px;line-height:1.6;font-size:12px;color:#426c87}
+body[data-page="draw"] .draw-stage .stage-caption {bottom:5px;letter-spacing:.5px;font-size:11px}
+.postal-margin-note {position:absolute;left:0;top:90px;font-family:'Noto Serif SC','KaiTi',serif;font-size:17px;line-height:1.7;letter-spacing:2px;transform:rotate(-5deg);color:#54788e}
+.postal-margin-note>span {font-size:23px}
+.postal-margin-note>i {display:block;width:35px;height:1px;background:#729db46e;margin:15px 0}
+.postal-margin-note {max-width:190px}
+.postal-postmark {position:absolute;right:20px;top:105px;width:126px;height:126px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px dashed #7999ad9c;border-radius:50%;outline:1px solid #7999ad58;outline-offset:-7px;transform:rotate(12deg);color:#65849c}
+.postal-postmark>span {font-size:10px;letter-spacing:1px}
+.postal-postmark>strong {font:italic 35px Georgia,serif;font-weight:400}
+body[data-page="draw"] .draw-info {
+  width:min(100%,520px);
+  padding:18px 28px 12px;
+  margin:10px auto 0;
+  border-radius:22px;
+  text-align:center;
+}
+body[data-page="draw"] .draw-cost {justify-content:center;gap:28px;border:0;padding:0;margin:0 0 13px;font-size:12px;line-height:1.6}
+body[data-page="draw"] .draw-cost>span {display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+body[data-page="draw"] .draw-cost strong {font-size:27px;margin:0;color:var(--ink);font-variant-numeric:tabular-nums}
+body[data-page="draw"] .draw-cost>i {height:25px;width:1px;background:#729db44a}
+body[data-page="draw"] .draw-info>.btn {min-height:50px;font-size:14px;border-radius:14px}
+body[data-page="draw"] .draw-info>.draw-status {font-size:12px;line-height:1.7;margin:10px 0 0;min-height:21px}
+.postal-next {display:flex;justify-content:center;gap:30px;margin:4px 0 8px}
+.postal-next>a {display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;font-size:12px;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#729db46e}
+.postal-next .icon {height:13px;width:13px}
+.postal-pool-note {border-top:1px dashed #729db44a;padding-top:14px}
+.postal-pool-note .pill {font-size:11px}
+body[data-page="draw"] .draw-info>.draw-description {font-size:12px;line-height:1.8;margin:10px 0 0;color:var(--muted)}
+body[data-page="draw"] .draw-info details {margin:11px 0 0;padding:0;border-top:0;font-size:12px;text-align:left}
+body[data-page="draw"] .draw-info summary {text-align:center;padding:8px;min-height:44px;font-size:12px}
+body[data-page="draw"] .probability-list li {font-size:12px}
+.postal-collection {max-width:1000px;margin:45px auto 0;border-top:1px solid #729db44a;padding-top:5px}
+.postal-shelf-label {font-size:12px;color:var(--muted);letter-spacing:1px}
+.postal-collection .section-heading h2 {margin-top:6px}
+
+@media(max-width:950px){
+  .postal-scene {max-width:740px}
+  .postal-margin-note {left:6px;font-size:14px;max-width:130px;letter-spacing:1px}
+  .postal-margin-note>span {font-size:19px}
+  .postal-postmark {right:3px;width:100px;height:100px}
+  .postal-postmark>strong {font-size:29px}
+  .postal-postmark>span {font-size:8px}
+}
+@media(max-width:620px){
+  body[data-page="draw"] .postal-experience {margin-top:0}
+  .postal-masthead {padding:10px 0;gap:7px;font-size:11px}
+  .postal-location {gap:6px;letter-spacing:0}
+  .postal-location .icon {width:17px;height:17px}
+  .postal-location>span {font-size:10px;letter-spacing:0}
+  .postal-edition {font-size:10px;letter-spacing:0;white-space:nowrap}
+  .postal-intro {padding-top:17px}
+  .postal-intro h1 {font-size:30px;letter-spacing:1px}
+  .postal-intro>p {font-size:12px;margin-top:7px;padding:0 10px;line-height:1.7}
+  .postal-margin-note {display:none}
+  .postal-postmark {right:1px;top:45px;width:65px;height:65px;outline-offset:-4px;gap:0;opacity:.75}
+  .postal-postmark>strong {font-size:20px}
+  .postal-postmark>span {font-size:6px;letter-spacing:0}
+  .postal-postmark>span:last-child {display:none}
+  body[data-page="draw"] .draw-stage {min-height:287px;padding:0;width:100%}
+  body[data-page="draw"] .draw-stage .memory-card {width:183px}
+  body[data-page="draw"] #stage-card {scale:.88}
+  body[data-page="draw"] .draw-stage:before {width:220px;height:200px;box-shadow:0 0 0 18px #ffffff26,0 0 0 36px #ffffff1a}
+  body[data-page="draw"] .draw-result-label {top:4px;font-size:11px}
+  body[data-page="draw"] .draw-stage .stage-caption {font-size:10px;bottom:1px}
+  body[data-page="draw"] .draw-info {margin-top:7px;padding:13px 18px 9px;border-radius:20px}
+  body[data-page="draw"] .draw-cost {gap:14px;margin-bottom:9px;font-size:12px}
+  body[data-page="draw"] .draw-cost>span {gap:4px}
+  body[data-page="draw"] .draw-cost strong {font-size:25px}
+  body[data-page="draw"] .draw-info>.btn {min-height:48px;font-size:13px;padding:10px 12px;gap:10px}
+  body[data-page="draw"] .draw-info>.draw-status {font-size:12px;margin-top:8px}
+  .postal-next {gap:28px;margin-top:0}
+  .postal-next>a {font-size:12px}
+  .postal-pool-note {padding-top:12px}
+  .postal-collection {margin-top:30px}
+}
+@media(max-width:360px),(max-width:620px) and (max-height:740px){
+  .postal-intro {padding-top:10px}
+  .postal-intro h1 {font-size:27px}
+  .postal-intro>p {margin-top:4px}
+  body[data-page="draw"] .draw-stage {min-height:253px;padding:0}
+  body[data-page="draw"] #stage-card {scale:.8}
+  body[data-page="draw"] .draw-result-label {top:0;font-size:10px}
+  body[data-page="draw"] .draw-stage .stage-caption {bottom:0;font-size:9px}
+  body[data-page="draw"] .draw-info {padding:10px 13px 9px}
+  body[data-page="draw"] .draw-cost {gap:10px;font-size:11px}
+  body[data-page="draw"] .draw-cost strong {font-size:23px}
+  .postal-location>span {display:none}
+}

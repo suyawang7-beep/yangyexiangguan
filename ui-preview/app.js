@@ -206,9 +206,25 @@
     return `<div class="memory-card card-back">${icon('bird')}<h2>不吱岛</h2><span class="tiny-star">✦</span><p>A LITTLE BIRTHDAY MEMORY</p><p>2026 · 10.20</p></div>`;
   }
   function renderDraw() {
-    const title = heading('04', 'Post a wish, open a memory', '肥啾邮局', '给未来寄一封小小的期待。这里的每一张卡，都藏着岛上的某个瞬间。');
     const first = state.history.length === 0;
-    return title + `<div class="draw-layout"><section class="glass draw-stage" id="draw-stage" aria-label="开卡舞台"><div class="draw-result-label" id="draw-result-label">一封生日回忆，正在等你拆开</div><div id="stage-card">${drawBack()}</div><span class="stage-caption">16张示意卡面 · 正式角色卡面待接入</span></section><section class="glass panel draw-info"><span class="pill pink">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 16 张'}</span><h2>把这一刻，寄给你</h2><p>${first ? '首次抽卡从2张SSR与4张SR中抽取，每张概率为1/6。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，16张卡片各有自己的故事。正常卡池每张概率均为1/16。'}</p><div class="draw-cost"><span>每次单抽<br><strong>50</strong> 金币</span><span>我的金币<br><strong data-balance>${state.balance}</strong> 枚</span></div>${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}<p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p><div class="actions">${link('office', '去岛民事务所', 'btn text')}${link('collection', '查看收藏', 'btn text')}</div><details><summary>公开概率与首抽说明</summary><p class="small muted">首抽：SSR 2张、SR 4张，各1/6；不含UR。之后正常卡池16张，各1/16。</p><ul class="probability-list"><li><span>UR · 1 张</span><strong>6.25%</strong></li><li><span>SSR · 2 张</span><strong>12.5%</strong></li><li><span>SR · 4 张</span><strong>25%</strong></li><li><span>R · 4 张</span><strong>25%</strong></li><li><span>N · 5 张</span><strong>31.25%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details></section></div><div class="section-heading"><div><div class="eyebrow">The birthday collection</div><h2>信封里的小小宇宙</h2></div><small>卡面图形为原创示意</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div>`;
+    return `<section class="postal-experience" aria-labelledby="postal-title">
+      <header class="postal-masthead"><span class="postal-location">${icon('mail')} 肥啾邮局 <span>／生日抽卡</span></span><span class="postal-edition">庆典限定 · 10.17—10.25</span></header>
+      <div class="postal-intro"><h1 id="postal-title">把这一刻，<em>寄给你。</em></h1><p>海风送来一封信，里面藏着我们相遇的某个瞬间。</p></div>
+      <div class="postal-scene">
+        <p class="postal-margin-note" aria-hidden="true">来自不吱岛<br><span>留给未来的你</span><i></i>每一次相遇，都值得被收藏。</p>
+        <section class="draw-stage" id="draw-stage" aria-label="开卡舞台"><div class="draw-result-label" id="draw-result-label" role="status">一封生日回忆，正在等你拆开</div><div id="stage-card">${drawBack()}</div><span class="stage-caption">示意卡面 · 正式角色卡面待接入</span></section>
+        <div class="postal-postmark" aria-hidden="true"><span>不吱岛 · 生日来信</span><strong>10.20</strong><span>愿相遇，常留心间</span></div>
+      </div>
+      <section class="glass draw-info" aria-label="抽取生日回忆">
+        <div class="draw-cost"><span>每次单抽 <strong>50</strong> 金币</span><i aria-hidden="true"></i><span>我的金币 <strong data-balance>${state.balance}</strong> 枚</span></div>
+        ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
+        <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
+        <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
+        <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 16 张'}</span></div>
+        <p class="draw-description" id="draw-pool-description">${first ? '首次抽卡从2张SSR与4张SR中抽取，每张概率为1/6。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，16张卡片各有自己的故事。正常卡池每张概率均为1/16。'}</p>
+        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽：SSR 2张、SR 4张，各1/6；不含UR。之后正常卡池16张，各1/16。</p><ul class="probability-list"><li><span>UR · 1 张</span><strong>6.25%</strong></li><li><span>SSR · 2 张</span><strong>12.5%</strong></li><li><span>SR · 4 张</span><strong>25%</strong></li><li><span>R · 4 张</span><strong>25%</strong></li><li><span>N · 5 张</span><strong>31.25%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
+      </section>
+    </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>以下为部分示意卡面</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
   }
 
   const filters = { ownership: 'all', rarity: 'all', search: '' };
@@ -392,8 +408,8 @@
         button.disabled = state.balance < 50; button.textContent = state.balance >= 50 ? '再寄出一份期待 ↗' : '金币暂时不足50枚';
         toast(`${card.rarity}「${card.name}」已收入收藏。`);
         if (first) {
-          const pill = document.querySelector('.draw-info .pill'); pill.textContent = '首抽已完成 · 后续为16张正常池';
-          document.querySelector('.draw-info>p').textContent = '接下来正常卡池包含UR、SSR、SR、R、N，16张卡片每张概率均为1/16。';
+          document.querySelector('#draw-pool-label').textContent = '首抽已完成 · 后续为16张正常池';
+          document.querySelector('#draw-pool-description').textContent = '接下来正常卡池包含UR、SSR、SR、R、N，16张卡片每张概率均为1/16。';
         }
       };
       const noMotion = document.querySelector('.world').dataset.motion === 'off';
