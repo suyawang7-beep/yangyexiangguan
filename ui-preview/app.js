@@ -141,10 +141,15 @@
   function needPassport(title = '先领取一张生日通行证') {
     return `<section class="glass empty-state">${icon('ticket')}<h2>${title}</h2><p>用一个昵称和一枚庆典头像，记下这次登岛的身份。<br>首次领取，送你恰好够抽一次卡的 50 金币。</p><div class="actions">${link('passport', '去领取通行证', 'btn primary')}${link('home', '先回码头', 'btn')}</div></section>`;
   }
+  function cardPicture(card) {
+    const item=LIVE&&liveCatalog.find(c=>c.previewId===card.id),name=item&&'cards/'+item.id+'.webp';
+    if(!name||!managedAssets[name])return icon(card.motif);
+    const image=document.createElement('img');image.dataset.officialCard='true';image.alt=card.name;image.src=assetUrl(name);image.style.cssText='display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit';applyAssetLayout(image,name);return image.outerHTML;
+  }
   function cardMarkup(card, { owned = true, quantity = 0, interactive = false } = {}) {
     const tag = interactive ? 'button' : 'div';
     return `<${tag} ${interactive ? `type="button" data-card="${card.id}" aria-label="${esc(card.name)}，${card.rarity}，${owned ? `已拥有${quantity}张` : '未获得'}"` : ''} class="memory-card ${owned ? '' : 'locked'}" data-rarity="${card.rarity}">
-      ${quantity ? `<span class="quantity">× ${quantity}</span>` : ''}<div class="card-inner"><div class="card-topline"><span class="card-number">${card.id} / 2026</span><span class="rarity">${card.rarity}</span></div><div class="card-picture">${icon(card.motif)}</div><div class="card-title">${card.name}</div><p class="card-subtitle">BUZHI ISLAND MEMORIES</p><div class="card-bottomline"><span>${owned ? 'BIRTHDAY COLLECTION' : '等待相遇'}</span><span>10.20 ✦</span></div></div></${tag}>`;
+      ${quantity ? `<span class="quantity">× ${quantity}</span>` : ''}<div class="card-inner"><div class="card-topline"><span class="card-number">${card.id} / 2026</span><span class="rarity">${card.rarity}</span></div><div class="card-picture">${cardPicture(card)}</div><div class="card-title">${esc(card.name)}</div><p class="card-subtitle">BUZHI ISLAND MEMORIES</p><div class="card-bottomline"><span>${owned ? 'BIRTHDAY COLLECTION' : '等待相遇'}</span><span>10.20 ✦</span></div></div></${tag}>`;
   }
   function ledgerMarkup() {
     return state.ledger.length ? `<ul class="ledger">${state.ledger.slice(0, 6).map((entry) => `<li><span>${esc(entry.label)}</span><b class="${entry.amount < 0 ? 'negative' : ''}">${entry.amount > 0 ? '+' : ''}${entry.amount}</b></li>`).join('')}</ul>` : '<p class="small muted">还没有收支，庆典的故事等你开启。</p>';
@@ -197,7 +202,7 @@
       if(!img.src.endsWith(target))img.src=target;applyAssetLayout(img,'cards/'+match.id+'.webp');
     });
     document.querySelectorAll('#oc-track .oc-slide').forEach((slide,i)=>{
-      const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':null;
+      const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':liveOcProfiles[i-2]?.image?.replace('/assets/','');
       if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img){img.src=assetUrl(file);applyAssetLayout(img,file)}}
     });
   }
@@ -235,7 +240,7 @@
   async function liveInit(){
     TASKS=LIVE_TASKS;
     await loadManagedArtwork();
-    try{const [catalog,oc]=await Promise.all([liveApi('catalog'),liveApi('oc')]);liveCatalog=catalog.cards;liveOcProfiles=oc}catch(e){toast(e.message)}
+    try{const [catalog,oc]=await Promise.all([liveApi('catalog'),liveApi('oc')]);liveCatalog=catalog.cards;for(const item of liveCatalog){const card=CARDS.find(c=>c.id===item.previewId);if(card){card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}};liveOcProfiles=oc}catch(e){toast(e.message)}
     if(liveToken){try{takeProfile(await liveApi('me'))}catch{liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}}
     else renderPage();
   }
@@ -329,7 +334,7 @@
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
     return title + `<section class="glass collection-summary"><div><strong>${owned}<span> / 16</span></strong><span>种生日回忆</span></div><div><strong>${total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
-      return card ? `<div class="history-row"><span class="rarity">${card.rarity}</span><p>${card.name}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
+      return card ? `<div class="history-row"><span class="rarity">${card.rarity}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
   }
 
@@ -663,7 +668,7 @@
       const card = CARDS.find((item) => item.id === button.dataset.card); if (!card) return;
       trigger = button;
       const owned = state.collection[card.id];
-      dialog.innerHTML = `<button type="button" class="dialog-close" aria-label="关闭卡片详情">${icon('close')}</button>${cardMarkup(card)}<h2 id="card-detail-title">${card.name}</h2><div class="card-meta"><span class="pill">${card.rarity}</span><span class="pill">${owned ? `已拥有 ${owned.quantity} 张` : '等待相遇'}</span></div><p>${card.story}</p><p class="small muted">角色：${card.characters}${owned ? `<br>首次获得：${timeText(owned.firstAt)}` : ''}</p><p class="dialog-oc">${LIVE ? '更多角色故事即将开放；实体卡兑换目前暂未开放。' : '角色资料与个人 OC 页面将在后续接入。当前是示意卡面，不开放实体兑换。'}</p>`;
+      dialog.innerHTML = `<button type="button" class="dialog-close" aria-label="关闭卡片详情">${icon('close')}</button>${cardMarkup(card)}<h2 id="card-detail-title">${esc(card.name)}</h2><div class="card-meta"><span class="pill">${card.rarity}</span><span class="pill">${owned ? `已拥有 ${owned.quantity} 张` : '等待相遇'}</span></div><p>${esc(card.story)}</p><p class="small muted">角色：${esc(card.characters)}${owned ? `<br>首次获得：${timeText(owned.firstAt)}` : ''}</p><p class="dialog-oc">${LIVE ? '更多角色故事即将开放；实体卡兑换目前暂未开放。' : '角色资料与个人 OC 页面将在后续接入。当前是示意卡面，不开放实体兑换。'}</p>`;
       dialog.querySelector('button').onclick = () => dialog.close(); dialog.showModal();
     });
     dialog.addEventListener('close', () => trigger?.focus());
@@ -777,7 +782,7 @@
     const people = [
       ['菜菜', '生日主角 / 岛主', '把每一天的小小快乐，都唱成一首歌。', 'pink'],
       ['吱吱', '庆生搭档 / 共同岛主', '派对的小灯已经挂好，就等你来了。', 'blue'],
-      ...(LIVE ? liveOcProfiles.map((oc,i)=>[oc.name,'岛民 OC',oc.description||'一位新的岛民已经登岛。',['green','purple','pink','blue'][i%4],oc.image]) : [
+      ...(LIVE ? liveOcProfiles.map((oc,i)=>[oc.name,'岛民 OC',oc.description||'一位新的岛民已经登岛。',['green','purple','pink','blue'][i%4],(managedAssets[oc.image.replace('/assets/','')]?assetUrl(oc.image.replace('/assets/','')):null)]) : [
         ['岛民 OC · 位置 01', '个人形象待接入', '这里将展示拥有专属形象的岛民与职业设定。', 'green'],
         ['岛民 OC · 位置 02', '个人形象待接入', '属于岛民的故事，会在这里慢慢展开。', 'purple']
       ])
@@ -808,3 +813,4 @@
   effectsScript.src = new URL('effects.js?v=20261018-bird1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
+

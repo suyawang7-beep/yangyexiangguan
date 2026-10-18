@@ -405,7 +405,8 @@
   function installGallery() {
     const gallery = document.querySelector('#oc-gallery'); if (!gallery) return;
     const track = gallery.querySelector('#oc-track'); const cards = Array.from(track.children); const n = cards.length;
-    let target = 0, position = 0, frame = 0, mode = allowedMode('ocSlider')?'slider':allowedMode('ocStagger')?'stagger':'depth', drag = null, wasDragged = false, tiltX = 0, tiltY = 0;
+    if (!n) { document.querySelector('#oc-step').textContent='00'; document.querySelector('#oc-help').textContent='暂无公开人物'; gallery.querySelectorAll('button').forEach(b=>b.disabled=true); return; }
+    let target = 0, position = 0, frame = 0, mode = n>4||allowedMode('ocSlider')?'slider':allowedMode('ocStagger')?'stagger':'depth', drag = null, wasDragged = false, tiltX = 0, tiltY = 0;
     const step = () => gallery.clientWidth < 600 ? gallery.clientWidth * .86 : Math.min(gallery.clientWidth * .83, 900);
     function paint() {
       const width = gallery.clientWidth, narrow = width < 600;
@@ -436,7 +437,7 @@
     function go(next) { target = next; if (!frame) frame = requestAnimationFrame(tick); }
     document.querySelector('#oc-prev').onclick = () => go(Math.round(target) - 1);
     document.querySelector('#oc-next').onclick = () => go(Math.round(target) + 1);
-    document.querySelectorAll('[data-oc-mode]').forEach((button) => {if (!allowedMode(button.dataset.ocMode==='slider'?'ocSlider':button.dataset.ocMode==='stagger'?'ocStagger':'ocDepth'))button.remove();else button.onclick = () => {
+    document.querySelectorAll('[data-oc-mode]').forEach((button) => {if (n>4?button.dataset.ocMode!=='slider':!allowedMode(button.dataset.ocMode==='slider'?'ocSlider':button.dataset.ocMode==='stagger'?'ocStagger':'ocDepth'))button.remove();else button.onclick = () => {
       mode = button.dataset.ocMode; document.querySelectorAll('[data-oc-mode]').forEach((el) => el.setAttribute('aria-pressed', String(el === button))); paint();
     }});
     track.addEventListener('click', (event) => {
@@ -505,4 +506,5 @@
   }
   startEffects();
 })();
+
 
