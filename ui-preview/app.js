@@ -179,7 +179,7 @@
     const selected=backgrounds[PAGE];
     if(selected&&managedAssets[selected[0]]){
       const host=document.querySelector(selected[1]);
-      if(host){host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255,.70),rgba(242,223,252,.55)),url("/assets/'+selected[0]+'?v='+(managedVersions[selected[0]]||assetVersion)+'")';host.style.backgroundSize='cover';host.style.backgroundPosition='center';applyAssetLayout(host,selected[0],true)}
+      if(host){host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255, ' + (PAGE === 'home' ? '.25' : '.70') + ' ),rgba(242,223,252, ' + (PAGE === 'home' ? '.25' : '.55') + ' )),url("/assets/'+selected[0]+'?v='+(managedVersions[selected[0]]||assetVersion)+'")';host.style.backgroundSize='cover';host.style.backgroundPosition='center';applyAssetLayout(host,selected[0],true)}
     }
     const hero=document.querySelector('.hero-art img, .mini-art');
     if(hero&&managedAssets['decor/home-poster.webp']){hero.src=assetUrl('decor/home-poster.webp');applyAssetLayout(hero,'decor/home-poster.webp')}
