@@ -161,6 +161,7 @@
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
+  let liveOcProfiles=[];
   let managedAssets={};
   let managedVersions={};
   const assetUrl=name=>'/assets/'+name+'?v='+(managedVersions[name]||assetVersion);
@@ -234,7 +235,7 @@
   async function liveInit(){
     TASKS=LIVE_TASKS;
     await loadManagedArtwork();
-    try{const catalog=await liveApi('catalog');liveCatalog=catalog.cards}catch(e){toast(e.message)}
+    try{const [catalog,oc]=await Promise.all([liveApi('catalog'),liveApi('oc')]);liveCatalog=catalog.cards;liveOcProfiles=oc}catch(e){toast(e.message)}
     if(liveToken){try{takeProfile(await liveApi('me'))}catch{liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}}
     else renderPage();
   }
@@ -762,10 +763,12 @@
     const people = [
       ['菜菜', '生日主角 / 岛主', '把每一天的小小快乐，都唱成一首歌。', 'pink'],
       ['吱吱', '庆生搭档 / 共同岛主', '派对的小灯已经挂好，就等你来了。', 'blue'],
-      ['岛民 OC · 位置 01', '个人形象待接入', '这里将展示拥有专属形象的岛民与职业设定。', 'green'],
-      ['岛民 OC · 位置 02', '个人形象待接入', '属于岛民的故事，会在这里慢慢展开。', 'purple'],
+      ...(LIVE ? liveOcProfiles.map((oc,i)=>[oc.name,'岛民 OC',oc.description||'一位新的岛民已经登岛。',['green','purple','pink','blue'][i%4],oc.image]) : [
+        ['岛民 OC · 位置 01', '个人形象待接入', '这里将展示拥有专属形象的岛民与职业设定。', 'green'],
+        ['岛民 OC · 位置 02', '个人形象待接入', '属于岛民的故事，会在这里慢慢展开。', 'purple']
+      ])
     ];
-    return heading('08', 'Every islander has a story', LIVE ? '岛民画廊' : '岛民画廊 · 布局预览', '左右拖动、点击卡片或使用箭头，欣赏岛上的角色。' + (LIVE ? '部分岛民的资料仍在筹备，敬请期待。' : '这里暂未接入正式 OC 资料。')) + `<div class="oc-mode-bar"><div class="filter-tabs" aria-label="角色展示方式"><button type="button" data-oc-mode="slider" aria-pressed="true">横向画廊</button></div><span class="pill">${LIVE ? '岛上的相遇' : '角色图为示意'}</span></div><section class="glass oc-gallery" id="oc-gallery" data-mode="slider" aria-label="角色欣赏画廊"><div class="oc-count"><span id="oc-step">01</span><small>/ 04</small></div><div class="oc-track" id="oc-track">${people.map(([name, role, text, tone], index) => `<button type="button" class="oc-slide oc-${tone}" data-oc="${index}" aria-label="查看${name}"><span class="oc-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="${name}的插画位置示意" draggable="false"></span><span class="oc-caption"><small>${role}</small><strong>${name}</strong><span>${text}</span></span></button>`).join('')}</div><div class="oc-slider-controls"><button class="btn" id="oc-prev" type="button" aria-label="上一个角色">←</button><span id="oc-help">拖动欣赏 · 松手后轻轻停靠</span><button class="btn" id="oc-next" type="button" aria-label="下一个角色">→</button></div></section><div class="info-note">菜菜与吱吱之外的岛民位置均为布局占位，不代表已经创建了新的 OC。个人角色故事与资料页将陆续开放。</div>`;
+    return heading('08', 'Every islander has a story', LIVE ? '岛民画廊' : '岛民画廊 · 布局预览', '左右拖动、点击卡片或使用箭头，欣赏岛上的角色。' + (LIVE ? '部分岛民的资料仍在筹备，敬请期待。' : '这里暂未接入正式 OC 资料。')) + `<div class="oc-mode-bar"><div class="filter-tabs" aria-label="角色展示方式"><button type="button" data-oc-mode="slider" aria-pressed="true">横向画廊</button></div><span class="pill">${LIVE ? '岛上的相遇' : '角色图为示意'}</span></div><section class="glass oc-gallery" id="oc-gallery" data-mode="slider" aria-label="角色欣赏画廊"><div class="oc-count"><span id="oc-step">01</span><small>/ ${String(people.length).padStart(2,'0')}</small></div><div class="oc-track" id="oc-track">${people.map(([name, role, text, tone, image], index) => `<button type="button" class="oc-slide oc-${tone}" data-oc="${index}" aria-label="查看${esc(name)}"><span class="oc-art"><img src="${image||activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="${esc(name)}的角色插画" draggable="false"></span><span class="oc-caption"><small>${esc(role)}</small><strong>${esc(name)}</strong><span>${esc(text)}</span></span></button>`).join('')}</div><div class="oc-slider-controls"><button class="btn" id="oc-prev" type="button" aria-label="上一个角色">←</button><span id="oc-help">拖动欣赏 · 松手后轻轻停靠</span><button class="btn" id="oc-next" type="button" aria-label="下一个角色">→</button></div></section><div class="info-note">${LIVE ? '岛民 OC 人物资料由岛主后台管理，隐藏人物不会在此展示。' : '菜菜与吱吱之外的岛民位置均为布局占位，不代表已经创建了新的 OC。个人角色故事与资料页将陆续开放。'}</div>`;
   }
 
   function renderEffects() {
