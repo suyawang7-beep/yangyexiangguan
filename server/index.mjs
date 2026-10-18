@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {createOperations,streamBackup} from './operations.mjs';
 import {activityPhase,validateActivity} from './activity.mjs';
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes,createHash,timingSafeEqual} from 'node:crypto';
@@ -57,6 +58,7 @@ const VISUAL_KEYS={collectionGrid:false,collectionFan:true,collectionRing:false,
 function getVisualSettings(){const rows=db.prepare('SELECT key,enabled FROM visual_settings').all();const result={...VISUAL_KEYS};for(const row of rows)if(Object.hasOwn(result,row.key))result[row.key]=!!row.enabled;return result}
 function saveVisualSettings(payload){if(!payload||typeof payload!=='object'||Array.isArray(payload)||Object.keys(payload).length!==Object.keys(VISUAL_KEYS).length||Object.keys(payload).some(key=>!Object.hasOwn(VISUAL_KEYS,key)||typeof payload[key]!=='boolean'))throw error(400,'视效配置格式无效');if(!['collectionGrid','collectionFan','collectionRing'].some(k=>payload[k])||!['ocSlider','ocStagger','ocDepth'].some(k=>payload[k]))throw error(400,'每个画廊必须至少保留一种展示方式');return tx(()=>{const stmt=db.prepare('INSERT INTO visual_settings(key,enabled,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET enabled=excluded.enabled,updated_at=excluded.updated_at');for(const [k,v] of Object.entries(payload))stmt.run(k,v?1:0,now());auditAdmin('visual.update',{settings:payload});return getVisualSettings()})}
 function auditAdmin(action,details){db.prepare('INSERT INTO admin_audit(action,details,created_at) VALUES(?,?,?)').run(action,JSON.stringify(details),now())}
+const operations=createOperations(db,DB_PATH,auditAdmin);
 function adminAudit(){return db.prepare('SELECT id,action,details,created_at FROM admin_audit ORDER BY id DESC LIMIT 100').all().map(row=>({...row,details:JSON.parse(row.details)}))}
 function codeStats(){return db.prepare('SELECT task_id,COUNT(*) total,SUM(CASE WHEN redeemed_by IS NULL THEN 1 ELSE 0 END) unused,SUM(CASE WHEN redeemed_by IS NOT NULL THEN 1 ELSE 0 END) redeemed FROM codes GROUP BY task_id ORDER BY task_id').all()}
 function userDetail(id){if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id))throw error(400,'参与者编号无效');const user=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);if(!user)throw error(404,'岛民不存在');return {user,ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 200').all(id),tasks:db.prepare('SELECT task_id,redeemed_at FROM tasks WHERE user_id=? ORDER BY redeemed_at DESC').all(id),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC LIMIT 90').all(id),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id)}}
@@ -156,6 +158,10 @@ else if(path==='/api/admin/visual-settings'&&req.method==='GET'){admin(req);data
 else if(path==='/api/admin/visual-settings'&&req.method==='POST'){admin(req);data=saveVisualSettings(b)}
 else if(path==='/api/admin/user'&&req.method==='GET'){admin(req);data=userDetail(String(new URL(req.url,'http://localhost').searchParams.get('id')||''))}
 else if(path==='/api/admin/code-stats'&&req.method==='GET'){admin(req);data=codeStats()}
+else if(path==='/api/admin/backups'&&req.method==='GET'){admin(req);data=operations.listBackups()}
+else if(path==='/api/admin/backups'&&req.method==='POST'){admin(req);data=operations.createBackup()}
+else if(path==='/api/admin/backups/download'&&req.method==='GET'){admin(req);const file=operations.backupFile(new URL(req.url,'http://localhost').searchParams.get('name'));return streamBackup(res,file)}
+else if(path==='/api/admin/export'&&req.method==='GET'){admin(req);const out=operations.exportOperations();res.writeHead(200,{'content-type':'application/json; charset=utf-8','content-disposition':'attachment; filename="buzhi-operations-'+Date.now()+'.json"','cache-control':'private, no-store','x-content-type-options':'nosniff'});return res.end(JSON.stringify(out))}
 else if(path==='/api/admin/audit'&&req.method==='GET'){admin(req);data=adminAudit()}
 else throw error(404,'未找到');
 send(res,200,data)}catch(e){send(res,e.status||500,{error:e.status?e.message:'内部错误'})}}).listen(PORT,HOST,()=>console.log('Buzhi server listening on '+HOST+':'+PORT));
