@@ -55,3 +55,15 @@ main{min-height:65vh;animation:page-arrive .7s ease-out both}.eyebrow{display:fl
 .memory-card .quantity{top:37px;right:13px}
 @media(max-width:620px){.hero-copy .subtitle{font-size:14px}.destination p,.task-card p,.letter p,.info-note,.privacy-note,.draw-info>p,.draw-status,.page-heading p{font-size:12px}.form-field .hint{font-size:11px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important;translate:none!important}.ripple{display:none}}
+
+/* Keep the relocated page links reachable at the top on every screen size. */
+body .world .desktop-nav{display:flex;gap:16px;flex-wrap:wrap}
+body .world .desktop-nav a{display:flex;white-space:nowrap}
+@media(max-width:1100px){
+  body .world .site-header{flex-wrap:wrap}
+  body .world .desktop-nav{order:3;flex-basis:100%;justify-content:center;gap:8px 20px}
+}
+@media(max-width:620px){
+  body .world .desktop-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 4px}
+  body .world .desktop-nav a{justify-content:center;min-height:44px;font-size:11px;padding:7px 0}
+}
