@@ -445,7 +445,7 @@
   function pageSetup() {
     // Production profiles can arrive while visual settings are still loading.
     // Bind only after configuration; otherwise the same DOM gets two galleries.
-    if (!effectsConfigured) return;
+    if (!effectsConfigured || !document.querySelector('#main')?.firstElementChild) return;
     const homeNote = document.querySelector('.hero-footnote');
     if (homeNote) homeNote.insertAdjacentHTML('afterend', '<div class="home-extras"><a href="guide.html">沿着海风，看看登岛导览 →</a>'+(production?'':'<a href="effects.html">打开特效体验 ✦</a>')+'</div>');
     if (page === 'home') document.querySelector('.hero-copy').insertAdjacentHTML('afterbegin', '<p class="scene-note"><i></i>海风正好，小岛等你赴约</p>');
@@ -477,3 +477,4 @@
   }
   startEffects();
 })();
+
