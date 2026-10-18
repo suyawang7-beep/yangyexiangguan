@@ -89,6 +89,44 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     return;
   }
 
+  if (process.argv.includes('--passport-tabs-only')) {
+    await visit('passport');
+    const tabs = page.getByRole('tab');
+    check(await tabs.count() === 2, 'Passport offers new and returning islander tabs above the form');
+    check(await page.getByRole('tab', {name:'新岛民登记'}).getAttribute('aria-selected') === 'true', 'New registration is selected by default');
+    await page.locator('#nickname').fill('切换后保留昵称');
+    await page.getByRole('tab', {name:'欢迎老岛民'}).click();
+    check(await page.locator('#passport-form').isHidden(), 'Returning mode hides the new registration panel');
+    check(await page.locator('#returning-islander-panel').isVisible(), 'Returning form appears in the same registration area');
+    check(await page.locator('#main > section:has(#live-login)').count() === 0, 'No duplicate returning-islander card remains below the passport');
+    check(await page.locator('#live-login').count() === 1, 'There is exactly one returning-islander form');
+    check(await page.locator('.ticket-gift').isHidden(), 'Returning users are not shown a new-account 50-coin promise');
+    check(await page.locator('#returning-key').getAttribute('type') === 'password', 'Recovery key remains masked');
+    check(await page.locator('#live-login button[type="submit"]').isDisabled(), 'Static Pages preview never pretends to restore a real account');
+    check(/预览/.test(await page.locator('#returning-islander-panel').innerText()), 'Preview mode explains its account limitation');
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({width, height:900});
+      const tabRect = await layout('#passport-returning-tab');
+      check(tabRect.top > 0 && tabRect.bottom < 500, `${width}: returning option is near the top instead of below the page`);
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: both entry modes fit without horizontal overflow`);
+      await capture(`passport-returning-${width}`);
+    }
+    await page.getByRole('tab', {name:'新岛民登记'}).click();
+    check(await page.locator('#nickname').inputValue() === '切换后保留昵称', 'Switching modes preserves the unfinished nickname');
+    await page.getByRole('tab', {name:'新岛民登记'}).press('ArrowRight');
+    check(await page.getByRole('tab', {name:'欢迎老岛民'}).getAttribute('aria-selected') === 'true', 'Keyboard arrows switch entry mode');
+    await page.getByRole('tab', {name:'欢迎老岛民'}).press('Home');
+    check(await page.locator('#passport-form').isVisible(), 'Home key returns to new registration');
+    await page.locator('#claim-pass').click();
+    await page.locator('#public-id').waitFor();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
+    check(saved.balance === 50 && saved.passport.nickname === '切换后保留昵称', 'Original registration still grants exactly 50 once');
+    check(await tabs.count() === 0, 'Logged-in passport shows its ticket instead of duplicate signup/login controls');
+    check(errors.length === 0, `No passport tab errors: ${errors.join('; ')}`);
+    console.log(`PASS ${checks} passport-tab assertions; switching, keyboard, three widths, no lower duplicate and unchanged registration`);
+    return;
+  }
+
   await visit('passport');
   await page.evaluate(() => document.fonts.ready);
   check(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily.includes('Buzhi Rounded')), 'The cute rounded font is the actual UI font, not the old serif fallback');

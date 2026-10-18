@@ -33,6 +33,8 @@ python3 -m http.server 5174 --bind 0.0.0.0
 
 `office1` 删除事务所待办横条与报到任务卡，仅展示其余六张任务卡。电脑双列高低错落，手机单列左右轻错位，保留阅读顺序与不重叠的操作区域。历史报到、奖励和金币账本不删除；肥啾进度从独立计数读取。局部检查使用 `node tests/ui-preview-draw.cjs --office-only`，不必每次跑十页。
 
+`passport1` 在未登录的登记区提供“新岛民登记 / 欢迎老岛民”切换，原来下方独立的找回卡片移除。原注册表单与正式登录接口保留，切换不重复发金币，已登录者仍显示自己的通行证。静态 Pages 的找回区域只读展示，不接收真实恢复密钥。局部检查为 `node tests/ui-preview-draw.cjs --passport-tabs-only`；隔离正式恢复流程见 `tests/production-layout.cjs`。
+
 StyleKit Skill 0.8.0 的设计原则和移动端指南用于本次实现。在线风格 API 访问返回403，因此没有声称获取或通过在线风格规格验收。
 
 ## 特效版本

@@ -43,6 +43,20 @@ body[data-page="passport"] .ticket-actions{margin-top:14px}
 body[data-page="passport"] #live-login{display:grid;gap:16px;max-width:600px}
 body[data-page="passport"] #live-login label{display:grid;gap:7px;font-size:13px}
 body[data-page="passport"] #live-login input{width:100%;min-height:46px;border:1px solid #97bbd17d;border-radius:12px;padding:11px 14px;background:#f5fbffda;color:var(--ink)}
+body[data-page="passport"] .passport-entry{min-width:0}
+body[data-page="passport"] .passport-entry-tabs{display:flex;gap:5px;padding:5px;margin-bottom:14px;border:1px solid #ffffffd9;border-radius:20px;background:#eaf7ff70}
+body[data-page="passport"] .passport-entry-tabs button{display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-width:0;min-height:46px;padding:9px 8px;border-radius:15px;background:none;color:var(--muted);font-size:13px}
+body[data-page="passport"] .passport-entry-tabs button[aria-selected="true"]{background:#f6fcffd9;color:#285f80;box-shadow:0 4px 14px #5f8fa61a}
+body[data-page="passport"] .passport-entry-tabs .icon{width:18px;height:18px;flex:none}
+body[data-page="passport"] .passport-entry>[hidden],body[data-page="passport"] .ticket-gift[hidden]{display:none!important}
+body[data-page="passport"] #returning-islander-panel{padding:25px 30px;border-radius:28px}
+body[data-page="passport"] #returning-islander-panel h2{font-size:23px;margin:0 0 12px}
+body[data-page="passport"] #returning-islander-panel>.small{font-size:12px;line-height:1.8;margin:0 0 18px}
+body[data-page="passport"] #live-login .form-field{margin:0}
+body[data-page="passport"] #live-login .form-field>.btn{justify-self:start;min-height:44px;padding:7px 2px;font-size:12px}
+body[data-page="passport"] #live-login>.small{font-size:12px;line-height:1.8;margin:0}
+body[data-page="passport"] .passport-preview-note{border:1px dashed #8aafc278;border-radius:12px;padding:10px 12px;background:#f7fbff66}
+@media(max-width:620px){body[data-page="passport"] #returning-islander-panel{padding:23px}body[data-page="passport"] .passport-entry-tabs{margin-bottom:12px}body[data-page="passport"] .passport-entry-tabs button{gap:5px}}
 .recovery-dialog .form-field input{width:100%;min-width:0;font-family:ui-monospace,monospace;font-size:13px}
 .recovery-dialog .actions{gap:10px;flex-wrap:wrap}
 .recovery-dialog .actions .btn{flex:1;white-space:normal}

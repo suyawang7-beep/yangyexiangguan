@@ -563,13 +563,61 @@
     form?.addEventListener('submit',async e=>{e.preventDefault();const nickname=form.elements.nickname.value.trim();if(!nickname||[...nickname].length>20){toast('昵称请填写 1–20 个字符');return}
       try{const result=await liveApi('register',{nickname});liveToken=result.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(result.profile);showRecoveryOnce(result.id,result.recoveryKey)}catch(err){toast(err.message)}
     });
-    const host=document.querySelector('#main');
-    if(!state.passport&&host){
-      const login=document.createElement('section');login.className='glass panel';login.innerHTML='<div class="eyebrow">WELCOME BACK · BUZHI ISLAND</div><h2>欢迎回岛，老岛民！</h2><p class="small muted">换手机、换浏览器也不用重新登记。使用首次登岛保存的编号与恢复密钥，找回原来的金币、任务和生日回忆卡。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登岛恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入首次登记时保存的密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示密钥</button></div><button class="btn primary full" type="submit">找回我的岛民身份 →</button><p class="small muted">恢复密钥属于私密凭证，请勿发送到公开聊天或直播间。只有昵称或编号无法安全找回账户。</p></form>';
-      host.append(login);
-      login.querySelector('#toggle-returning-key').onclick=()=>{const field=login.querySelector('#returning-key');const visible=field.type==='password';field.type=visible?'text':'password';login.querySelector('#toggle-returning-key').textContent=visible?'隐藏密钥':'显示密钥';login.querySelector('#toggle-returning-key').setAttribute('aria-pressed',String(visible))};
-      login.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget;try{const data=await liveApi('login',{id:f.elements.id.value.trim(),recoveryKey:f.elements.key.value.trim()});liveToken=data.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(data.profile)}catch(err){toast(err.message)}};
+  }
+
+  function installPassportTabs() {
+    const registration = document.querySelector('#passport-form');
+    if (state.passport || !registration) return;
+    const entry = document.createElement('div'); entry.className = 'passport-entry';
+    registration.before(entry);
+    const tabs = document.createElement('div'); tabs.className = 'passport-entry-tabs';
+    tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', '选择登岛方式');
+    tabs.innerHTML = `<button type="button" id="passport-new-tab" role="tab" aria-controls="passport-new-panel">${icon('ticket')} 新岛民登记</button><button type="button" id="passport-returning-tab" role="tab" aria-controls="returning-islander-panel">${icon('anchor')} 欢迎老岛民</button>`;
+    const login = document.createElement('section');
+    login.id = 'returning-islander-panel'; login.className = 'glass panel';
+    login.setAttribute('role', 'tabpanel'); login.setAttribute('aria-labelledby', 'passport-returning-tab');
+    login.innerHTML = '<h2>找回你的生日通行证</h2><p class="small muted">使用首次登岛保存的编号与恢复密钥，接着收藏原来的金币、任务和生日回忆。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登岛恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入首次登记时保存的密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示密钥</button></div><button class="btn primary full" type="submit">找回我的岛民身份 →</button><p class="small muted">恢复密钥请妥善保密。只有昵称或编号无法安全找回账户。</p></form>';
+    const newPanel = document.createElement('section'); newPanel.id = 'passport-new-panel';
+    newPanel.setAttribute('role', 'tabpanel'); newPanel.setAttribute('aria-labelledby', 'passport-new-tab');
+    registration.setAttribute('aria-labelledby', 'passport-new-tab');
+    newPanel.append(registration); entry.append(tabs, newPanel, login);
+    const switches = Array.from(tabs.querySelectorAll('[role="tab"]'));
+    const keyField = login.querySelector('#returning-key');
+    const keyToggle = login.querySelector('#toggle-returning-key');
+    const heading = document.querySelector('.ticket-office-head h1');
+    const subtitle = document.querySelector('.ticket-office-head p');
+    const originalTitle = heading.textContent, originalSubtitle = subtitle.textContent;
+    function select(index, focus = false) {
+      switches.forEach((button, i) => { button.setAttribute('aria-selected', String(i === index)); button.tabIndex = i === index ? 0 : -1; });
+      newPanel.hidden = index !== 0; login.hidden = index !== 1;
+      document.querySelector('.ticket-gift').hidden = index !== 0;
+      heading.textContent = index === 0 ? originalTitle : '欢迎回岛，老岛民';
+      subtitle.textContent = index === 0 ? originalSubtitle : '用保存的编号和密钥，回到熟悉的小岛。';
+      keyField.type = 'password'; keyToggle.textContent = '显示密钥'; keyToggle.setAttribute('aria-pressed', 'false');
+      if (focus) switches[index].focus();
     }
+    switches.forEach((button, i) => button.addEventListener('click', () => select(i)));
+    tabs.addEventListener('keydown', event => {
+      const current = switches.indexOf(event.target);
+      if (current < 0) return;
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : ['ArrowLeft', 'ArrowRight'].includes(event.key) ? 1 - current : null;
+      if (next !== null) { event.preventDefault(); select(next, true); }
+    });
+    keyToggle.onclick = () => { const visible = keyField.type === 'password'; keyField.type = visible ? 'text' : 'password'; keyToggle.textContent = visible ? '隐藏密钥' : '显示密钥'; keyToggle.setAttribute('aria-pressed', String(visible)); };
+    if (!LIVE) {
+      const note = document.createElement('p'); note.className = 'small passport-preview-note';
+      note.textContent = '这里只是设计预览，请勿输入真实密钥。找回账户需在正式网站操作；本地演示记录不能跨设备恢复。';
+      login.querySelector('h2').after(note);
+      login.querySelectorAll('input').forEach(input => { input.readOnly = true; input.autocomplete = 'off'; });
+      login.querySelectorAll('button').forEach(button => { button.disabled = true; });
+    }
+    login.querySelector('form').onsubmit = async event => {
+      event.preventDefault(); if (!LIVE) return;
+      const form = event.currentTarget;
+      try { const data = await liveApi('login', { id: form.elements.id.value.trim(), recoveryKey: form.elements.key.value.trim() }); liveToken = data.token; sessionStorage.setItem('buzhi-online-token', liveToken); takeProfile(data.profile); }
+      catch (err) { toast(err.message); }
+    };
+    select(0);
   }
   function bindLiveOffice(){
     const dialog=document.querySelector('#task-dialog');let task=null;
@@ -691,6 +739,7 @@
     applyPageLayout();
     const binders = { passport: bindPassport, office: bindOffice, checkin: bindCheckin, draw: bindDraw, collection: bindCollection };
     binders[PAGE]?.();
+    if (PAGE === 'passport') installPassportTabs();
     updateWallet();
     document.dispatchEvent(new CustomEvent('buzhi:render'));
     if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/island-map.svg':'assets/island.svg'}});
