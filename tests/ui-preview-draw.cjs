@@ -49,6 +49,43 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, name + '.png'), animations: 'disabled' });
   }
 
+  if (process.argv.includes('--headers-only')) {
+    const rooms = ['index','passport','office','checkin','draw','collection','islanders','mailbox','guide','effects'];
+    for (const width of [390,1440]) {
+      await page.setViewportSize({width,height:width === 390 ? 844 : 1000});
+      for (const room of rooms) {
+        await visit(room); await page.evaluate(() => document.fonts.ready);
+        check(await page.locator('.brand-mark img[src$="island-mark.svg"]').count() === 1, `${room}/${width}: island, not bird text, identifies the site`);
+        check(await page.locator('.brand-mark img').evaluate(el => el.complete && el.naturalWidth > 0), `${room}/${width}: real island logo loads`);
+        check(await page.locator('link[rel="icon"][href$="island-mark.svg"]').count() === 1, `${room}/${width}: browser icon is also the island`);
+        check(await page.locator('main h1').count() === 1, `${room}/${width}: one primary title remains`);
+        check(await page.locator('[data-scene-heading] .island-sticker').count() >= 1, `${room}/${width}: page has original vector sticker decoration`);
+        check(await page.locator('.island-sticker').first().evaluate(el => getComputedStyle(el).fill === 'none'), `${room}/${width}: stroke-only sticker paths do not inherit unwanted black fill`);
+        check(await page.locator('.heading-stickers').evaluate(el => el.getAttribute('aria-hidden') === 'true' && getComputedStyle(el).pointerEvents === 'none'), `${room}/${width}: decorative stickers cannot block controls or screen readers`);
+        check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${room}/${width}: new title composition fits the viewport`);
+        if (room === 'office') {
+          check(await page.locator('main h1').evaluate(el => getComputedStyle(el).fontFamily.includes('Buzhi Notice')), 'Office heading uses its own bold notice typeface');
+          check(await page.evaluate(() => [...document.fonts].some(f => f.family === 'Buzhi Notice' && f.status === 'loaded')), 'Actual notice font is loaded, not a fallback');
+          if (width === 1440) { const box = await page.locator('main h1').boundingBox(); check(Math.abs(box.x + box.width / 2 - width / 2) < 90, 'Office title is centered like a notice board'); }
+        }
+        if (room === 'islanders') {
+          check(await page.locator('main h1').evaluate(el => getComputedStyle(el).fontFamily.includes('Buzhi Hand')), 'Gallery uses a genuinely different handwritten heading face');
+          check(await page.evaluate(() => [...document.fonts].some(f => f.family === 'Buzhi Hand' && f.status === 'loaded')), 'Actual handwritten font loads locally');
+          if (width === 1440) { const box = await page.locator('main h1').boundingBox(); check(box.x + box.width / 2 > width * .62, 'Gallery title is offset to the right, unlike the office'); }
+          else { const box = await page.locator('main h1').boundingBox(); check(box.x + box.width / 2 > width * .6, 'Gallery title remains on the right on mobile, clear of the jellyfish'); }
+          await page.locator('#oc-next').click(); await page.waitForFunction(() => document.querySelector('#oc-step').textContent === '02');
+          check(await page.locator('.oc-slide.active .oc-caption strong').textContent() === '吱吱', 'Gallery controls still work beneath decorative stickers');
+        }
+        await capture(`headers-${room}-${width}`);
+      }
+    }
+    await page.setViewportSize({width:320,height:680});
+    for (const room of ['index','office','islanders','passport']) { await visit(room); check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${room}: small phone remains usable`); }
+    check(errors.length === 0, `No heading/sticker errors: ${errors.join('; ')}`);
+    console.log(`PASS ${checks} heading/sticker assertions; ten pages, two loaded heading fonts, island brand, desktop/mobile layouts and gallery controls`);
+    return;
+  }
+
   if (process.argv.includes('--office-only')) {
     await visit('passport');
     await page.locator('#nickname').fill('事务所排版检查');

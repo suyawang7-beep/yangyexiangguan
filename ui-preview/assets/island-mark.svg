@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <defs><linearGradient id="sea" x1="12" y1="34" x2="65" y2="73" gradientUnits="userSpaceOnUse"><stop stop-color="#b9eff5"/><stop offset="1" stop-color="#b3c7f3"/></linearGradient></defs>
+  <path d="M40 4C18 4 5 18 5 40s14 35 35 35 35-14 35-35S62 4 40 4Z" fill="#f4fcff" stroke="white" stroke-width="5"/>
+  <path d="M8 43c14-7 24 5 34 0s20-4 31 1c0 19-12 29-33 29S10 62 8 43Z" fill="url(#sea)"/>
+  <circle cx="56" cy="24" r="8" fill="#ffe6b5"/>
+  <path d="M19 48c3-11 12-17 23-15 9 0 15 6 19 15-12 6-27 8-42 0Z" fill="#f8e5c5" stroke="#638c98" stroke-width="2"/>
+  <path d="M24 42c5-7 18-11 28-1-9 4-20 4-28 1Z" fill="#c4e6d5"/>
+  <path d="M39 39c1-10 1-15-4-23" stroke="#8b8b69" stroke-width="4" stroke-linecap="round"/>
+  <path d="M36 19c-7-8-13-5-15-1 6-1 9 2 15 1Zm0 0c1-10 9-11 13-7-7 1-8 5-13 7Zm0 0c7-4 13-1 14 5-6-4-9-3-14-5Z" fill="#a6d8c5" stroke="#638c98" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M15 56c7 5 13-5 20 0s13-5 20 0 10 0 12-1M24 64c6 4 11-4 17 0s10-3 15-1" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+</svg>

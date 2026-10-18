@@ -246,7 +246,7 @@
     document.title = `${PATHS[PAGE][1]} · 不吱岛生日庆典`;
     const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: '抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
     document.querySelector('#app').innerHTML = `<div class="world" data-motion="on"><div class="ocean" aria-hidden="true"></div><div class="ambient" aria-hidden="true"></div><i class="bubble b1" aria-hidden="true"></i><i class="bubble b2" aria-hidden="true"></i><i class="bubble b3" aria-hidden="true"></i>
-      <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark">啾</span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection'].map((key) => navItem(key)).join('')}</nav><div class="header-actions"><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><a class="passport-link" href="passport.html" aria-label="生日通行证">${icon('ticket')}<span>通行证</span></a><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
+      <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark"><img src="assets/island-mark.svg" alt="" aria-hidden="true" width="44" height="44"></span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection'].map((key) => navItem(key)).join('')}</nav><div class="header-actions"><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><a class="passport-link" href="passport.html" aria-label="生日通行证">${icon('ticket')}<span>通行证</span></a><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
       <div class="container"><div class="demo-line"><span><i class="status-dot"></i>${LIVE ? '庆典正式活动 · 账户数据安全保存' : '本地演示 · 数据仅保存在此浏览器'}</span><span>${EVENT.name} / 2026.10.17 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div><div class="footer-links"><a href="mailbox.html">岛主信箱</a><a href="passport.html">我的通行证</a><a href="checkin.html">每日签到</a></div>${LIVE ? '生日回忆 · 与你相遇' : '插画与卡面为示意 · 庆典账户数据由服务器保存'}</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
     if(!LIVE)showStorageError();
     setupMotion();
@@ -690,7 +690,7 @@
       const formTitle = main.querySelector('#passport-form h2');
       if (formTitle) formTitle.textContent = '领取你的生日通行证';
     } else if (PAGE === 'office') {
-      replaceOpening(`<header class="notice-board-head"><div><span class="room-label">庆典筹备公告栏</span><h1>${icon('flag')} 岛民事务所</h1><p>做一点小事，把快乐和金币一起装进口袋。</p></div><div class="board-wallet">${icon('coin')}<span>我的庆典金币<strong data-balance>${state.balance}</strong></span></div></header>`);
+      replaceOpening(`<header class="notice-board-head"><div class="office-sign"><span class="room-label">庆典筹备公告栏 · ISLAND OFFICE</span><h1>岛民事务所</h1><p>做一点小事，把快乐和金币一起装进口袋。</p></div><div class="board-wallet">${icon('coin')}<span>我的庆典金币<strong data-balance>${state.balance}</strong></span></div></header>`);
       const notice = main.querySelector('.office-layout > div > .info-note');
       if (notice) {
         const details = document.createElement('details'); details.className = 'office-verification';
@@ -709,7 +709,7 @@
       replaceOpening(`<header class="album-cover"><div><span class="room-label">一册属于你的生日回忆</span><h1>${icon('cards')} 回忆收藏室</h1><p>把相遇的瞬间，慢慢收藏。</p></div></header>`);
       const summary = main.querySelector('.collection-summary'); if (summary) main.querySelector('.album-cover').append(summary);
     } else if (PAGE === 'islanders') {
-      replaceOpening(`<header class="cast-room-head"><div><span class="room-label">住在不吱岛的人们</span><h1>岛民画廊</h1></div><p>每一位岛民，都有自己的故事。</p><span class="pill pink">${LIVE ? '更多岛民故事陆续开放' : '角色示意 · 正式 OC 待接入'}</span></header>`);
+      replaceOpening(`<header class="cast-room-head"><div class="cast-heading-copy"><span class="room-label">住在不吱岛的人们 · ISLAND PORTRAITS</span><h1><span>岛民</span><span>画廊</span></h1></div><p>每一位岛民，<br>都有自己的故事。</p><span class="pill pink">${LIVE ? '更多岛民故事陆续开放' : '角色示意 · 正式 OC 待接入'}</span></header>`);
       const modeBar = main.querySelector('.oc-mode-bar'); if (modeBar && modeBar.querySelectorAll('button').length === 1) modeBar.hidden = true;
       const story = document.createElement('details'); story.className = 'oc-world-intro island-origin';
       story.innerHTML = '<summary>从雪啾国到不吱岛，读读我们的故事</summary><p>菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p>';
@@ -732,11 +732,25 @@
     }
   }
 
+  function decoratePageHeading() {
+    const title = document.querySelector('main h1');
+    if (!title) return;
+    const host = title.closest('header, .postal-intro, .home-hero');
+    if (!host) return;
+    host.dataset.sceneHeading = PAGE;
+    const pairs = { home:['jellyfish','orbit'], passport:['bottle','orbit'], office:['postcard','orbit'], checkin:['cloud','orbit'], draw:['shell','orbit'], collection:['shell','orbit'], islanders:['jellyfish','shell'], mailbox:['postcard','cloud'], guide:['bottle','cloud'], effects:['orbit','jellyfish'] };
+    const decoration = document.createElement('div'); decoration.className = 'heading-stickers';
+    decoration.setAttribute('aria-hidden', 'true');
+    decoration.innerHTML = (pairs[PAGE] || pairs.home).map(name => `<svg class="island-sticker sticker-${name}" viewBox="0 0 160 160" fill="none" focusable="false"><use href="assets/island-stickers.svg#${name}"></use></svg>`).join('');
+    host.append(decoration);
+  }
+
   function renderPage() {
     const renderers = { home: renderHome, passport: renderPassport, office: renderOffice, checkin: renderCheckin, draw: renderDraw, collection: renderCollection, mailbox: renderMailbox, guide: renderGuide, islanders: renderIslanders, effects: renderEffects };
     const main = document.querySelector('#main');
     main.innerHTML = renderers[PAGE]();
     applyPageLayout();
+    decoratePageHeading();
     const binders = { passport: bindPassport, office: bindOffice, checkin: bindCheckin, draw: bindDraw, collection: bindCollection };
     binders[PAGE]?.();
     if (PAGE === 'passport') installPassportTabs();

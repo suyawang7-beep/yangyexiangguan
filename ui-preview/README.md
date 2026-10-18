@@ -2,6 +2,8 @@
 
 本目录是新版多页面界面的共用来源：GitHub Pages／静态服务打开时为独立演示；正式 Node 服务提供这些页面时接入真实账户与 SQLite 数据。旧界面保留在 `/legacy`，不要用根目录旧 `index.html` 覆盖新版。
 
+`sticker1` 为各页增加不同字体与位置的版头：事务所居中公告牌、画廊右侧手写标题、收藏相册封面、信箱来信与签到日期。正文圆体保留，新增两款标题字体子集合计约 50 KB，随站点分发，来源与 OFL 许可见 `assets/fonts/README.md`。全站标志和 favicon 使用原创海岛，六种原创 SVG 贴纸不复制参考图像素；说明见 `assets/STICKERS.md`。装饰不遮挡操作、不参与朗读，也不新增持续动画循环。局部检查：`node tests/ui-preview-draw.cjs --headers-only`。
+
 打开 `index.html` 可看首页。推荐通过静态服务打开，以便不同页面共享同一浏览器的演示记录：
 
 ```sh
