@@ -17,6 +17,30 @@
   function line(ctx, x1, y1, x2, y2, color = '#648a9a50') {
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=1;ctx.stroke();
   }
+  function installMotion(host, preview) {
+    const world=host.closest('.world');
+    const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+    const enabled=()=>world?.dataset.motion==='on'&&!reduced.matches&&!document.hidden;
+    let arrival;
+    // Animate the displayed paper only. The PNG blob is already complete and stays unchanged.
+    if(enabled()&&preview.animate){
+      arrival=preview.animate([
+        {opacity:0,transform:'translateY(18px) rotate(-2deg)'},
+        {opacity:1,transform:'translateY(0) rotate(-.65deg)'}
+      ],{duration:800,easing:'cubic-bezier(.2,.75,.2,1)',iterations:1});
+      arrival.id='ticket-arrival';
+    }
+    const stopWhenDisabled=()=>{if(!enabled())arrival?.cancel()};
+    document.addEventListener('buzhi:motion',stopWhenDisabled);
+    document.addEventListener('visibilitychange',stopWhenDisabled);
+    reduced.addEventListener('change',stopWhenDisabled);
+    return ()=>{
+      arrival?.cancel();
+      document.removeEventListener('buzhi:motion',stopWhenDisabled);
+      document.removeEventListener('visibilitychange',stopWhenDisabled);
+      reduced.removeEventListener('change',stopWhenDisabled);
+    };
+  }
   function paint(canvas, data, island) {
     canvas.width = WIDTH * SCALE; canvas.height = HEIGHT * SCALE;
     const ctx = canvas.getContext('2d'); if (!ctx) throw Error('Canvas unavailable');
@@ -87,8 +111,8 @@
     ctx.globalCompositeOperation='source-over';
   }
   async function mount(host, supplied) {
-    dispose();let cancelled=false,objectUrl='';
-    dispose=()=>{cancelled=true;if(objectUrl)URL.revokeObjectURL(objectUrl)};
+    dispose();let cancelled=false,objectUrl='',clearMotion=()=>{};
+    dispose=()=>{cancelled=true;clearMotion();if(objectUrl)URL.revokeObjectURL(objectUrl)};
     // Explicit public-data allowlist. Never traverse or serialize account/profile objects.
     const data={nickname:String(supplied.nickname),id:String(supplied.id),avatarLabel:String(supplied.avatarLabel),avatarColor:String(supplied.avatarColor),birthday:String(supplied.birthday),eventName:String(supplied.eventName),period:String(supplied.period),demo:supplied.demo===true};
     const status=host.querySelector('#ticket-render-status'),button=host.querySelector('#save-pass');
@@ -105,6 +129,7 @@
       const preview=host.querySelector('#ticket-image');preview.src=objectUrl;await preview.decode();
       if(cancelled||!host.isConnected)return;
       preview.hidden=false;status.hidden=true;button.disabled=false;host.dataset.ticketReady='true';
+      clearMotion=installMotion(host,preview);
       const dialog=host.querySelector('#ticket-save-dialog');dialog.querySelector('img').src=objectUrl;
       const download=dialog.querySelector('#download-pass');download.href=objectUrl;
       download.download=`不吱岛-生日纪念通行证-${data.id.replace(/[^a-z0-9_-]/gi,'').slice(0,48)||'birthday'}.png`;

@@ -6,6 +6,21 @@ body[data-page="passport"] .world .souvenir-ticket:before,body[data-page="passpo
 .ticket-figure{margin:0;min-width:0}
 #ticket-image{display:block;width:100%;height:auto;filter:drop-shadow(0 18px 16px #345f7126);transform:rotate(-.65deg)}
 #ticket-image[hidden]{display:none}
+/* The finite entrance is handled on the preview image, never the exported PNG.
+   Touch screens intentionally have no sticky hover or cursor-following tilt. */
+@media(hover:hover) and (pointer:fine){
+  .world[data-motion="on"] #ticket-image{transition:transform .32s ease,filter .32s ease}
+  .world[data-motion="on"] .ticket-figure:hover #ticket-image{transform:translateY(-5px) rotate(0deg);filter:drop-shadow(0 24px 20px #345f7133)}
+}
+@media(hover:none) and (pointer:coarse){
+  body[data-page="passport"] .world[data-motion="on"] :is(#save-pass,#download-pass,#copy-id):active{transform:translateY(1px) scale(.985);transition:transform .1s ease}
+}
+.world[data-motion="off"] #ticket-image{transition:none}
+body[data-page="passport"] .world[data-motion="off"] :is(#save-pass,#download-pass,#copy-id){transform:none;transition:none}
+@media(prefers-reduced-motion:reduce){
+  .world #ticket-image{transition:none!important;transform:rotate(-.65deg)!important}
+  body[data-page="passport"] .world :is(#save-pass,#download-pass,#copy-id){transform:none!important;transition:none!important}
+}
 .ticket-figure figcaption{display:flex;justify-content:space-between;gap:14px;padding:8px 25px 0;color:#597c8f;font-size:12px}
 .ticket-figure figcaption span:last-child{font-size:10px;letter-spacing:1px}
 .ticket-readable:not(.ticket-readable-fallback){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
