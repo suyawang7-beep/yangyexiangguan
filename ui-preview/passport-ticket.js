@@ -61,7 +61,7 @@
     text(ctx,'海风已经记住你的名字。',344,195,22,{color:'#6a8790'});
     text(ctx,dateParts?`${dateParts[2].padStart(2,'0')}.${dateParts[3].padStart(2,'0')}`:'生日庆典',1118,159,86,{align:'right',family:'Georgia, serif',width:265});
     text(ctx,data.birthday,1115,195,18,{align:'right',width:260});
-    text(ctx,data.nickname,342,274,50,{width:690});
+    text(ctx,data.nickname,342,274,50,{width:690,family:'"Buzhi Signature", "Buzhi Rounded", sans-serif'});
     text(ctx,data.demo?'演示访客 · 未核验':'访客 · 未核验',344,310,19,{color:'#637c91'});
     line(ctx,342,339,1120,339);
     text(ctx,'本次庆典 / CELEBRATING',344,378,14);
@@ -94,7 +94,7 @@
     const status=host.querySelector('#ticket-render-status'),button=host.querySelector('#save-pass');
     try {
       const [,island]=await Promise.all([
-        Promise.all([document.fonts.load('400 50px "Buzhi Rounded"'),document.fonts.load('400 51px "Buzhi Hand"')]).catch(()=>{}),
+        Promise.all([document.fonts.load('400 50px "Buzhi Rounded"'),document.fonts.load('400 51px "Buzhi Hand"'),document.fonts.load('400 50px "Buzhi Signature"',data.nickname)]).catch(()=>{}),
         image('assets/island-mark.svg')
       ]);
       if(cancelled||!host.isConnected)return;

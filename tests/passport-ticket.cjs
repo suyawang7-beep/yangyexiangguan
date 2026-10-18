@@ -22,11 +22,13 @@ let browser;
   await context.route('**/*',route=>route.request().url().startsWith(base+'/')||route.request().url().startsWith('blob:')?route.continue():route.abort());
   const page = await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const signatureRequests=[];page.on('request',request=>{if(request.url().includes('/fonts/signature/'))signatureRequests.push(request.url())});
   // Observe actual text painted into the exported bitmap, not a mocked exporter.
   await page.addInitScript(()=>{
     window.paintedTicketText=[];
+    window.paintedTicketFonts=[];
     const original=CanvasRenderingContext2D.prototype.fillText;
-    CanvasRenderingContext2D.prototype.fillText=function(text,...args){window.paintedTicketText.push(String(text));return original.call(this,text,...args)};
+    CanvasRenderingContext2D.prototype.fillText=function(text,...args){window.paintedTicketText.push(String(text));window.paintedTicketFonts.push({text:String(text),font:this.font});return original.call(this,text,...args)};
   });
   await page.goto(base+'/ui-preview/passport.html',{waitUntil:'networkidle'});
   assert.equal(await page.getByRole('tab').count(),2,'Keep both new and returning-islander entry tabs');
@@ -42,7 +44,15 @@ let browser;
   assert.deepEqual(await page.locator('#ticket-image').evaluate(img=>[img.naturalWidth,img.naturalHeight]),[2400,1200]);
   assert.match(await page.locator('#ticket-image').getAttribute('alt'),/生日通行证/);
   const words=await page.evaluate(()=>window.paintedTicketText);
-  for(const text of [nickname,id,'生日通行证','2026年10月20日','10月17日 — 10月25日','演示访客 · 未核验','贝壳粉'])assert(words.includes(text),`Bitmap actually includes ${text}`);
+  const fonts=await page.evaluate(()=>window.paintedTicketFonts);
+  assert.match(fonts.find(item=>item.text===nickname).font,/Buzhi Signature/,'Only the personal name changes to the new handwritten font');
+  assert.match(fonts.find(item=>item.text==='海风已经记住你的名字。').font,/Buzhi Rounded/,'Explanatory text keeps its existing readable font');
+  assert.match(fonts.find(item=>item.text==='2026年10月20日').font,/Buzhi Rounded/,'Date does not become handwriting');
+  assert.match(fonts.find(item=>item.text===id).font,/monospace/,'Participant ID remains unambiguous');
+  assert(await page.evaluate(()=>[...document.fonts].some(f=>f.family==='Buzhi Signature'&&f.status==='loaded')),'Real handwriting font bytes load before the saved image is painted');
+  assert(signatureRequests.length>0&&signatureRequests.length<=8,'Load only a few font slices needed by this nickname, not the full character library');
+  const period=await page.locator('.ticket-readable dd').last().textContent();
+  for(const text of [nickname,id,'生日通行证','2026年10月20日',period,'演示访客 · 未核验','贝壳粉'])assert(words.includes(text),`Bitmap actually includes ${text}`);
   assert(!words.some(t=>/恢复密钥|UID|token|recoveryKey/.test(t)),'Image never includes login secrets or platform identifiers');
   assert.equal(await page.locator('.header-actions [data-balance]').textContent(),'50');
   for(const width of [320,390,768,1440]){

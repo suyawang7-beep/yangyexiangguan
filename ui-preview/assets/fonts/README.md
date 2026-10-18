@@ -35,3 +35,11 @@ python tools/build-heading-font.py SOURCE_WENKAI_TTF ui-preview/assets/fonts/buz
 ```
 
 These scripts are build helpers, not runtime requirements. Add new title characters to the tracked list and regenerate when changing headings; unlisted glyphs fall back to the normal UI font. No external font requests are needed.
+
+## Handwritten passport nickname (signature1)
+
+Only the nickname in the souvenir image uses **Buzhi Signature**. Dates, participant IDs, explanatory text and all other pages retain their previous fonts. The existing small Buzhi Hand heading subset is not sufficient for arbitrary nicknames, so this derivative retains the pinned WenKai source's character coverage in Unicode slices. `signature.css` is loaded only by the passport stylesheet, and `document.fonts.load` requests only slices used by the nickname before painting/exporting the PNG. Unsupported characters retain the existing fallback, including emoji where appropriate.
+
+Generated coverage: 46,926 mapped characters in 149 slices, 10,162,236 font bytes in the repository. A visitor does not download the entire set; the focused browser check confirms the sample nickname requests no more than eight slices.
+
+Source, revision, SHA-256 and full `wenkai-OFL.txt` are the same as Buzhi Hand above. Font names are changed to Buzhi Signature; copyright/license metadata and original outlines are retained. Reproduce with `python tools/build-signature-font.py SOURCE_WENKAI_TTF` using FontTools and Brotli 1.1.0. The build verifies the source hash and generates `signature.css` and `signature/*.woff2`; no font compiler or third-party font service is required at runtime.

@@ -1,3 +1,4 @@
+@import url('assets/fonts/signature.css?v=20261018-signature1');
 /* Paper is scoped to the souvenir, not a replacement for the ocean/glass site. */
 body[data-page="passport"] .world .passport-grid.has-pass{grid-template-columns:1fr;gap:22px;max-width:1100px}
 body[data-page="passport"] .world .souvenir-ticket{padding:12px 0 0;background:none;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;overflow:visible}
