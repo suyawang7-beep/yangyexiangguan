@@ -60,7 +60,9 @@ export function createOperations(db,dbPath,audit){
     announcements:db.prepare('SELECT id,title,body,published,created_at,updated_at FROM announcements ORDER BY id').all(),
     activitySettings:db.prepare('SELECT starts_at,ends_at,updated_at FROM activity_settings ORDER BY id').all(),
     visualSettings:db.prepare('SELECT key,enabled,updated_at FROM visual_settings ORDER BY key').all(),
-    assetLayouts:db.prepare('SELECT name,settings,updated_at FROM asset_layouts ORDER BY name').all()
+    assetLayouts:db.prepare('SELECT name,settings,updated_at FROM asset_layouts ORDER BY name').all(),
+    ocProfiles:db.prepare('SELECT id,name,description,sort_order,hidden,updated_at FROM oc_profiles ORDER BY sort_order,id').all(),
+    cardProfiles:db.prepare('SELECT card_id,name,story,oc_id,updated_at FROM card_profiles ORDER BY card_id').all()
    };
    out={format:'buzhi-operations',version:1,exportedAt:new Date().toISOString(),timezone:'Asia/Shanghai',data};
    db.exec('COMMIT');
