@@ -1,0 +1,39 @@
+/* Paper is scoped to the souvenir, not a replacement for the ocean/glass site. */
+body[data-page="passport"] .world .passport-grid.has-pass{grid-template-columns:1fr;gap:22px;max-width:1100px}
+body[data-page="passport"] .world .souvenir-ticket{padding:12px 0 0;background:none;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;overflow:visible}
+body[data-page="passport"] .world .souvenir-ticket:before,body[data-page="passport"] .world .souvenir-ticket:after{display:none}
+.ticket-figure{margin:0;min-width:0}
+#ticket-image{display:block;width:100%;height:auto;filter:drop-shadow(0 18px 16px #345f7126);transform:rotate(-.65deg)}
+#ticket-image[hidden]{display:none}
+.ticket-figure figcaption{display:flex;justify-content:space-between;gap:14px;padding:8px 25px 0;color:#597c8f;font-size:12px}
+.ticket-figure figcaption span:last-child{font-size:10px;letter-spacing:1px}
+.ticket-readable:not(.ticket-readable-fallback){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.ticket-readable-fallback{padding:24px;border:1px solid white;background:#f0f8fb;border-radius:20px}
+body[data-page="passport"] .world .ticket-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:25px;margin:20px 20px 0;padding:21px 24px;border:1px solid #fff;border-radius:21px;background:#edf8ff66;backdrop-filter:blur(12px)}
+body[data-page="passport"] .world .ticket-tools .ticket-id{padding:0;border:0;margin:0;min-width:0}
+body[data-page="passport"] .world .ticket-tools .ticket-id label{font-size:11px;letter-spacing:1px}
+body[data-page="passport"] .world .ticket-tools .copy-row{margin-top:6px}
+body[data-page="passport"] .world .ticket-tools .copy-row input{font-size:16px;min-width:0}
+body[data-page="passport"] .world .ticket-tools .ticket-id p{font-size:10px;line-height:1.6;margin:7px 0 0}
+body[data-page="passport"] .world #save-pass{font-size:14px;white-space:nowrap;min-height:50px}
+body[data-page="passport"] .world .ticket-actions{justify-content:center;gap:24px}
+body[data-page="passport"] .world .has-pass>aside{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:0 20px}
+body[data-page="passport"] .world .has-pass>aside .panel{padding:22px 25px}
+body[data-page="passport"] .world .has-pass>aside h2{font-size:23px}
+body[data-page="passport"] .world .has-pass>aside .info-note{align-self:start;margin:0}
+body[data-page="passport"] .world #ticket-save-dialog{width:min(1050px,calc(100% - 24px));max-width:1050px;padding:26px 25px;border-radius:23px;background:#eaf5f9f5;overflow-x:hidden}
+#ticket-save-dialog h2{font-size:25px;padding-right:28px;margin-bottom:8px}
+#ticket-save-dialog p{font-size:12px;line-height:1.7}
+#ticket-save-dialog img{display:block;width:100%;height:auto;margin:15px 0;touch-action:pan-x pan-y pinch-zoom}
+#ticket-save-dialog .actions{justify-content:center;margin-top:15px}
+@media(max-width:620px){
+  body[data-page="passport"] .world .souvenir-ticket{margin-inline:-7px;padding-top:10px}
+  .ticket-figure figcaption{padding:10px 14px 0;font-size:10px;display:block;text-align:center}
+  .ticket-figure figcaption span:last-child{display:none}
+  body[data-page="passport"] .world .ticket-tools{grid-template-columns:1fr;margin:16px 8px 0;padding:18px;gap:15px}
+  body[data-page="passport"] .world #save-pass{width:100%;font-size:13px}
+  body[data-page="passport"] .world .ticket-actions{gap:8px}
+  body[data-page="passport"] .world .has-pass>aside{grid-template-columns:1fr;margin:0;gap:12px}
+  body[data-page="passport"] .world #ticket-save-dialog{padding:23px 13px}
+  #ticket-save-dialog h2{font-size:21px}
+}
