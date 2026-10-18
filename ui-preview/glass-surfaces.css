@@ -1,6 +1,6 @@
 /* Shared visual polish. Reward-card artwork and .memory-card styles are excluded. */
 .world {
-  --glass-fill:linear-gradient(135deg,#ffffff70,#edfaff32 62%,#ede7fb38);
+  --glass-fill:linear-gradient(135deg,rgba(235,248,255,.25),rgba(225,244,255,.25) 62%,rgba(246,232,255,.25));
   --glass-line:#ffffffc9;
   --glass-shadow:inset 0 1px 0 #ffffffe6,inset 0 -1px 0 #ffffff45,0 16px 42px #426c8b14;
   --glass-blur:16px;
@@ -56,3 +56,6 @@ body .world .copy-row button{background:#f5fbffd9}
   body .world :is(.glass,.hero-copy,.birthday-seal,.day,.oc-slide,.info-note,.privacy-note,.detail-dialog,.map-status){background:#edf9ffed}
   body .world .oc-slide .oc-caption{background:#f5fbfff2}
 }
+
+/* Softer translucent surfaces throughout the site; keep text and artwork opaque. */
+body .world :is(.ticket,.pass-preview,.section-heading,.news-strip,.destination,.island-story,.sidebar-card,.task-card,.collection-summary,.filter-bar,.mailbox-side,.letter,.draw-info,.checkin-summary,.site-footer,.floating-note,.birthday-seal){background:var(--glass-fill);border-color:var(--glass-line);box-shadow:var(--glass-shadow)}

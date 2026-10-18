@@ -1,4 +1,5 @@
 import {spawn} from 'node:child_process';
+import {DatabaseSync} from 'node:sqlite';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -22,7 +23,10 @@ const badAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:B
 const imageUpload=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp},admin);assert.equal(imageUpload.status,200);
 const servedAsset=await fetch(root+'/assets/cards/SSR-1.webp');assert.equal(servedAsset.status,200);assert.equal(servedAsset.headers.get('content-type'),'image/webp');
 assert.equal((await servedAsset.arrayBuffer()).byteLength,24);
+const versionBefore=(await fetch(root+'/api/assets-manifest').then(x=>x.json())).versions['cards/SSR-1.webp'];
 const overwrite=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp},admin);assert.equal(overwrite.status,200);
+const versionAfter=(await fetch(root+'/api/assets-manifest').then(x=>x.json())).versions['cards/SSR-1.webp'];assert(versionAfter>=versionBefore);
+const cacheResponse=await fetch(root+'/assets/cards/SSR-1.webp');assert.match(cacheResponse.headers.get('cache-control')||'',/no-store/);
 const versions=await api('admin/assets/versions?name='+encodeURIComponent('cards/SSR-1.webp'),undefined,admin);
 assert.equal(versions.status,200);assert(versions.data.length>=1);
 const restore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:versions.data[0].version},admin);
@@ -36,6 +40,9 @@ const layoutPublic=await fetch(root+'/api/assets-manifest').then(r=>r.json());as
 const layoutReject=await api('admin/assets/layout',{name:'cards/SSR-1.webp',settings:{...layoutInput,opacity:110}},admin);assert.equal(layoutReject.status,400);
 const layoutUnauthorized=await api('admin/assets/layout',{name:'cards/SSR-1.webp',settings:layoutInput});assert.equal(layoutUnauthorized.status,403);
 const assetAfter=await api('admin/assets',undefined,admin);assert(assetAfter.data.some(x=>x.name==='cards/SSR-1.webp'&&x.uploaded));
+const initialCleanup=await api('admin/test-cleanup',undefined,admin);assert.equal(initialCleanup.status,200);assert.equal(initialCleanup.data.count,0);
+const deniedCleanup=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:[]});assert.equal(deniedCleanup.status,403);
+const wrongCleanup=await api('admin/test-cleanup',{confirm:'wrong',ids:[]},admin);assert.equal(wrongCleanup.status,409);
 let c=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(c.status,200);
 let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);
 let bad=await api('redeem',{taskId:'letter',code:'wrong'},token);assert.equal(bad.status,400);
@@ -112,6 +119,10 @@ await page.goto(root+'/legacy#/office');
 assert.match(await page.locator('.bz-account-chip').textContent(),/35/);
 const publicPage=await browser.newPage();
 // Public routes use the shared ui-preview layouts while all rewards remain server-backed.
+await publicPage.goto(root+'/');
+await publicPage.locator('.desktop-nav').waitFor();
+await publicPage.waitForFunction(()=>document.querySelector('.world')?.dataset.effectsReady==='true');
+assert.equal(await publicPage.locator('a[href="effects.html"]').count(),0);
 await publicPage.goto(root+'/passport.html');
 await publicPage.locator('#passport-form').waitFor();
 await publicPage.locator('#nickname').fill('新版页面测试');
@@ -133,5 +144,19 @@ assert.equal(await publicPage.locator('.office-layout .task-card').count(),6);
 await publicPage.goto(root+'/checkin.html');
 await publicPage.locator('#checkin-button').click();
 await publicPage.waitForFunction(()=>document.querySelector('#checkin-button')?.disabled);
+// Exercise actual deletion only on an isolated disposable test database.
+const disposable=await api('register',{nickname:'自动化测试待清理'});assert.equal(disposable.status,200);
+const protectedAccount=await api('register',{nickname:'自动化测试保留'});assert.equal(protectedAccount.status,200);
+await api('checkin',{},protectedAccount.data.token);
+const isolated=new DatabaseSync(join(dir,'test.sqlite'));
+isolated.prepare('UPDATE users SET created_at=? WHERE id IN (?,?)').run('2026-01-01T00:00:00.000Z',disposable.data.id,protectedAccount.data.id);
+isolated.close();
+const dryRun=await api('admin/test-cleanup',undefined,admin);
+assert(dryRun.data.ids.includes(disposable.data.id));
+assert(!dryRun.data.ids.includes(protectedAccount.data.id));
+const cleared=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:dryRun.data.ids},admin);assert.equal(cleared.status,200);
+assert(cleared.data.deleted>=1);
+const deletedSession=await api('me',undefined,disposable.data.token);assert.notEqual(deletedSession.status,200);
+const preservedSession=await api('me',undefined,protectedAccount.data.token);assert.equal(preservedSession.status,200);
 console.log('PASS remote account and admin: register, code redemption, check-in, recovery, overview, protected admin UI, published/draft notices, home/mailbox publish-update-delete sync');
 }finally{await browser?.close();processServer.kill('SIGTERM');rmSync(dir,{recursive:true,force:true})}

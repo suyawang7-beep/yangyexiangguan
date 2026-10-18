@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {activityPhase,validateActivity} from './activity.mjs';
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync,copyFileSync,readdirSync,statSync} from 'node:fs';
@@ -25,6 +26,7 @@ const schema=[
 'CREATE TABLE IF NOT EXISTS announcements(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,body TEXT NOT NULL,published INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)',
 'CREATE TABLE IF NOT EXISTS admin_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,action TEXT NOT NULL,details TEXT NOT NULL,created_at TEXT NOT NULL)',
 'CREATE TABLE IF NOT EXISTS visual_settings(key TEXT PRIMARY KEY,enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),updated_at TEXT NOT NULL)',
+'CREATE TABLE IF NOT EXISTS activity_settings(id INTEGER PRIMARY KEY CHECK(id=1),starts_at TEXT,ends_at TEXT,updated_at TEXT NOT NULL)',
 'CREATE TABLE IF NOT EXISTS asset_layouts(name TEXT PRIMARY KEY,settings TEXT NOT NULL,updated_at TEXT NOT NULL)'
 ];
 for(const statement of schema)db.exec(statement);
@@ -42,11 +44,14 @@ function balance(id){return db.prepare('SELECT COALESCE(SUM(amount),0) AS n FROM
 function earn(id,amount,reason){db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(id,amount,reason,now())}
 function session(id){const token=rand(36);db.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').run(sha(token),id,Date.now()+43200000);return token}
 function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,status:'visitor',coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id)}}
-function register(b){const nickname=String(b.nickname||'').trim();if(!nickname||[...nickname].length>20)throw error(400,'昵称须为 1-20 字');return tx(()=>{const id='BZI-'+rand(12),recoveryKey=rand(32);db.prepare('INSERT INTO users VALUES(?,?,?,?)').run(id,nickname,sha(recoveryKey),now());db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(id,'report',now());earn(id,50,'首次登岛通行证奖励');return {id,recoveryKey,token:session(id),profile:state(id)}})}
+function getActivity(){const row=db.prepare('SELECT starts_at,ends_at FROM activity_settings WHERE id=1').get();const settings={startsAt:row?.starts_at??null,endsAt:row?.ends_at??null};const at=Date.now();return {...settings,timezone:'Asia/Shanghai',phase:activityPhase(settings,at),serverTime:new Date(at).toISOString()}}
+function requireActiveActivity(){const phase=getActivity().phase;if(phase!=='active')throw error(403,phase==='upcoming'?'活动尚未开始，暂不能登记、兑奖、签到或抽卡':'活动已结束，已有账户和收藏仍可查看')}
+function saveActivity(payload){let settings;try{settings=validateActivity(payload)}catch(e){throw error(400,e.message)}return tx(()=>{db.prepare('INSERT INTO activity_settings(id,starts_at,ends_at,updated_at) VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET starts_at=excluded.starts_at,ends_at=excluded.ends_at,updated_at=excluded.updated_at').run(settings.startsAt,settings.endsAt,now());auditAdmin('activity.update',settings);return getActivity()})}
+function register(b){requireActiveActivity();const nickname=String(b.nickname||'').trim();if(!nickname||[...nickname].length>20)throw error(400,'昵称须为 1-20 字');return tx(()=>{const id='BZI-'+rand(12),recoveryKey=rand(32);db.prepare('INSERT INTO users VALUES(?,?,?,?)').run(id,nickname,sha(recoveryKey),now());db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(id,'report',now());earn(id,50,'首次登岛通行证奖励');return {id,recoveryKey,token:session(id),profile:state(id)}})}
 function login(b){const id=String(b.id||''),key=String(b.recoveryKey||'');const u=db.prepare('SELECT secret_hash FROM users WHERE id=?').get(id);if(!u||!eq(sha(key),u.secret_hash))throw error(401,'身份凭证错误');return {token:session(id),profile:state(id)}}
-function redeem(id,b){const task=String(b.taskId||''),code=String(b.code||'').trim();if(!TASKS.has(task))throw error(400,'任务不存在');return tx(()=>{const row=db.prepare('SELECT task_id,redeemed_by FROM codes WHERE hash=?').get(sha(code));if(!row||row.task_id!==task||row.redeemed_by)throw error(400,'完成代码无效或已兑换');if(db.prepare('SELECT 1 FROM tasks WHERE user_id=? AND task_id=?').get(id,task))throw error(409,'该任务已完成');db.prepare('UPDATE codes SET redeemed_by=?,redeemed_at=? WHERE hash=?').run(id,now(),sha(code));db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(id,task,now());earn(id,25,'任务 '+task);const n=db.prepare('SELECT COUNT(*) AS n FROM tasks WHERE user_id=?').get(id).n;for(const threshold of [3,6,9])if(n>=threshold&&!db.prepare('SELECT 1 FROM bonuses WHERE user_id=? AND threshold=?').get(id,threshold)){db.prepare('INSERT INTO bonuses VALUES(?,?)').run(id,threshold);earn(id,25,'阶段奖励 '+threshold)}return state(id)})}
-function checkin(id){return tx(()=>{const today=day(),legacyUTC=now().slice(0,10);if(db.prepare('SELECT 1 FROM checkins WHERE user_id=? AND day IN (?,?)').get(id,today,legacyUTC))throw error(409,'今日已签到');db.prepare('INSERT INTO checkins VALUES(?,?)').run(id,today);earn(id,10,'签到 '+today);return state(id)})}
-function draw(id){return tx(()=>{if(balance(id)<50)throw error(409,'金币不足');const first=db.prepare('SELECT COUNT(*) AS n FROM draws WHERE user_id=?').get(id).n===0;const pool=first?CARDS.filter(c=>c.rarity==='SSR'||c.rarity==='SR'):CARDS;const idx=randomBytes(4).readUInt32BE(0)%pool.length,card=pool[idx];earn(id,-50,'抽卡 '+card.id);db.prepare('INSERT INTO draws(user_id,card_id,rarity,created_at) VALUES(?,?,?,?)').run(id,card.id,card.rarity,now());return {card,profile:state(id)}})}
+function redeem(id,b){requireActiveActivity();const task=String(b.taskId||''),code=String(b.code||'').trim();if(!TASKS.has(task))throw error(400,'任务不存在');return tx(()=>{const row=db.prepare('SELECT task_id,redeemed_by FROM codes WHERE hash=?').get(sha(code));if(!row||row.task_id!==task||row.redeemed_by)throw error(400,'完成代码无效或已兑换');if(db.prepare('SELECT 1 FROM tasks WHERE user_id=? AND task_id=?').get(id,task))throw error(409,'该任务已完成');db.prepare('UPDATE codes SET redeemed_by=?,redeemed_at=? WHERE hash=?').run(id,now(),sha(code));db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(id,task,now());earn(id,25,'任务 '+task);const n=db.prepare('SELECT COUNT(*) AS n FROM tasks WHERE user_id=?').get(id).n;for(const threshold of [3,6,9])if(n>=threshold&&!db.prepare('SELECT 1 FROM bonuses WHERE user_id=? AND threshold=?').get(id,threshold)){db.prepare('INSERT INTO bonuses VALUES(?,?)').run(id,threshold);earn(id,25,'阶段奖励 '+threshold)}return state(id)})}
+function checkin(id){requireActiveActivity();return tx(()=>{const today=day(),legacyUTC=now().slice(0,10);if(db.prepare('SELECT 1 FROM checkins WHERE user_id=? AND day IN (?,?)').get(id,today,legacyUTC))throw error(409,'今日已签到');db.prepare('INSERT INTO checkins VALUES(?,?)').run(id,today);earn(id,10,'签到 '+today);return state(id)})}
+function draw(id){requireActiveActivity();return tx(()=>{if(balance(id)<50)throw error(409,'金币不足');const first=db.prepare('SELECT COUNT(*) AS n FROM draws WHERE user_id=?').get(id).n===0;const pool=first?CARDS.filter(c=>c.rarity==='SSR'||c.rarity==='SR'):CARDS;const idx=randomBytes(4).readUInt32BE(0)%pool.length,card=pool[idx];earn(id,-50,'抽卡 '+card.id);db.prepare('INSERT INTO draws(user_id,card_id,rarity,created_at) VALUES(?,?,?,?)').run(id,card.id,card.rarity,now());return {card,profile:state(id)}})}
 function codes(b){const task=String(b.taskId||''),count=Number(b.count||1);if(!TASKS.has(task)||!Number.isInteger(count)||count<1||count>100)throw error(400,'任务或数量无效');return tx(()=>{const out=[];for(let i=0;i<count;i++){const c='ISL-'+rand(18);db.prepare('INSERT INTO codes(hash,task_id) VALUES(?,?)').run(sha(c),task);out.push(c)}return {taskId:task,codes:out}})}
 const VISUAL_KEYS={collectionGrid:false,collectionFan:true,collectionRing:false,ocSlider:true,ocStagger:false,ocDepth:false,effectWater:true,effectStars:true,effectIsland:true,effectProgress:true,effectGuide:true,effectDraw:true,effectCheckin:true};
 function getVisualSettings(){const rows=db.prepare('SELECT key,enabled FROM visual_settings').all();const result={...VISUAL_KEYS};for(const row of rows)if(Object.hasOwn(result,row.key))result[row.key]=!!row.enabled;return result}
@@ -57,6 +62,37 @@ function codeStats(){return db.prepare('SELECT task_id,COUNT(*) total,SUM(CASE W
 function userDetail(id){if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id))throw error(400,'参与者编号无效');const user=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);if(!user)throw error(404,'岛民不存在');return {user,ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 200').all(id),tasks:db.prepare('SELECT task_id,redeemed_at FROM tasks WHERE user_id=? ORDER BY redeemed_at DESC').all(id),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC LIMIT 90').all(id),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id)}}
 function overview(){return {users:db.prepare('SELECT COUNT(*) AS n FROM users').get().n,redeemed:db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE task_id<>'report'").get().n,draws:db.prepare('SELECT COUNT(*) AS n FROM draws').get().n,codesUnused:db.prepare('SELECT COUNT(*) AS n FROM codes WHERE redeemed_by IS NULL').get().n,announcementsPublished:db.prepare('SELECT COUNT(*) AS n FROM announcements WHERE published=1').get().n}}
 function listUsers(){return db.prepare('SELECT u.id,u.nickname,u.created_at,COALESCE((SELECT SUM(amount) FROM ledger l WHERE l.user_id=u.id),0) coins,(SELECT COUNT(*) FROM tasks t WHERE t.user_id=u.id) tasks,(SELECT COUNT(*) FROM draws d WHERE d.user_id=u.id) draws FROM users u ORDER BY u.created_at DESC LIMIT 100').all()}
+// Existing accounts have no verified-islander field: never delete all 'visitor' profiles.
+function cleanupCandidates(){
+ const cutoff=new Date(Date.now()-24*3600000).toISOString();
+ return db.prepare(`SELECT u.id,u.nickname,u.created_at FROM users u
+ WHERE u.created_at < ?
+ AND (u.nickname LIKE '远程测试%' OR u.nickname LIKE '新版页面测试%' OR u.nickname LIKE '自动化测试%' OR u.nickname LIKE '测试岛民%')
+ AND NOT EXISTS(SELECT 1 FROM checkins c WHERE c.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM draws d WHERE d.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM bonuses b WHERE b.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM codes c WHERE c.redeemed_by=u.id)
+ AND NOT EXISTS(SELECT 1 FROM tasks t WHERE t.user_id=u.id AND t.task_id<>'report')
+ AND NOT EXISTS(SELECT 1 FROM ledger l WHERE l.user_id=u.id AND (l.amount<>50 OR l.reason<>'首次登岛通行证奖励'))
+ ORDER BY u.created_at LIMIT 500`).all(cutoff)
+}
+function cleanupPreview(){
+ const rows=cleanupCandidates();
+ return {count:rows.length,ids:rows.map(r=>r.id),sample:rows.slice(0,20).map(r=>({nickname:r.nickname,created_at:r.created_at})),scope:'仅清理24小时前创建、符合测试昵称、没有任何正式参与行为的账户'};
+}
+function cleanupTestAccounts(b){
+ const preview=cleanupPreview();
+ if(b.confirm!=='确认清理测试账户'||!Array.isArray(b.ids)||JSON.stringify(b.ids)!==JSON.stringify(preview.ids))throw error(409,'候选账户发生变化，请重新预览确认');
+ if(!preview.count)return {deleted:0};
+ const folder=resolve(dirname(DB_PATH),'backups');mkdirSync(folder,{recursive:true});
+ const file=resolve(folder,'before-test-cleanup-'+Date.now()+'-'+randomBytes(5).toString('hex')+'.sqlite');
+ db.exec("VACUUM INTO '"+file.replaceAll("'","''")+"'");
+ return tx(()=>{const delSessions=db.prepare('DELETE FROM sessions WHERE user_id=?'),delLedger=db.prepare('DELETE FROM ledger WHERE user_id=?'),delTasks=db.prepare('DELETE FROM tasks WHERE user_id=?'),delUsers=db.prepare('DELETE FROM users WHERE id=?');
+ for(const id of preview.ids){delSessions.run(id);delLedger.run(id);delTasks.run(id);delUsers.run(id)}
+ auditAdmin('users.test_cleanup',{deleted:preview.count,backup:file.split('/').pop()});
+ return {deleted:preview.count,backupCreated:true}
+ });
+}
 function announcements(adminView=false){return db.prepare('SELECT id,title,body,published,created_at,updated_at FROM announcements '+(adminView?'':'WHERE published=1 ')+'ORDER BY id DESC LIMIT 100').all()}
 function saveAnnouncement(b){const title=String(b.title||'').trim(),body=String(b.body||'').trim(),published=b.published===true?1:0,id=b.id==null?null:Number(b.id);if(!title||title.length>80||!body||body.length>1500)throw error(400,'公告标题须为 1–80 字，正文须为 1–1500 字');if(id!==null&&(!Number.isSafeInteger(id)||id<1))throw error(400,'公告编号无效');return tx(()=>{const t=now();if(id===null)db.prepare('INSERT INTO announcements(title,body,published,created_at,updated_at) VALUES(?,?,?,?,?)').run(title,body,published,t,t);else{const result=db.prepare('UPDATE announcements SET title=?,body=?,published=?,updated_at=? WHERE id=?').run(title,body,published,t,id);if(!result.changes)throw error(404,'公告不存在')}return announcements(true)})}
 function deleteAnnouncement(b){const id=Number(b.id);if(!Number.isSafeInteger(id)||id<1)throw error(400,'公告编号无效');const result=db.prepare('DELETE FROM announcements WHERE id=?').run(id);if(!result.changes)throw error(404,'公告不存在');return {deleted:id}}
@@ -89,7 +125,7 @@ const file=resolve(previewRoot,suffix);
 if(!file.startsWith(previewRoot+'/')||!existsSync(file))throw error(404,'预览素材不存在');
 const ext=extname(file);res.writeHead(200,{'content-type':{'.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2'}[ext]||'application/octet-stream','cache-control':'public,max-age=120','x-content-type-options':'nosniff'});return res.end(readFileSync(file));
 }
-if(req.method==='GET'&&/^\/assets\/(characters|cards|decor)\/[a-zA-Z0-9-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);if(!ASSET_NAMES.has(name))throw error(404,'素材不存在');const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path==='/api/admin/assets/upload'&&req.method==='POST')admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:8192):{};let data;
+if(req.method==='GET'&&/^\/assets\/(characters|cards|decor)\/[a-zA-Z0-9-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);if(!ASSET_NAMES.has(name))throw error(404,'素材不存在');const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');res.writeHead(200,{'content-type':'image/webp','cache-control':'no-store, max-age=0','x-content-type-options':'nosniff'});return res.end(readFileSync(file))}if(path==='/admin'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path==='/api/admin/assets/upload'&&req.method==='POST')admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:8192):{};let data;
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
@@ -97,13 +133,18 @@ else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
 else if(path==='/api/announcements'&&req.method==='GET')data=announcements(false);
-else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries([...ASSET_NAMES].map(name=>[name,existsSync(assetPath(name))])),layouts:getAssetLayouts()};
+else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries([...ASSET_NAMES].map(name=>[name,existsSync(assetPath(name))])),versions:Object.fromEntries([...ASSET_NAMES].map(name=>[name,existsSync(assetPath(name))?Math.trunc(statSync(assetPath(name)).mtimeMs):0])),layouts:getAssetLayouts()};
+else if(path==='/api/activity'&&req.method==='GET')data=getActivity();
+else if(path==='/api/admin/activity'&&req.method==='GET'){admin(req);data=getActivity()}
+else if(path==='/api/admin/activity'&&req.method==='POST'){admin(req);data=saveActivity(b)}
 else if(path==='/api/catalog'&&req.method==='GET')data={cards:cardCatalog,cost:50,firstDrawRarities:['SSR','SR'],timezone:'Asia/Shanghai',nicknameMaxLength:20};
 else if(path==='/api/visual-settings'&&req.method==='GET')data=getVisualSettings();
 else if(path==='/api/admin/announcements'&&req.method==='GET'){admin(req);data=announcements(true)}
 else if(path==='/api/admin/announcements'&&req.method==='POST'){admin(req);data=saveAnnouncement(b);auditAdmin('announcement.save',{id:b.id??null,published:b.published===true})}
 else if(path==='/api/admin/announcements/delete'&&req.method==='POST'){admin(req);data=deleteAnnouncement(b);auditAdmin('announcement.delete',{id:data.deleted})}
 else if(path==='/api/admin/users'&&req.method==='GET'){admin(req);data=listUsers()}
+else if(path==='/api/admin/test-cleanup'&&req.method==='GET'){admin(req);data=cleanupPreview()}
+else if(path==='/api/admin/test-cleanup'&&req.method==='POST'){admin(req);data=cleanupTestAccounts(b)}
 else if(path==='/api/admin/codes'&&req.method==='POST'){admin(req);data=codes(b);auditAdmin('codes.generate',{taskId:data.taskId,count:data.codes.length})}
 else if(path==='/api/admin/overview'&&req.method==='GET'){admin(req);data=overview()}
 else if(path==='/api/admin/assets'&&req.method==='GET'){admin(req);data=assetStatus()}
@@ -118,3 +159,4 @@ else if(path==='/api/admin/code-stats'&&req.method==='GET'){admin(req);data=code
 else if(path==='/api/admin/audit'&&req.method==='GET'){admin(req);data=adminAudit()}
 else throw error(404,'未找到');
 send(res,200,data)}catch(e){send(res,e.status||500,{error:e.status?e.message:'内部错误'})}}).listen(PORT,HOST,()=>console.log('Buzhi server listening on '+HOST+':'+PORT));
+

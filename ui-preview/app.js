@@ -162,6 +162,8 @@
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
   let managedAssets={};
+  let managedVersions={};
+  const assetUrl=name=>'/assets/'+name+'?v='+(managedVersions[name]||assetVersion);
   let managedLayouts={};
   function applyAssetLayout(el,name,isBackground=false){if(!el)return;const v=managedLayouts[name];if(!v)return;if(isBackground){el.style.backgroundPosition=v.x+'% '+v.y+'%';el.style.backgroundSize=v.fit==='cover'?'cover':v.scale+'% auto';return}el.style.opacity=String(v.opacity/100);el.style.zIndex=String(v.layer);el.style.position=el.style.position||'relative';el.style.objectFit=v.fit;el.style.objectPosition=v.x+'% '+v.y+'%';el.style.transform='scale('+(v.scale/100)+')';el.style.transformOrigin=v.x+'% '+v.y+'%'}
   function refreshManagedArtwork(){
@@ -177,12 +179,12 @@
     const selected=backgrounds[PAGE];
     if(selected&&managedAssets[selected[0]]){
       const host=document.querySelector(selected[1]);
-      if(host){host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255,.70),rgba(242,223,252,.55)),url("/assets/'+selected[0]+'?v='+assetVersion+'")';host.style.backgroundSize='cover';host.style.backgroundPosition='center';applyAssetLayout(host,selected[0],true)}
+      if(host){host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255, ' + (PAGE === 'home' ? '.25' : '.70') + ' ),rgba(242,223,252, ' + (PAGE === 'home' ? '.25' : '.55') + ' )),url("/assets/'+selected[0]+'?v='+(managedVersions[selected[0]]||assetVersion)+'")';host.style.backgroundSize='cover';host.style.backgroundPosition='center';applyAssetLayout(host,selected[0],true)}
     }
     const hero=document.querySelector('.hero-art img, .mini-art');
-    if(hero&&managedAssets['decor/home-poster.webp']){hero.src='/assets/decor/home-poster.webp?v='+assetVersion;applyAssetLayout(hero,'decor/home-poster.webp')}
+    if(hero&&managedAssets['decor/home-poster.webp']){hero.src=assetUrl('decor/home-poster.webp');applyAssetLayout(hero,'decor/home-poster.webp')}
     const map=document.querySelector('#map-camera image');
-    if(map&&managedAssets['decor/island-map.webp']){map.setAttribute('href','/assets/decor/island-map.webp?v='+assetVersion);applyAssetLayout(map,'decor/island-map.webp')}
+    if(map&&managedAssets['decor/island-map.webp']){map.setAttribute('href',assetUrl('decor/island-map.webp'));applyAssetLayout(map,'decor/island-map.webp')}
     document.querySelectorAll('.memory-card').forEach(card=>{
       const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\d{2}/)?.[0];
       const match=liveCatalog.find(item=>item.previewId===label);
@@ -190,18 +192,18 @@
       const slot=card.querySelector('.card-picture');if(!slot)return;
       let img=slot.querySelector('img[data-official-card]');
       if(!img){img=document.createElement('img');img.dataset.officialCard='true';img.alt='官方回忆卡面';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit';slot.replaceChildren(img)}
-      const target='/assets/cards/'+match.id+'.webp?v='+assetVersion;
+      const target=assetUrl('cards/'+match.id+'.webp');
       if(!img.src.endsWith(target))img.src=target;applyAssetLayout(img,'cards/'+match.id+'.webp');
     });
     document.querySelectorAll('#oc-track .oc-slide').forEach((slide,i)=>{
       const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':null;
-      if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img){img.src='/assets/'+file+'?v='+assetVersion;applyAssetLayout(img,file)}}
+      if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img){img.src=assetUrl(file);applyAssetLayout(img,file)}}
     });
   }
   let assetVersion=Date.now();
   async function loadManagedArtwork(){
     if(!LIVE)return;
-    try{const data=await liveApi('assets-manifest');managedAssets=data.assets||{};managedLayouts=data.layouts||{};assetVersion=Date.now();refreshManagedArtwork()}catch(e){console.warn('素材清单暂不可用',e)}
+    try{const data=await liveApi('assets-manifest');managedAssets=data.assets||{};managedVersions=data.versions||{};managedLayouts=data.layouts||{};assetVersion=Date.now();refreshManagedArtwork()}catch(e){console.warn('素材清单暂不可用',e)}
   }
 
   async function liveApi(path,body){
@@ -231,21 +233,21 @@
   }
   async function liveInit(){
     TASKS=LIVE_TASKS;
+    await loadManagedArtwork();
     try{const catalog=await liveApi('catalog');liveCatalog=catalog.cards}catch(e){toast(e.message)}
     if(liveToken){try{takeProfile(await liveApi('me'))}catch{liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}}
     else renderPage();
-    await loadManagedArtwork();
   }
   function activeAsset(name,fallback){
     if(!LIVE)return fallback;
-    return '/assets/'+name;
+    return managedAssets[name]?assetUrl(name):fallback;
   }
   function renderShell() {
     document.title = `${PATHS[PAGE][1]} · 不吱岛生日庆典`;
     const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: '抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
     document.querySelector('#app').innerHTML = `<div class="world" data-motion="on"><div class="ocean" aria-hidden="true"></div><div class="ambient" aria-hidden="true"></div><i class="bubble b1" aria-hidden="true"></i><i class="bubble b2" aria-hidden="true"></i><i class="bubble b3" aria-hidden="true"></i>
       <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark">啾</span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection'].map((key) => navItem(key)).join('')}</nav><div class="header-actions"><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><a class="passport-link" href="passport.html" aria-label="生日通行证">${icon('ticket')}<span>通行证</span></a><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
-      <div class="container"><div class="demo-line"><span><i class="status-dot"></i>本地演示 · 数据仅保存在此浏览器</span><span>${EVENT.name} / 2026.10.17 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div><div class="footer-links"><a href="mailbox.html">岛主信箱</a><a href="passport.html">我的通行证</a><a href="checkin.html">每日签到</a></div>插画与卡面为示意 · 庆典账户数据由服务器保存</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
+      <div class="container"><div class="demo-line"><span><i class="status-dot"></i>${LIVE ? '庆典正式活动 · 账户数据安全保存' : '本地演示 · 数据仅保存在此浏览器'}</span><span>${EVENT.name} / 2026.10.17 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div><div class="footer-links"><a href="mailbox.html">岛主信箱</a><a href="passport.html">我的通行证</a><a href="checkin.html">每日签到</a></div>${LIVE ? '生日回忆 · 与你相遇' : '插画与卡面为示意 · 庆典账户数据由服务器保存'}</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
     if(!LIVE)showStorageError();
     setupMotion();
   }
@@ -253,7 +255,7 @@
   function renderHome() {
     let primary = link('passport', '领取生日通行证', 'btn primary');
     if (state.passport) primary = state.history.length ? link('collection', '查看我的回忆', 'btn primary') : link('draw', '去抽第一张卡', 'btn primary');
-    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">A birthday rendezvous · 2026</div><h1>🐭雾岛吱菜Gina<span>🐭の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.17 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}</div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="两位女孩在海洋玻璃光晕里一起庆生的示意插画" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div><span class="art-caption">双人主视觉示意 · 待替换正式立绘</span></div></section>
+    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">A birthday rendezvous · 2026</div><h1>雾岛吱&菜Gina🐟<span>の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.17 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}</div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="菜菜与吱吱的生日庆典主视觉" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div>${LIVE ? "" : `<span class="art-caption">双人主视觉示意 · 待替换正式立绘</span>`}</div></section>
       <aside class="news-strip glass"><strong>✦ 岛上来信</strong><p>海风已经把邀请送达。10月17—25日，来不吱岛收藏一段生日回忆吧。</p><a href="mailbox.html">查看岛主信箱 ${icon('arrow')}</a></aside>`;
   }
 
@@ -291,7 +293,7 @@
     const today = dateKey();
     const checked = state.checkins.includes(today);
     const streak = streakCount();
-    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>每天一次 · 签到 +10 金币</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3><div class="hidden-card-teaser">${icon(streak >= 7 ? 'sparkles' : 'lock')}</div><p class="small muted">${streak >= 7 ? '隐藏纪念已点亮！正式隐藏卡面仍待岛主接入。' : '连续签到7天，点亮隐藏纪念标记。正式隐藏卡面待接入，不混入当前16张卡池。'}</p><p class="small muted">错过一天会重新计算连续天数，已经获得的金币不会消失。</p></aside></div><div class="info-note">签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。</div>`;
+    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>每天一次 · 签到 +10 金币</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3><div class="hidden-card-teaser">${icon(streak >= 7 ? 'sparkles' : 'lock')}</div><p class="small muted">${streak >= 7 ? '隐藏纪念已点亮！七日纪念已解锁，额外卡面尚未开放。' : '连续签到7天，点亮隐藏纪念标记。额外卡面尚未开放，不计入当前16张卡池。'}</p><p class="small muted">错过一天会重新计算连续天数，已经获得的金币不会消失。</p></aside></div><div class="info-note">${LIVE ? '签到日期与金币奖励由服务器记录。' : '签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。'}</div>`;
   }
 
   function drawBack() {
@@ -304,7 +306,7 @@
       <div class="postal-intro"><h1 id="postal-title">把这一刻，<em>寄给你。</em></h1><p>海风送来一封信，里面藏着我们相遇的某个瞬间。</p></div>
       <div class="postal-scene">
         <p class="postal-margin-note" aria-hidden="true">来自不吱岛<br><span>留给未来的你</span><i></i>每一次相遇，都值得被收藏。</p>
-        <section class="draw-stage" id="draw-stage" aria-label="开卡舞台"><div class="draw-result-label" id="draw-result-label" role="status">一封生日回忆，正在等你拆开</div><div id="stage-card">${drawBack()}</div><span class="stage-caption">示意卡面 · 正式角色卡面待接入</span></section>
+        <section class="draw-stage" id="draw-stage" aria-label="开卡舞台"><div class="draw-result-label" id="draw-result-label" role="status">一封生日回忆，正在等你拆开</div><div id="stage-card">${drawBack()}</div><span class="stage-caption">${LIVE ? '生日回忆 · 小岛珍藏' : '示意卡面 · 正式角色卡面待接入'}</span></section>
         <div class="postal-postmark" aria-hidden="true"><span>不吱岛 · 生日来信</span><strong>10.20</strong><span>愿相遇，常留心间</span></div>
       </div>
       <section class="glass draw-info" aria-label="抽取生日回忆">
@@ -316,7 +318,7 @@
         <p class="draw-description" id="draw-pool-description">${first ? '首次抽卡从2张SSR与4张SR中抽取，每张概率为1/6。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，16张卡片各有自己的故事。正常卡池每张概率均为1/16。'}</p>
         <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽：SSR 2张、SR 4张，各1/6；不含UR。之后正常卡池16张，各1/16。</p><ul class="probability-list"><li><span>UR · 1 张</span><strong>6.25%</strong></li><li><span>SSR · 2 张</span><strong>12.5%</strong></li><li><span>SR · 4 张</span><strong>25%</strong></li><li><span>R · 4 张</span><strong>25%</strong></li><li><span>N · 5 张</span><strong>31.25%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
       </section>
-    </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>以下为部分示意卡面</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
+    </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>${LIVE ? '看看有哪些回忆' : '以下为部分示意卡面'}</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
   }
 
   const filters = { ownership: 'all', rarity: 'all', search: '' };
@@ -350,7 +352,7 @@
     }catch(e){console.warn('公告更新失败',e)}
   }
   function renderMailbox() {
-    return heading('06', 'Letters from the island', '岛主信箱', '不吱岛的近况、庆典的小消息，还有那些想认真说给你听的话。') + `<div class="mailbox-layout"><aside class="glass mailbox-side">${icon('mail')}<h2>风替我们寄信</h2><p>来自菜菜与吱吱的庆典来信。<br>目前是公告样例，正式公告由主网站接入。</p></aside><div class="letters"><article class="glass letter"><span class="pill pink">置顶 · 生日邀请</span><h2>把生日，过成一次小岛重逢</h2><time>2026.10.17 / BUZHI ISLAND</time><p>亲爱的岛民：<br>你收到这封信的时候，不吱岛的生日庆典就已经开始啦。</p><p>10月20日是菜菜的生日。吱吱已经把派对的小灯挂好了，海风也把每一张邀请送到了你身边。这一次，想邀请你来做一点小任务、拆一封回忆，然后把我们相遇的瞬间好好收藏。</p><p>活动期间是10月17日至25日，首尾两天都算。无论什么时候登岛，都希望你带走一点快乐。</p><p class="signature">等你赴约的，菜菜 ＆ 吱吱 ♡</p></article><article class="glass letter"><span class="pill">庆典小贴士</span><h2>一张通行证，一份属于你的回忆</h2><time>2026.10.17 / ISLAND GUIDE</time><p>浏览不需要登录。参与前先领取生日通行证，昵称可以重复，但参与者编号不会相同。首次登岛的50金币，恰好够拆开一张生日回忆卡。</p><p>正式岛民任务与实体卡申请需要核验。实体卡将由多张虚拟卡组合兑换，具体规则后续公布，当前预览不开放申请。</p><div class="actions">${link('passport', '领取我的通行证', 'btn')}${link('draw', '前往肥啾邮局', 'btn text')}</div></article></div></div>`;
+    return heading('06', 'Letters from the island', '岛主信箱', '不吱岛的近况、庆典的小消息，还有那些想认真说给你听的话。') + `<div class="mailbox-layout"><aside class="glass mailbox-side">${icon('mail')}<h2>风替我们寄信</h2><p>来自菜菜与吱吱的庆典来信。<br>${LIVE ? '最新公告以岛主发布的来信为准。' : '目前是公告样例，正式公告由主网站接入。'}</p></aside><div class="letters"><article class="glass letter"><span class="pill pink">置顶 · 生日邀请</span><h2>把生日，过成一次小岛重逢</h2><time>2026.10.17 / BUZHI ISLAND</time><p>亲爱的岛民：<br>你收到这封信的时候，不吱岛的生日庆典就已经开始啦。</p><p>10月20日是菜菜的生日。吱吱已经把派对的小灯挂好了，海风也把每一张邀请送到了你身边。这一次，想邀请你来做一点小任务、拆一封回忆，然后把我们相遇的瞬间好好收藏。</p><p>活动期间是10月17日至25日，首尾两天都算。无论什么时候登岛，都希望你带走一点快乐。</p><p class="signature">等你赴约的，菜菜 ＆ 吱吱 ♡</p></article><article class="glass letter"><span class="pill">庆典小贴士</span><h2>一张通行证，一份属于你的回忆</h2><time>2026.10.17 / ISLAND GUIDE</time><p>浏览不需要登录。参与前先领取生日通行证，昵称可以重复，但参与者编号不会相同。首次登岛的50金币，恰好够拆开一张生日回忆卡。</p><p>正式岛民任务与实体卡申请需要核验。实体卡将由多张虚拟卡组合兑换，具体规则后续公布，当前预览不开放申请。</p><div class="actions">${link('passport', '领取我的通行证', 'btn')}${link('draw', '前往肥啾邮局', 'btn text')}</div></article></div></div>`;
   }
 
   function setupMotion() {
@@ -563,8 +565,9 @@
     });
     const host=document.querySelector('#main');
     if(!state.passport&&host){
-      const login=document.createElement('section');login.className='glass panel';login.innerHTML='<h2>已有通行证？恢复账户</h2><form id="live-login"><label>唯一参与者编号<input name="id" required autocomplete="off" placeholder="BZI-..."></label><label>恢复密钥<input name="key" required type="password" autocomplete="off"></label><button class="btn primary" type="submit">恢复我的岛民数据</button></form>';
+      const login=document.createElement('section');login.className='glass panel';login.innerHTML='<div class="eyebrow">WELCOME BACK · BUZHI ISLAND</div><h2>欢迎回岛，老岛民！</h2><p class="small muted">换手机、换浏览器也不用重新登记。使用首次登岛保存的编号与恢复密钥，找回原来的金币、任务和生日回忆卡。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登岛恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入首次登记时保存的密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示密钥</button></div><button class="btn primary full" type="submit">找回我的岛民身份 →</button><p class="small muted">恢复密钥属于私密凭证，请勿发送到公开聊天或直播间。只有昵称或编号无法安全找回账户。</p></form>';
       host.append(login);
+      login.querySelector('#toggle-returning-key').onclick=()=>{const field=login.querySelector('#returning-key');const visible=field.type==='password';field.type=visible?'text':'password';login.querySelector('#toggle-returning-key').textContent=visible?'隐藏密钥':'显示密钥';login.querySelector('#toggle-returning-key').setAttribute('aria-pressed',String(visible))};
       login.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget;try{const data=await liveApi('login',{id:f.elements.id.value.trim(),recoveryKey:f.elements.key.value.trim()});liveToken=data.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(data.profile)}catch(err){toast(err.message)}};
     }
   }
@@ -611,7 +614,7 @@
       const card = CARDS.find((item) => item.id === button.dataset.card); if (!card) return;
       trigger = button;
       const owned = state.collection[card.id];
-      dialog.innerHTML = `<button type="button" class="dialog-close" aria-label="关闭卡片详情">${icon('close')}</button>${cardMarkup(card)}<h2 id="card-detail-title">${card.name}</h2><div class="card-meta"><span class="pill">${card.rarity}</span><span class="pill">${owned ? `已拥有 ${owned.quantity} 张` : '等待相遇'}</span></div><p>${card.story}</p><p class="small muted">角色：${card.characters}${owned ? `<br>首次获得：${timeText(owned.firstAt)}` : ''}</p><p class="dialog-oc">角色资料与个人 OC 页面将在后续接入。当前是示意卡面，不开放实体兑换。</p>`;
+      dialog.innerHTML = `<button type="button" class="dialog-close" aria-label="关闭卡片详情">${icon('close')}</button>${cardMarkup(card)}<h2 id="card-detail-title">${card.name}</h2><div class="card-meta"><span class="pill">${card.rarity}</span><span class="pill">${owned ? `已拥有 ${owned.quantity} 张` : '等待相遇'}</span></div><p>${card.story}</p><p class="small muted">角色：${card.characters}${owned ? `<br>首次获得：${timeText(owned.firstAt)}` : ''}</p><p class="dialog-oc">${LIVE ? '更多角色故事即将开放；实体卡兑换目前暂未开放。' : '角色资料与个人 OC 页面将在后续接入。当前是示意卡面，不开放实体兑换。'}</p>`;
       dialog.querySelector('button').onclick = () => dialog.close(); dialog.showModal();
     });
     dialog.addEventListener('close', () => trigger?.focus());
@@ -624,12 +627,12 @@
     const modeLabel = document.querySelector('.demo-line > span:first-child');
     if (LIVE && modeLabel) modeLabel.innerHTML = '<i class="status-dot"></i>正式账户 · 数据由服务器保存';
     const footerNote = document.querySelector('.site-footer > div:last-child')?.lastChild;
-    if (footerNote?.nodeType === Node.TEXT_NODE) footerNote.textContent = LIVE ? '插画与卡面为示意 · 庆典账户数据由服务器保存' : 'UI 演示预览 · 数据仅保存在当前浏览器';
+    if (footerNote?.nodeType === Node.TEXT_NODE) footerNote.textContent = LIVE ? '生日回忆 · 与你相遇' : 'UI 演示预览 · 数据仅保存在当前浏览器';
     const replaceOpening = (markup) => { const old = main.querySelector('.page-heading'); if (old) old.outerHTML = markup; };
     if (PAGE === 'passport') {
       replaceOpening(`<header class="ticket-office-head"><span class="room-emblem">${icon('ticket')}</span><div><span class="room-label">不吱岛 · 登岛登记处</span><h1>把名字留在小岛</h1><p>领一张生日通行证，留一份属于你的回忆。</p></div><span class="ticket-gift">${icon('coin')} 首次登岛 +50</span></header>`);
       const privacy = main.querySelector('#passport-form .privacy-note');
-      if (privacy) privacy.textContent = LIVE ? '请勿填写平台 UID 等私密资料。注册不代表岛民核验；庆典头像暂为默认示意。' : '仅供演示，请勿填写平台 UID 等私密资料。正式核验由主网站接入。';
+      if (privacy) privacy.textContent = LIVE ? '请勿填写平台 UID 等私密资料。注册不代表岛民核验；头像可从庆典提供的款式中选择。' : '仅供演示，请勿填写平台 UID 等私密资料。正式核验由主网站接入。';
       const hint = main.querySelector('#nickname-hint'); if (hint) hint.textContent = `1—${LIVE ? 20 : 24}个字符，昵称可重复，身份由唯一编号区分。`;
       const savedNote = main.querySelector('.passport-grid > aside .panel > .small');
       if (savedNote) savedNote.textContent = LIVE ? '通行证、金币与卡片由服务器保存。请安全保留恢复密钥，以便重新登录。' : '通行证、金币与卡片只保存在当前浏览器。刷新后可以继续，换设备不能自动恢复。';
@@ -658,7 +661,7 @@
       replaceOpening(`<header class="album-cover"><div><span class="room-label">一册属于你的生日回忆</span><h1>${icon('cards')} 回忆收藏室</h1><p>把相遇的瞬间，慢慢收藏。</p></div></header>`);
       const summary = main.querySelector('.collection-summary'); if (summary) main.querySelector('.album-cover').append(summary);
     } else if (PAGE === 'islanders') {
-      replaceOpening(`<header class="cast-room-head"><div><span class="room-label">住在不吱岛的人们</span><h1>岛民画廊</h1></div><p>每一位岛民，都有自己的故事。</p><span class="pill pink">角色示意 · 正式 OC 待接入</span></header>`);
+      replaceOpening(`<header class="cast-room-head"><div><span class="room-label">住在不吱岛的人们</span><h1>岛民画廊</h1></div><p>每一位岛民，都有自己的故事。</p><span class="pill pink">${LIVE ? '更多岛民故事陆续开放' : '角色示意 · 正式 OC 待接入'}</span></header>`);
       const modeBar = main.querySelector('.oc-mode-bar'); if (modeBar && modeBar.querySelectorAll('button').length === 1) modeBar.hidden = true;
       const story = document.createElement('details'); story.className = 'oc-world-intro island-origin';
       story.innerHTML = '<summary>从雪啾国到不吱岛，读读我们的故事</summary><p>菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p>';
@@ -703,7 +706,7 @@
       ['把相遇好好收藏', '在这里，每张卡、每位岛民，都可以拥有属于自己的故事。', '收藏室 / Keep the moments'],
       ['派对已经准备好了', '10月20日是菜菜的生日。现在就领好通行证，一起赴约吧。', '庆典 / A little wish'],
     ];
-    return heading('07', 'A little journey to our island', '沿着海风，登岛吧', '向下滚动，镜头会带你走过小岛。也可以点下一站，或直接跳过导览。') + `<div class="guide-topbar"><a href="passport.html" class="btn">跳过导览，去领通行证 ${icon('arrow')}</a><span class="pill">地图为原创场景示意</span></div><div class="voyage-layout" id="voyage"><div class="voyage-sticky"><div class="glass voyage-map"><svg viewBox="0 0 1200 1000" role="img" aria-label="不吱岛地图，依次经过海面、码头、事务所、邮局、收藏室和庆典"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/island-map.svg')}" width="1200" height="1000"/></g></svg><span class="map-compass">N<br>↑</span><div class="map-status"><span class="mono" id="voyage-count">01 / 06</span><span id="voyage-location">海面</span></div></div><div class="voyage-buttons"><button class="btn" id="voyage-prev" type="button" aria-label="上一站">← 上一站</button><button class="btn primary" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div></div><div class="voyage-stops">${stops.map(([name, text, label], index) => `<section class="voyage-stop" id="stop-${index}" data-stop="${index}"><div class="glass panel"><div class="eyebrow">${String(index + 1).padStart(2, '0')} / ${label}</div><h2>${name}</h2><p>${text}</p>${index === 5 ? link('passport', '领取我的生日通行证', 'btn primary') : '<span class="small muted">继续向下，海风会带路 ↓</span>'}</div></section>`).join('')}</div></div>`;
+    return heading('07', 'A little journey to our island', '沿着海风，登岛吧', '向下滚动，镜头会带你走过小岛。也可以点下一站，或直接跳过导览。') + `<div class="guide-topbar"><a href="passport.html" class="btn">跳过导览，去领通行证 ${icon('arrow')}</a><span class="pill">${LIVE ? '不吱岛 · 登岛地图' : '地图为原创场景示意'}</span></div><div class="voyage-layout" id="voyage"><div class="voyage-sticky"><div class="glass voyage-map"><svg viewBox="0 0 1200 1000" role="img" aria-label="不吱岛地图，依次经过海面、码头、事务所、邮局、收藏室和庆典"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/island-map.svg')}" width="1200" height="1000"/></g></svg><span class="map-compass">N<br>↑</span><div class="map-status"><span class="mono" id="voyage-count">01 / 06</span><span id="voyage-location">海面</span></div></div><div class="voyage-buttons"><button class="btn" id="voyage-prev" type="button" aria-label="上一站">← 上一站</button><button class="btn primary" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div></div><div class="voyage-stops">${stops.map(([name, text, label], index) => `<section class="voyage-stop" id="stop-${index}" data-stop="${index}"><div class="glass panel"><div class="eyebrow">${String(index + 1).padStart(2, '0')} / ${label}</div><h2>${name}</h2><p>${text}</p>${index === 5 ? link('passport', '领取我的生日通行证', 'btn primary') : '<span class="small muted">继续向下，海风会带路 ↓</span>'}</div></section>`).join('')}</div></div>`;
   }
 
   function renderIslanders() {
@@ -713,7 +716,7 @@
       ['岛民 OC · 位置 01', '个人形象待接入', '这里将展示拥有专属形象的岛民与职业设定。', 'green'],
       ['岛民 OC · 位置 02', '个人形象待接入', '属于岛民的故事，会在这里慢慢展开。', 'purple'],
     ];
-    return heading('08', 'Every islander has a story', '岛民画廊 · 布局预览', '左右拖动、点击卡片或使用箭头，看看岛上未来的角色展示方式。这里暂未接入正式 OC 资料。') + `<div class="oc-mode-bar"><div class="filter-tabs" aria-label="角色展示方式"><button type="button" data-oc-mode="slider" aria-pressed="true">横向画廊</button></div><span class="pill">角色图为示意</span></div><section class="glass oc-gallery" id="oc-gallery" data-mode="slider" aria-label="角色欣赏画廊"><div class="oc-count"><span id="oc-step">01</span><small>/ 04</small></div><div class="oc-track" id="oc-track">${people.map(([name, role, text, tone], index) => `<button type="button" class="oc-slide oc-${tone}" data-oc="${index}" aria-label="查看${name}"><span class="oc-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="${name}的插画位置示意" draggable="false"></span><span class="oc-caption"><small>${role}</small><strong>${name}</strong><span>${text}</span></span></button>`).join('')}</div><div class="oc-slider-controls"><button class="btn" id="oc-prev" type="button" aria-label="上一个角色">←</button><span id="oc-help">拖动欣赏 · 松手后轻轻停靠</span><button class="btn" id="oc-next" type="button" aria-label="下一个角色">→</button></div></section><div class="info-note">菜菜与吱吱之外的岛民位置均为布局占位，不代表已经创建了新的 OC。正式版将把卡片角色名链接到对应个人页面。</div>`;
+    return heading('08', 'Every islander has a story', LIVE ? '岛民画廊' : '岛民画廊 · 布局预览', '左右拖动、点击卡片或使用箭头，欣赏岛上的角色。' + (LIVE ? '部分岛民的资料仍在筹备，敬请期待。' : '这里暂未接入正式 OC 资料。')) + `<div class="oc-mode-bar"><div class="filter-tabs" aria-label="角色展示方式"><button type="button" data-oc-mode="slider" aria-pressed="true">横向画廊</button></div><span class="pill">${LIVE ? '岛上的相遇' : '角色图为示意'}</span></div><section class="glass oc-gallery" id="oc-gallery" data-mode="slider" aria-label="角色欣赏画廊"><div class="oc-count"><span id="oc-step">01</span><small>/ 04</small></div><div class="oc-track" id="oc-track">${people.map(([name, role, text, tone], index) => `<button type="button" class="oc-slide oc-${tone}" data-oc="${index}" aria-label="查看${name}"><span class="oc-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="${name}的插画位置示意" draggable="false"></span><span class="oc-caption"><small>${role}</small><strong>${name}</strong><span>${text}</span></span></button>`).join('')}</div><div class="oc-slider-controls"><button class="btn" id="oc-prev" type="button" aria-label="上一个角色">←</button><span id="oc-help">拖动欣赏 · 松手后轻轻停靠</span><button class="btn" id="oc-next" type="button" aria-label="下一个角色">→</button></div></section><div class="info-note">菜菜与吱吱之外的岛民位置均为布局占位，不代表已经创建了新的 OC。个人角色故事与资料页将陆续开放。</div>`;
   }
 
   function renderEffects() {
@@ -736,6 +739,6 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261017-bird1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261018-bird1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
