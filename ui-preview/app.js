@@ -736,6 +736,6 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261017-office1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261017-bird1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();

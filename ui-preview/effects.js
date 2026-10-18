@@ -311,7 +311,9 @@
       <path d="M37 109C14 85 24 44 53 33c6-21 24-27 39-15 18-14 35-5 40 7 32 1 52 26 48 58-1 33-21 54-61 57-33 3-64-6-82-31Z" fill="#fffdf7" stroke="#6393aa" stroke-width="2.5"/>
       <path d="M49 97c22 12 57 18 100 2 5 25-17 36-40 36-29 0-49-10-60-38Z" fill="#e3f2f4"/>
       <g class="courier-wing"><path d="M66 74c-28-13-39 9-27 26 6 10 22 13 40-1" fill="#d4eaf1" stroke="#739eae" stroke-width="2.5" stroke-linecap="round"/><path d="m45 93 18 5" stroke="#a5c7d5" stroke-width="3" stroke-linecap="round"/></g>
-      <g class="courier-eye"><ellipse cx="137" cy="59" rx="5" ry="7" fill="#315b70"/><circle cx="138" cy="57" r="1.5" fill="white"/></g>
+      <g class="courier-eye courier-eye-open"><ellipse cx="137" cy="59" rx="5" ry="7" fill="#315b70"/><circle cx="138" cy="57" r="1.5" fill="white"/></g>
+      <path class="courier-eye-sleep" d="M131 60q6 6 12 0" stroke="#315b70" stroke-width="3" stroke-linecap="round"/>
+      <g class="courier-nap" stroke="#91a9bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m146 32 9-1-7 9 9-1m3-23 12-1-10 12 12-1"/></g>
       <ellipse cx="147" cy="78" rx="12" ry="6" fill="#efc0cf" opacity=".7"/>
       <path d="m170 82 23 15-25 5" fill="#eabf73" stroke="#a88556" stroke-width="2.3" stroke-linejoin="round"/>
       <path d="m171 94 20 3" stroke="#a88556" stroke-width="1.8"/>
@@ -322,6 +324,7 @@
     sky.innerHTML = Array.from({ length: 18 }, (_, i) => `<i class="draw-meteor" style="--meteor-x:${58 + i * 19 % 83}%;--meteor-y:${-28 + i * 11 % 72}%;--meteor-delay:${(i * .075).toFixed(3)}s;--meteor-duration:${(1.3 + i % 4 * .15).toFixed(2)}s"></i>`).join('');
     stage.prepend(sky);
     stage.dataset.deliveryReady = 'true';
+    installDrawButtonBird(stage);
     subscribe(() => { stage.dataset.deliveryMotion = enabled() ? 'on' : 'off'; });
     const sweep = document.createElement('div'); sweep.className = 'reveal-starlight'; sweep.setAttribute('aria-hidden', 'true');
     sweep.innerHTML = '<span>✦</span><i></i><b>✧</b>'; stage.append(sweep);
@@ -331,6 +334,31 @@
         document.dispatchEvent(new CustomEvent('buzhi:burst', { detail: { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height * .45, count: 52 } }));
       }
     }).observe(stage, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function installDrawButtonBird(stage) {
+    const button = document.querySelector('#draw-button');
+    if (!button) { stage.dataset.birdMood = 'rest'; return; }
+    // The original button keeps its handlers, label and settlement logic.
+    // The decoration is a sibling so updates to button.textContent cannot erase it.
+    const nest = document.createElement('div'); nest.className = 'draw-button-nest';
+    button.before(nest); nest.append(button);
+    const figure = document.createElement('span'); figure.className = 'draw-button-bird';
+    figure.setAttribute('aria-hidden', 'true');
+    figure.append(stage.querySelector('.draw-courier svg').cloneNode(true)); nest.append(figure);
+    let hovering = false, pressing = false;
+    function updateMood() {
+      const mood = !enabled() ? 'rest' : stage.classList.contains('is-drawing') ? 'sending' : stage.classList.contains('is-revealed') ? 'celebrate' : button.disabled ? 'rest' : hovering || pressing || button.matches(':focus-visible') ? 'awake' : 'sleep';
+      nest.dataset.birdMood = mood; stage.dataset.birdMood = mood;
+    }
+    button.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') { hovering = true; updateMood(); } });
+    button.addEventListener('pointerleave', () => { hovering = false; pressing = false; updateMood(); });
+    button.addEventListener('pointerdown', event => { if (event.button === 0) { pressing = true; updateMood(); } });
+    for (const type of ['pointerup', 'pointercancel', 'blur']) button.addEventListener(type, () => { pressing = false; updateMood(); });
+    button.addEventListener('focus', updateMood);
+    new MutationObserver(updateMood).observe(button, { attributes: true, attributeFilter: ['disabled'] });
+    new MutationObserver(updateMood).observe(stage, { attributes: true, attributeFilter: ['class'] });
+    subscribe(updateMood);
   }
 
   function installGuide() {

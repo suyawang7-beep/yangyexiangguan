@@ -58,7 +58,7 @@ body[data-page="draw"] .draw-cost {justify-content:center;gap:28px;border:0;padd
 body[data-page="draw"] .draw-cost>span {display:flex;align-items:baseline;gap:6px;white-space:nowrap}
 body[data-page="draw"] .draw-cost strong {font-size:27px;margin:0;color:var(--ink);font-variant-numeric:tabular-nums}
 body[data-page="draw"] .draw-cost>i {height:25px;width:1px;background:#729db44a}
-body[data-page="draw"] .draw-info>.btn {min-height:50px;font-size:14px;border-radius:14px}
+body[data-page="draw"] .draw-info>.btn,body[data-page="draw"] .draw-button-nest>.btn {min-height:50px;font-size:14px;border-radius:14px}
 body[data-page="draw"] .draw-info>.draw-status {font-size:12px;line-height:1.7;margin:10px 0 0;min-height:21px}
 .postal-next {display:flex;justify-content:center;gap:30px;margin:4px 0 8px}
 .postal-next>a {display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;font-size:12px;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#729db46e}
@@ -106,7 +106,7 @@ body[data-page="draw"] .probability-list li {font-size:12px}
   body[data-page="draw"] .draw-cost {gap:14px;margin-bottom:9px;font-size:12px}
   body[data-page="draw"] .draw-cost>span {gap:4px}
   body[data-page="draw"] .draw-cost strong {font-size:25px}
-  body[data-page="draw"] .draw-info>.btn {min-height:48px;font-size:13px;padding:10px 12px;gap:10px}
+  body[data-page="draw"] .draw-info>.btn,body[data-page="draw"] .draw-button-nest>.btn {min-height:48px;font-size:13px;padding:10px 12px;gap:10px}
   body[data-page="draw"] .draw-info>.draw-status {font-size:12px;margin-top:8px}
   .postal-next {gap:28px;margin-top:0}
   .postal-next>a {font-size:12px}
@@ -135,6 +135,23 @@ body[data-page="draw"] .draw-stage[data-delivery-ready="true"] .memory-card {ani
 .draw-courier svg {display:block;width:100%;overflow:visible}
 .courier-wing {transform-origin:65px 91px;animation:courier-flap 1.1s ease-in-out infinite alternate}
 .courier-eye {transform-origin:137px 59px;animation:courier-blink 5.5s infinite}
+.courier-eye-sleep,.courier-nap {opacity:0}
+.draw-stage[data-bird-mood="sleep"] :is(.courier-eye-sleep,.courier-nap),.draw-button-nest[data-bird-mood="sleep"] :is(.courier-eye-sleep,.courier-nap) {opacity:1}
+.draw-stage[data-bird-mood="sleep"] .courier-eye-open,.draw-button-nest[data-bird-mood="sleep"] .courier-eye-open {opacity:0}
+.draw-stage[data-bird-mood="sleep"] .courier-wing {animation-duration:3.8s}
+.draw-stage[data-bird-mood="awake"] .draw-courier {transform:translate(4px,-5px) rotate(-4deg)}
+.draw-button-nest {position:relative;width:100%;isolation:isolate}
+body[data-page="draw"] .draw-button-nest>.btn {padding-left:62px;padding-right:18px}
+.draw-button-bird {position:absolute;left:13px;top:50%;width:44px;height:36px;transform:translateY(-50%);pointer-events:none}
+.draw-button-bird svg {display:block;width:100%;height:100%;overflow:visible;transition:transform .2s ease-out}
+.draw-button-bird :is(.courier-wing,.courier-eye) {animation:none}
+.draw-button-nest[data-bird-mood="sleep"] svg {animation:button-bird-breathe 3.8s ease-in-out infinite}
+.draw-button-nest[data-bird-mood="awake"] svg {transform:translate(2px,-3px) rotate(-6deg)}
+.draw-button-nest[data-bird-mood="sending"] .courier-wing {animation:courier-flap .12s ease-in-out infinite alternate}
+.draw-button-nest[data-bird-mood="celebrate"] svg {animation:button-bird-cheer .45s ease-in-out 2}
+.draw-button-nest[data-bird-mood="rest"] svg {transition:none}
+@keyframes button-bird-breathe {0%,100%{transform:translateY(1px) scaleY(.97)}50%{transform:translateY(-1px) scaleY(1.01)}}
+@keyframes button-bird-cheer {0%,100%{transform:translateY(0)}50%{transform:translateY(-4px) rotate(-5deg)}}
 .courier-happiness {opacity:0}
 .draw-stage:not(.is-drawing):not(.is-revealed) .draw-delivery {animation:courier-hover 4s ease-in-out infinite alternate}
 .draw-stage.is-drawing .draw-delivery {animation:courier-delivery 3s cubic-bezier(.3,.1,.2,1) both}
@@ -196,4 +213,5 @@ body[data-page="draw"] .draw-stage[data-delivery-ready="true"].is-revealed .memo
 @media(prefers-reduced-motion:reduce){
   .draw-meteor-sky {display:none}
   :is(.draw-delivery,.draw-courier,.courier-wing,.courier-eye){animation:none!important}
+  .draw-button-bird svg {animation:none!important;transition:none!important}
 }

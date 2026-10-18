@@ -114,6 +114,55 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   await capture('draw-mobile-390');
   if (process.argv.includes('--layout-only')) { console.log(`PASS ${checks} initial layout assertions`); return; }
 
+  if (process.argv.includes('--bird-only')) {
+    check(await page.locator('.draw-button-bird svg').count() === 1, 'The real draw action gets one decorative bird, without replacing the button');
+    check(await page.locator('.draw-button-nest').getAttribute('data-bird-mood') === 'rest', 'System reduced motion keeps the button bird still');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.waitForFunction(() => document.querySelector('.draw-button-nest')?.dataset.birdMood === 'sleep');
+    check(await page.locator('.draw-button-bird .courier-eye-sleep').evaluate(el => getComputedStyle(el).opacity) === '1', 'Waiting bird has a visibly closed eye');
+    await page.locator('#draw-button').hover();
+    check(await page.locator('.draw-button-nest').getAttribute('data-bird-mood') === 'awake', 'Mouse hover wakes the button bird');
+    check(await page.locator('#draw-stage').getAttribute('data-bird-mood') === 'awake', 'Existing courier responds to the button, too');
+    check(await page.locator('.draw-button-bird .courier-eye-open').evaluate(el => getComputedStyle(el).opacity) === '1', 'Awake bird actually opens its eye');
+    await page.mouse.move(0, 0);
+    await page.locator('#draw-button').focus();
+    check(await page.locator('.draw-button-nest').getAttribute('data-bird-mood') === 'awake', 'Keyboard focus also wakes the bird');
+    await page.locator('#draw-button').evaluate(el => el.blur());
+    for (const viewport of [{width:320,height:680},{width:390,height:844},{width:1440,height:1000}]) {
+      await page.setViewportSize(viewport);
+      const rect = await layout('#draw-button');
+      check(!rect.overflow && rect.bottom <= rect.edge - 8, `${viewport.width}: bird decoration keeps the draw button visible and unclipped`);
+      await capture(`button-bird-${viewport.width}`);
+    }
+    await page.locator('#draw-button').click();
+    await page.waitForFunction(() => document.querySelector('.draw-button-nest')?.dataset.birdMood === 'sending');
+    check(await page.locator('#draw-button').isDisabled(), 'Bird interaction cannot trigger a duplicate draw');
+    await page.locator('#draw-stage.is-revealed').waitFor({timeout:6000});
+    check(await page.locator('.draw-button-nest').getAttribute('data-bird-mood') === 'celebrate', 'Button bird cheers when the original courier reveals the result');
+    check(await page.locator('.draw-button-bird svg').count() === 1, 'Result label updates do not delete the button decoration');
+    const result = await page.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
+    check(result.balance === 0 && result.history.length === 1, 'Only the original 50-coin settlement runs');
+    await page.locator('#motion-toggle').click();
+    await page.waitForFunction(() => document.querySelector('.draw-button-nest')?.dataset.birdMood === 'rest');
+    check(await page.locator('.draw-button-bird svg').evaluate(el => getComputedStyle(el).animationName) === 'none', 'Turning motion off stops the button bird');
+    const touchContext = await browser.newContext({ viewport:{width:390,height:844}, hasTouch:true, isMobile:true, reducedMotion:'no-preference', storageState:initialState });
+    await touchContext.route('**/*', route => route.request().url().startsWith(base + '/') ? route.continue() : route.abort());
+    const touch = await touchContext.newPage(); touch.on('pageerror', error => errors.push(error.message));
+    await touch.goto(`${base}/ui-preview/draw.html`, {waitUntil:'networkidle'});
+    await touch.waitForSelector('.draw-button-bird');
+    await touch.locator('#draw-button').tap();
+    await touch.waitForFunction(() => document.querySelector('.draw-button-nest')?.dataset.birdMood === 'sending');
+    check(await touch.locator('#draw-stage.is-drawing').count() === 1, 'Real touch tap starts the existing courier delivery without requiring hover');
+    await touch.locator('#motion-toggle').tap();
+    await touch.locator('#draw-stage.is-revealed').waitFor({timeout:1000});
+    const touchResult = await touch.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
+    check(touchResult.balance === 0 && touchResult.history.length === 1, 'Touch interruption neither loses the result nor charges twice');
+    await touchContext.close();
+    check(errors.length === 0, `No bird interaction errors: ${errors.join('; ')}`);
+    console.log(`PASS ${checks} focused bird/layout assertions; mouse, keyboard, touch, delivery, single settlement and motion controls`);
+    return;
+  }
+
   for (const viewport of [{ width: 320, height: 680 }, { width: 375, height: 812 }, { width: 768, height: 1024 }, { width: 1440, height: 1000 }]) {
     await page.setViewportSize(viewport);
     const rect = await layout('#draw-button');
