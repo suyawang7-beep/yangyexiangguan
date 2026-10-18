@@ -102,3 +102,12 @@ body[data-page="home"] .island-scene.is-paused *,body[data-page="home"] [data-mo
  body[data-page="home"] .hero-copy,body[data-page="home"] .glass,body[data-page="home"] .site-header,body[data-page="home"] .section-heading,body[data-page="home"] .island-story,body[data-page="home"] .site-footer{background:#edf9fff2}
 }
 @media(prefers-reduced-motion:reduce){.island-scene *{animation:none!important}}
+
+/* Homepage-only ice glass: 25% base fill; preserve borders, shadows and sea motion. */
+body[data-page="home"] .world{--island-glass:linear-gradient(135deg,rgba(235,248,255,.25),rgba(225,244,255,.25) 58%,rgba(246,232,255,.25))}
+body[data-page="home"] :is(.site-header,.hero-copy,.glass,.news-strip,.section-heading,.destination,.island-story,.site-footer,.floating-note,.birthday-seal,.art-caption){
+  background:var(--island-glass);
+}
+@media(max-width:620px){
+  body[data-page="home"] :is(.hero-copy,.mobile-nav){background:var(--island-glass)}
+}
