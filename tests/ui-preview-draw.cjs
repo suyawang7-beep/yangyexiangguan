@@ -49,6 +49,47 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, name + '.png'), animations: 'disabled' });
   }
 
+  if (process.argv.includes('--mystery-only')) {
+    await visit('draw');
+    check(await page.locator('.card-back img[src*="memory-card-back.svg"]').count()===1,'Waiting card uses the new original moon-and-sea back');
+    check(await page.locator('.card-back img').evaluate(img=>img.complete&&img.naturalWidth===300&&img.naturalHeight===425),'Actual vector back loads at the unchanged card ratio');
+    check(!(await page.locator('.card-back').getAttribute('data-rarity')),'Uniform back does not disclose the rarity before reveal');
+    const names=await page.locator('.pool-preview .card-title').allTextContents();
+    check(names.length===8&&names[0]==='岛屿与永恒'&&names[1]==='许愿的瞬间','Preview card titles and contents are retained');
+    check(await page.locator('.pool-preview .memory-card').first().evaluate(el=>getComputedStyle(el,'::after').backgroundImage.includes('memory-card-frame.svg')&&getComputedStyle(el,'::after').pointerEvents==='none'),'New fine-line frame decorates cards without intercepting clicks');
+    const contrast=await page.locator('.card-back img').evaluate(img=>{const c=document.createElement('canvas');c.width=300;c.height=425;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);const l=(x,y)=>[...ctx.getImageData(x,y,1,1).data].slice(0,3).reduce((a,b)=>a+b,0);return l(15,210)>l(55,245)+150});
+    check(contrast,'The rendered back has a dark mystery window and lighter ornamental border');
+    for (const width of [320,390,768,1440]) {
+      await page.setViewportSize({width,height:900});await visit('draw');
+      check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Card back fits ${width}px`);
+      await capture(`mystery-back-${width}`);
+    }
+    await page.setViewportSize({width:390,height:844});
+    await visit('passport');await page.locator('#nickname').fill('星月卡背检查');await page.locator('#claim-pass').click();await page.locator('#public-id').waitFor();
+    await visit('draw');await page.locator('#draw-button').click();
+    await page.waitForFunction(()=>document.querySelector('#stage-card [data-rarity]'));
+    const rarity=await page.locator('#stage-card .memory-card').getAttribute('data-rarity');
+    check(['SR','SSR'].includes(rarity),'First draw still guarantees only SR/SSR');
+    check((await page.locator('.header-actions [data-balance]').textContent())==='0','One draw still costs exactly 50 coins');
+    const name=await page.locator('#stage-card .card-title').textContent();
+    check(await page.locator('#stage-card .memory-card').evaluate(el=>getComputedStyle(el,'::after').backgroundImage.includes('memory-card-frame.svg')),'Revealed result retains the same frame without changing its content');
+    await capture('mystery-revealed-390');
+    await visit('collection');await page.locator('[data-filter="owned"]').click();
+    await page.waitForFunction(()=>document.querySelectorAll('.collection-exhibit .memory-card').length===1);
+    const card=page.locator('.collection-exhibit .memory-card').first();
+    check((await card.locator('.card-title').textContent())===name,'New frame preserves the drawn card in collection');
+    await card.click();await page.locator('#card-detail[open]').waitFor();
+    check((await page.locator('#card-detail-title').textContent())===name,'Framed collection card still opens its own details');
+    check(await page.locator('#card-detail .memory-card').evaluate(el=>getComputedStyle(el,'::after').pointerEvents==='none'),'Detail-frame decoration is non-interactive');
+    await capture('mystery-detail-390');
+    await page.locator('#card-detail .dialog-close').click();
+    await page.setViewportSize({width:1440,height:1000});await visit('collection');
+    await capture('mystery-collection-1440');
+    check(errors.length===0,`No card-frame errors: ${errors.join('; ')}`);
+    console.log(`PASS ${checks} mystery-card assertions; original back, ornamental frame, four widths, unchanged first draw/50 coins, collection and details`);
+    return;
+  }
+
   if (process.argv.includes('--headers-only') || process.argv.includes('--decor-only')) {
     const enhanced = process.argv.includes('--decor-only');
     const rooms = ['index','passport','office','checkin','draw','collection','islanders','mailbox','guide','effects'];

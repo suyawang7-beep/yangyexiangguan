@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="425" viewBox="0 0 300 425" fill="none">
+  <!-- Original Buzhi Island design: a moonlit archive, not a game asset. -->
+  <defs>
+    <linearGradient id="paper" x1="12" y1="0" x2="280" y2="425" gradientUnits="userSpaceOnUse"><stop stop-color="#f1efdf"/><stop offset=".5" stop-color="#e6e2d1"/><stop offset="1" stop-color="#d7d9cd"/></linearGradient>
+    <linearGradient id="midnight" x1="42" y1="65" x2="255" y2="352" gradientUnits="userSpaceOnUse"><stop stop-color="#253545"/><stop offset=".55" stop-color="#102b3b"/><stop offset="1" stop-color="#243c49"/></linearGradient>
+    <linearGradient id="metal" x1="60" y1="50" x2="238" y2="350" gradientUnits="userSpaceOnUse"><stop stop-color="#f3dfab"/><stop offset=".4" stop-color="#b9a16d"/><stop offset=".7" stop-color="#e7d3a1"/><stop offset="1" stop-color="#a99464"/></linearGradient>
+    <clipPath id="arch"><path d="M36 352V157a114 114 0 0 1 228 0v195Z"/></clipPath>
+  </defs>
+  <rect width="300" height="425" rx="17" fill="url(#paper)"/>
+  <rect x="8" y="8" width="284" height="409" rx="12" stroke="#b3a47d" stroke-width="1.3"/>
+  <rect x="14" y="14" width="272" height="397" rx="9" stroke="#c6bd9c" stroke-width=".65"/>
+  <g stroke="#a59672" stroke-width=".8" opacity=".52">
+    <path d="M22 80h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8"/>
+    <path d="M270 80h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8m-8 16h8"/>
+    <path d="m45 55 14 14m-3-31 9 18m10-28 5 18m175 9-14 14m3-31-9 18m-10-28-5 18"/>
+  </g>
+  <path d="M36 352V157a114 114 0 0 1 228 0v195Z" fill="url(#midnight)" stroke="url(#metal)" stroke-width="1.5"/>
+  <path d="M44 344V157a106 106 0 0 1 212 0v187Z" stroke="#c7b684" stroke-width=".65" opacity=".7"/>
+  <g clip-path="url(#arch)" fill="#dcc58d">
+    <g opacity=".56">
+      <circle cx="65" cy="129" r=".9"/><circle cx="88" cy="95" r="1.1"/><circle cx="113" cy="78" r=".8"/><circle cx="142" cy="65" r="1"/><circle cx="181" cy="73" r=".9"/><circle cx="210" cy="98" r="1.1"/><circle cx="238" cy="127" r=".8"/>
+      <circle cx="54" cy="169" r=".8"/><circle cx="75" cy="194" r="1"/><circle cx="58" cy="224" r="1.2"/><circle cx="73" cy="254" r=".7"/><circle cx="91" cy="238" r=".9"/><circle cx="112" cy="262" r="1.2"/><circle cx="136" cy="249" r=".8"/><circle cx="179" cy="257" r=".9"/>
+      <circle cx="218" cy="242" r=".8"/><circle cx="244" cy="219" r="1.2"/><circle cx="234" cy="183" r=".8"/><circle cx="250" cy="161" r="1.2"/><circle cx="203" cy="272" r=".8"/><circle cx="57" cy="300" r="1.1"/><circle cx="240" cy="321" r="1"/>
+    </g>
+    <g opacity=".18"><circle cx="85" cy="118" r="2"/><circle cx="222" cy="163" r="2.2"/><circle cx="197" cy="229" r="1.7"/><circle cx="104" cy="215" r="1.9"/><circle cx="159" cy="86" r="1.8"/><circle cx="70" cy="278" r="1.8"/></g>
+  </g>
+  <g stroke="url(#metal)" stroke-width=".9">
+    <circle cx="150" cy="174" r="65"/><circle cx="150" cy="174" r="58" stroke-dasharray="1 6"/>
+    <path d="M150 98v17m0 118v17M74 174h17m118 0h17m-130-54 12 12m84 84 12 12m-108 0 12-12m84-84 12-12"/>
+    <path d="m120 104 5 13m50 114 5 13M80 144l13 5m114 50 13 5m-140 0 13-5m114-50 13-5m-100 95 5-13m50-114 5-13" opacity=".6"/>
+  </g>
+  <path d="M171 130c-48-8-68 56-20 78 19 9 34 1 43-10-39 5-61-40-23-68Z" fill="url(#metal)"/>
+  <path d="m143 151 5 16 16 5-16 5-5 16-5-16-16-5 16-5Z" fill="#e7d6a4"/>
+  <circle cx="143" cy="172" r="4" fill="#fff2c8"/>
+  <g stroke="#e5cf96" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M127 259c10-16 34-17 47 0-16 7-31 7-47 0Zm23-7v-19m0 2c-9-6-16-3-17 1 6-2 11 0 17-1Zm0 0c4-8 14-8 19-2-7-2-11 1-19 2Z"/>
+    <path d="M111 270c10-4 16 4 26 0s17 4 27 0 15 3 26 0"/>
+  </g>
+  <g fill="#c5ac76">
+    <path d="m28 23 2 6 6 2-6 2-2 6-2-6-6-2 6-2Zm244 0 2 6 6 2-6 2-2 6-2-6-6-2 6-2ZM28 386l2 6 6 2-6 2-2 6-2-6-6-2 6-2Zm244 0 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z"/>
+    <path d="m150 17 4 7-4 7-4-7Zm0 356 4 7-4 7-4-7Z"/>
+  </g>
+  <path d="M60 380h75m30 0h75M70 395h160" stroke="#b4a57e" stroke-width=".7"/>
+  <g stroke="#d5c293" stroke-width=".75"><path d="m62 139 3 7 7 3-7 3-3 7-3-7-7-3 7-3Zm169 120 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/></g>
+</svg>

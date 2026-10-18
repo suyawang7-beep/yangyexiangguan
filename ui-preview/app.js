@@ -303,7 +303,7 @@
   }
 
   function drawBack() {
-    return `<div class="memory-card card-back">${icon('bird')}<h2>不吱岛</h2><span class="tiny-star">✦</span><p>A LITTLE BIRTHDAY MEMORY</p><p>2026 · 10.20</p></div>`;
+    return `<div class="memory-card card-back"><img class="card-back-art" src="assets/memory-card-back.svg?v=20261018-moon1" alt="" aria-hidden="true" width="300" height="425" draggable="false"><div class="card-back-label"><span class="card-back-kicker">CELEBRATION ARCHIVE</span><h2>不吱岛</h2><p>生日回忆 · 静候开启</p></div><span class="card-back-edition">BUZHI ISLAND · 2026</span></div>`;
   }
   function renderDraw() {
     const first = state.history.length === 0;
