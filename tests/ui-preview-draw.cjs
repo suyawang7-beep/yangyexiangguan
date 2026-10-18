@@ -49,7 +49,8 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, name + '.png'), animations: 'disabled' });
   }
 
-  if (process.argv.includes('--headers-only')) {
+  if (process.argv.includes('--headers-only') || process.argv.includes('--decor-only')) {
+    const enhanced = process.argv.includes('--decor-only');
     const rooms = ['index','passport','office','checkin','draw','collection','islanders','mailbox','guide','effects'];
     for (const width of [390,1440]) {
       await page.setViewportSize({width,height:width === 390 ? 844 : 1000});
@@ -63,6 +64,15 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
         check(await page.locator('.island-sticker').first().evaluate(el => getComputedStyle(el).fill === 'none'), `${room}/${width}: stroke-only sticker paths do not inherit unwanted black fill`);
         check(await page.locator('.heading-stickers').evaluate(el => el.getAttribute('aria-hidden') === 'true' && getComputedStyle(el).pointerEvents === 'none'), `${room}/${width}: decorative stickers cannot block controls or screen readers`);
         check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${room}/${width}: new title composition fits the viewport`);
+        if (enhanced) {
+          check(await page.locator('.scene-decor .island-sticker').count() >= 3, `${room}/${width}: sea stickers continue into page sections rather than only the heading`);
+          check(await page.locator('.scene-decor').evaluate(el=>el.getAttribute('aria-hidden')==='true'&&getComputedStyle(el).pointerEvents==='none'), `${room}/${width}: new illustration groups never capture interactions`);
+          if (room === 'index') {
+            check(await page.locator('main h1').evaluate(el=>getComputedStyle(el).fontFamily.includes('Buzhi Playful')), 'Homepage has its own artistic Chinese title');
+            check(await page.evaluate(()=>[...document.fonts].some(f=>f.family==='Buzhi Playful'&&f.status==='loaded')), 'Actual artistic font is loaded, not a system fallback');
+            check(!(await page.locator('.subtitle').evaluate(el=>getComputedStyle(el).fontFamily.includes('Buzhi Playful'))), 'Artistic title font is not applied to explanatory text');
+          }
+        }
         if (room === 'office') {
           check(await page.locator('main h1').evaluate(el => getComputedStyle(el).fontFamily.includes('Buzhi Notice')), 'Office heading uses its own bold notice typeface');
           check(await page.evaluate(() => [...document.fonts].some(f => f.family === 'Buzhi Notice' && f.status === 'loaded')), 'Actual notice font is loaded, not a fallback');
@@ -82,7 +92,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.setViewportSize({width:320,height:680});
     for (const room of ['index','office','islanders','passport']) { await visit(room); check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${room}: small phone remains usable`); }
     check(errors.length === 0, `No heading/sticker errors: ${errors.join('; ')}`);
-    console.log(`PASS ${checks} heading/sticker assertions; ten pages, two loaded heading fonts, island brand, desktop/mobile layouts and gallery controls`);
+    console.log(`PASS ${checks} heading/sticker assertions; ten pages, real heading fonts, island brand, desktop/mobile layouts and gallery controls`);
     return;
   }
 

@@ -43,3 +43,13 @@ Only the nickname in the souvenir image uses **Buzhi Signature**. Dates, partici
 Generated coverage: 46,926 mapped characters in 149 slices, 10,162,236 font bytes in the repository. A visitor does not download the entire set; the focused browser check confirms the sample nickname requests no more than eight slices.
 
 Source, revision, SHA-256 and full `wenkai-OFL.txt` are the same as Buzhi Hand above. Font names are changed to Buzhi Signature; copyright/license metadata and original outlines are retained. Reproduce with `python tools/build-signature-font.py SOURCE_WENKAI_TTF` using FontTools and Brotli 1.1.0. The build verifies the source hash and generates `signature.css` and `signature/*.woff2`; no font compiler or third-party font service is required at runtime.
+
+## Home artistic title (sea2)
+
+**Buzhi Playful** is a renamed WOFF2 subset of ZCOOL KuaiLe, used only for the home invitation heading. It is a Chinese-compatible alternative inspired by the playful Japanese specimen, not an identification or copy of the specimen's typeface. Other page headings, UI text and the handwritten passport nickname are unchanged. The kana `の` and fish emoji use the existing fallback.
+
+- Source: `https://github.com/google/fonts`, revision `47d54ca1ebb14fd864695f1d39dc734f39017c33`, `ofl/zcoolkuaile/ZCOOLKuaiLe-Regular.ttf`.
+- Source SHA-256: `812a6fc1fe54b6d73a419245c32dfeba8aa33104d5be90d1cf6af082007cb71d`.
+- Full original license/copyright: `playful-OFL.txt`, SIL OFL 1.1.
+- Output: `buzhi-playful.woff2`, 4,308 bytes and 78 mapped characters. Names are changed; original outlines and license metadata are preserved.
+- Build: `python tools/build-heading-font.py SOURCE_TTF ui-preview/assets/fonts/buzhi-playful.woff2 'Buzhi Playful' tools/playful-characters.txt` with FontTools/Brotli.

@@ -1,6 +1,9 @@
 /* sticker1: original sea stickers and distinct room signage, not card artwork. */
 @font-face{font-family:'Buzhi Notice';src:url('assets/fonts/buzhi-notice.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}
 @font-face{font-family:'Buzhi Hand';src:url('assets/fonts/buzhi-hand.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Buzhi Playful';src:url('assets/fonts/buzhi-playful.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+/* Artistic Chinese letters are reserved for the home invitation, not the UI. */
+body[data-page="home"] .world .hero-copy h1{font-family:'Buzhi Playful',var(--display);font-weight:400;letter-spacing:2px;line-height:1.5}
 body .world .brand-mark{background:none;border:0;box-shadow:none;padding:0;overflow:visible}
 body .world .brand-mark img{display:block;width:100%;height:100%;object-fit:contain}
 [data-scene-heading]{position:relative;isolation:isolate}
@@ -123,4 +126,39 @@ body[data-page="effects"] .heading-stickers .island-sticker:first-child{right:8%
   body[data-page="islanders"] .world .cast-room-head h1{font-size:37px;letter-spacing:3px}
   body[data-page="checkin"] .world .calendar-page-head h1{font-size:24px;letter-spacing:0}
   body[data-page="guide"] .world .map-room-head h1{font-size:23px;letter-spacing:0}
+}
+
+/* sea2: larger, curated sea keepsakes between sections, without new panels.
+   Each room has its own arrangement; decorative artwork never receives input. */
+.scene-decor{position:relative;width:100%;max-width:1080px;height:150px;margin:12px auto 10px;overflow:hidden;pointer-events:none!important}
+.scene-decor:before{content:'';position:absolute;left:10%;right:10%;top:67%;height:1px;background:linear-gradient(90deg,transparent,#e6fcffb3,transparent)}
+.scene-decor .island-sticker{pointer-events:none!important;filter:drop-shadow(0 7px 4px #476f871a)}
+.scene-decor .island-sticker:nth-child(1){left:4%;right:auto;top:4px;width:142px;height:142px;transform:rotate(-7deg)}
+.scene-decor .island-sticker:nth-child(2){left:36%;top:14px;bottom:auto;width:125px;height:125px;transform:rotate(5deg)}
+.scene-decor .island-sticker:nth-child(3){right:5%;left:auto;top:22px;width:112px;height:112px;transform:rotate(11deg)}
+.scene-decor .island-sticker:nth-child(4){left:69%;top:-4px;width:76px;height:76px;transform:rotate(-12deg)}
+.scene-decor[data-scene="home"]{height:137px;margin:-14px auto 0}
+.scene-decor[data-scene="home"] .island-sticker:first-child{left:8%;top:-8px;width:151px;height:151px}
+.scene-decor[data-scene="home"] .island-sticker:nth-child(2){left:49%;top:24px;width:168px;height:120px}
+.scene-decor[data-scene="office"] .island-sticker:first-child{left:12%;transform:rotate(8deg)}
+.scene-decor[data-scene="office"] .island-sticker:nth-child(2){left:48%;top:35px;width:92px;height:92px}
+.scene-decor[data-scene="office"] .island-sticker:nth-child(3){right:9%;top:0;width:144px;height:144px}
+.scene-decor[data-scene="draw"]{max-width:850px;height:135px;margin:8px auto 0}
+.scene-decor[data-scene="draw"] .island-sticker:first-child{left:2%;width:128px;height:128px}
+.scene-decor[data-scene="draw"] .island-sticker:nth-child(2){left:45%;width:93px;height:117px}
+.scene-decor[data-scene="collection"] .island-sticker:first-child{left:18%;transform:rotate(8deg)}
+.scene-decor[data-scene="collection"] .island-sticker:nth-child(2){left:58%;top:31px;width:103px;height:103px}
+.scene-decor[data-scene="collection"] .island-sticker:nth-child(3){right:2%;top:8px;width:89px;height:89px}
+.scene-decor[data-scene="islanders"] .island-sticker:first-child{left:12%;transform:rotate(-12deg)}
+.scene-decor[data-scene="islanders"] .island-sticker:nth-child(2){left:50%;top:34px;width:102px;height:102px}
+.scene-decor[data-scene="islanders"] .island-sticker:nth-child(3){right:2%;width:130px;height:110px}
+@media(max-width:620px){
+  body .world .scene-decor{height:100px;margin:9px auto 3px}
+  body .world .scene-decor .island-sticker:nth-child(1){left:0;top:4px;width:93px;height:93px}
+  body .world .scene-decor .island-sticker:nth-child(2){left:36%;top:17px;width:77px;height:77px}
+  body .world .scene-decor .island-sticker:nth-child(3){right:0;top:12px;width:80px;height:80px}
+  body .world .scene-decor .island-sticker:nth-child(4){left:68%;top:-5px;width:48px;height:48px}
+  body .world .scene-decor[data-scene="home"]{margin-top:-10px;height:108px}
+  body .world .scene-decor[data-scene="home"] .island-sticker:nth-child(2){width:98px;height:90px;left:38%}
+  body .world .scene-decor[data-scene="draw"] .island-sticker:nth-child(2){width:68px;left:41%}
 }

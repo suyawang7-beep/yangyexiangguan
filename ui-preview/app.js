@@ -755,6 +755,20 @@
     decoration.setAttribute('aria-hidden', 'true');
     decoration.innerHTML = (pairs[PAGE] || pairs.home).map(name => `<svg class="island-sticker sticker-${name}" viewBox="0 0 160 160" fill="none" focusable="false"><use href="assets/island-stickers.svg#${name}"></use></svg>`).join('');
     host.append(decoration);
+    const scenes = {
+      home:['sunset','wave','starfish','tape'], passport:['bottle','shell','wave','tape'],
+      office:['lantern','starfish','sprig','tape'], checkin:['sunset','cloud','sprig','starfish'],
+      draw:['moon-sea','lantern','wave','tape'], collection:['moon-sea','shell','starfish','tape'],
+      islanders:['jellyfish','shell','wave','sprig'], mailbox:['bottle','cloud','tape','wave'],
+      guide:['sunset','wave','starfish','tape'], effects:['spiral-sea','jellyfish','starfish','cloud']
+    };
+    const scene = document.createElement('div');scene.className='scene-decor';scene.dataset.scene=PAGE;
+    scene.setAttribute('aria-hidden','true');
+    scene.innerHTML=(scenes[PAGE]||scenes.home).map(name=>`<svg class="island-sticker sticker-${name}" viewBox="0 0 160 160" fill="none" focusable="false"><use href="assets/island-stickers.svg?v=20261018-sea2#${name}"></use></svg>`).join('');
+    const anchor = document.querySelector(({home:'.news-strip',draw:'.postal-collection',collection:'.collection-note',islanders:'.oc-gallery'})[PAGE]||'main');
+    if (anchor && (PAGE === 'home' || PAGE === 'draw')) anchor.before(scene);
+    else if (anchor && (PAGE === 'collection' || PAGE === 'islanders')) anchor.after(scene);
+    else document.querySelector('main').append(scene);
   }
 
   function renderPage() {

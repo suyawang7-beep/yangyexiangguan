@@ -1,6 +1,6 @@
 """Build small, renamed OFL heading fonts without changing their outlines.
 
-Usage: python tools/build-heading-font.py SOURCE OUTPUT 'Buzhi Hand'
+Usage: python tools/build-heading-font.py SOURCE OUTPUT 'Buzhi Hand' [CHARACTER_FILE]
 Requires fonttools and Brotli only when rebuilding, not at website runtime.
 Source revisions, full licenses and SHA-256 values are in assets/fonts/README.md.
 """
@@ -11,7 +11,7 @@ from fontTools.ttLib import TTFont
 
 source, destination = map(Path, sys.argv[1:3])
 family = sys.argv[3]
-characters = Path(__file__).with_name("heading-characters.txt").read_text().strip()
+characters = (Path(sys.argv[4]) if len(sys.argv) > 4 else Path(__file__).with_name("heading-characters.txt")).read_text().strip()
 font = TTFont(source)
 missing = {c for c in characters if not c.isspace() and ord(c) not in font.getBestCmap()}
 if missing:
