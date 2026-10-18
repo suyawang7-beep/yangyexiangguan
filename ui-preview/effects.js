@@ -382,42 +382,61 @@
 
   function installGuide() {
     const voyage = document.querySelector('#voyage'); if (!voyage) return;
-    const camera = document.querySelector('#map-camera');
-    const stops = Array.from(document.querySelectorAll('.voyage-stop'));
-    const points = [[260,400,2.45,-5],[338,408,2.5,3],[584,385,2.4,-3],[795,530,2.4,4],[620,710,2.3,-3],[420,610,2.15,0]];
+    if (voyage.dataset.guideReady === 'true') return;
+    const camera = voyage.querySelector('#map-camera'), map = voyage.querySelector('.voyage-map');
+    const entries = Array.from(voyage.querySelector('#voyage-stops').content.querySelectorAll('[data-guide-entry]'));
+    const pins = Array.from(voyage.querySelectorAll('[data-map-stop]'));
+    const points = [[600,500,1,0],[550,490,1.12,-1],[600,480,1.15,1],[640,510,1.13,-1],[610,545,1.12,1],[565,525,1.12,0]];
+    const motion = () => enabled() && allowedMode('effectGuide');
     let active = 0, desired = 0, position = 0, frame = 0;
+    function placePins() {
+      const matrix = camera.getScreenCTM(); if (!matrix) return;
+      const bounds = map.getBoundingClientRect();
+      pins.forEach(pin => {
+        const point = new DOMPoint(Number(pin.dataset.mapX), Number(pin.dataset.mapY)).matrixTransform(matrix);
+        const half = pin.offsetWidth / 2;
+        pin.style.left = `${clamp(point.x - bounds.left, half + 8, bounds.width - half - 8)}px`;
+        pin.style.top = `${clamp(point.y - bounds.top, 112, bounds.height - 54)}px`;
+      });
+    }
     function paint() {
+      if (!voyage.isConnected) return;
+      const viewBox = innerWidth <= 620 ? '140 60 900 880' : '100 60 1000 880';
+      if (camera.ownerSVGElement.getAttribute('viewBox') !== viewBox) camera.ownerSVGElement.setAttribute('viewBox', viewBox);
       const i = Math.min(Math.floor(position), points.length - 2); const f = clamp(position - i, 0, 1);
       const p = points[i].map((value, axis) => value + (points[i + 1][axis] - value) * f);
-      camera.setAttribute('transform', enabled() ? `translate(600 500) rotate(${p[3]}) scale(${p[2]}) translate(${-p[0]} ${-p[1]})` : 'translate(0 0)');
+      camera.setAttribute('transform', motion() ? `translate(600 500) rotate(${p[3]}) scale(${p[2]}) translate(${-p[0]} ${-p[1]})` : 'translate(0 0)');
+      placePins();
     }
     function tick() {
-      frame = 0; position += (desired - position) * .095; if (Math.abs(desired - position) < .002) position = desired;
-      paint(); if (enabled() && position !== desired) frame = requestAnimationFrame(tick);
+      frame = 0; position += (desired - position) * .12; if (Math.abs(desired - position) < .002) position = desired;
+      paint(); if (voyage.isConnected && motion() && position !== desired) frame = requestAnimationFrame(tick);
     }
-    function measure() {
-      const anchor = innerWidth <= 620 ? document.querySelector('.voyage-sticky').getBoundingClientRect().height + 53 : innerHeight * .48;
-      let progress = 0;
-      for (let i = 0; i < stops.length - 1; i++) {
-        const top = stops[i].getBoundingClientRect().top, next = stops[i + 1].getBoundingClientRect().top;
-        if (anchor >= top) progress = i + clamp((anchor - top) / (next - top), 0, 1);
-      }
-      desired = clamp(progress, 0, 5); active = Math.round(desired);
-      document.querySelector('#voyage-count').textContent = `${String(active + 1).padStart(2, '0')} / 06`;
-      document.querySelector('#voyage-location').textContent = ['海面', '庆典码头', '岛民事务所', '肥啾邮局', '回忆收藏室', '生日庆典'][active];
-      document.querySelector('#voyage-prev').disabled = active === 0; document.querySelector('#voyage-next').disabled = active === 5;
+    function select(index) {
+      active = desired = clamp(index, 0, entries.length - 1);
+      const entry = entries[active], action = entry.querySelector('a');
+      voyage.querySelector('#voyage-count').textContent = `${String(active + 1).padStart(2, '0')} / 06`;
+      voyage.querySelector('#voyage-location').textContent = entry.dataset.location;
+      voyage.querySelector('#voyage-card-title').textContent = entry.querySelector('h2').textContent;
+      voyage.querySelector('#voyage-card-copy').textContent = entry.querySelector('p').textContent;
+      const destination = voyage.querySelector('#voyage-destination');
+      destination.setAttribute('href', action.getAttribute('href'));
+      destination.replaceChildren(...Array.from(action.childNodes, node => node.cloneNode(true)));
+      voyage.querySelector('#voyage-prev').disabled = active === 0;
+      voyage.querySelector('#voyage-next').disabled = active === entries.length - 1;
+      voyage.querySelector('#voyage-overview').setAttribute('aria-pressed', String(active === 0));
       voyage.dataset.stop = active;
-      stops.forEach((el, i) => el.classList.toggle('active', i === active));
-      if (!enabled()) { position = desired; paint(); } else if (!frame) frame = requestAnimationFrame(tick);
+      pins.forEach(pin => pin.setAttribute('aria-pressed', String(Number(pin.dataset.mapStop) === active)));
+      if (!motion()) { position = desired; paint(); } else if (!frame) frame = requestAnimationFrame(tick);
     }
-    function go(delta) {
-      const offset = innerWidth <= 620 ? document.querySelector('.voyage-sticky').getBoundingClientRect().height + 53 : innerHeight * .48;
-      const stop = stops[clamp(active + delta, 0, 5)];
-      scrollTo({ top: Math.max(0, stop.getBoundingClientRect().top + scrollY - offset), behavior: enabled() ? 'smooth' : 'auto' });
-    }
-    document.querySelector('#voyage-prev').onclick = () => go(-1); document.querySelector('#voyage-next').onclick = () => go(1);
-    addEventListener('scroll', measure, { passive: true }); addEventListener('resize', measure);
-    subscribe(() => { cancelAnimationFrame(frame); frame = 0; measure(); }); measure();
+    voyage.querySelector('#voyage-prev').onclick = () => select(active - 1);
+    voyage.querySelector('#voyage-next').onclick = () => select(active + 1);
+    voyage.querySelector('#voyage-overview').onclick = () => select(0);
+    pins.forEach(pin => { pin.onclick = () => select(Number(pin.dataset.mapStop)); });
+    addEventListener('resize', paint);
+    subscribe(() => { cancelAnimationFrame(frame); frame = 0; position = desired; paint(); });
+    document.fonts.ready.then(placePins);
+    voyage.dataset.guideReady = 'true'; select(0);
   }
 
   function installGallery() {
@@ -499,7 +518,7 @@
     if (page === 'collection') installExhibit();
     if (page === 'office' && allowedMode('effectProgress')) installProgress();
     if (page === 'draw' && allowedMode('effectDraw')) installDrawEffects();
-    if (page === 'guide' && allowedMode('effectGuide')) installGuide();
+    if (page === 'guide') installGuide();
     if (page === 'islanders') {
       if (!document.querySelector('.oc-world-intro')) document.querySelector('.oc-mode-bar').insertAdjacentHTML('beforebegin', '<p class="oc-world-intro">菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p>');
       installGallery();

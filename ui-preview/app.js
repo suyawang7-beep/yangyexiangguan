@@ -735,8 +735,6 @@
         main.querySelector('.letters').id = 'live-notices';
         side.innerHTML = `${icon('mail')}<h2>来自岛主的消息</h2><p>公告由服务器更新</p><nav aria-label="信件目录"><a href="#live-notices">查看最新来信 ${icon('arrow')}</a></nav>`;
       }
-    } else if (PAGE === 'guide') {
-      replaceOpening(`<header class="map-room-head"><span class="room-emblem">${icon('anchor')}</span><div><span class="room-label">沿着海风出发</span><h1>一起逛逛不吱岛</h1></div><span class="pill">6 站小岛旅程 · 随时可跳过</span></header>`);
     } else if (PAGE === 'effects') {
       replaceOpening(`<header class="playground-head"><span aria-hidden="true">✦</span><div><span class="room-label">设计审阅专用 · 非正式领奖页面</span><h1>小岛光影游乐场</h1><p>水波、星光和一只送来回忆的肥啾。</p></div></header>`);
       const intro = main.querySelector('.effects-intro');
@@ -788,14 +786,14 @@
 
   function renderGuide() {
     const stops = [
-      ['看见海的那一刻', '从雪啾国出发，穿过一片透亮的海，去赴一场生日的约。', '海面 / Sea breeze'],
-      ['欢迎来到不吱岛', '菜菜与吱吱把这里变成了家，也为每一位来客留了一个位置。', '码头 / Welcome aboard'],
-      ['向事务所报个到', '庆典需要一点点心意。完成小任务，让金币和快乐一起装进口袋。', '事务所 / Little missions'],
-      ['让肥啾替你送信', '每一封信里都藏着一张回忆卡，把今天的期待寄给未来的自己。', '邮局 / Birthday memories'],
-      ['把相遇好好收藏', '在这里，每张卡、每位岛民，都可以拥有属于自己的故事。', '收藏室 / Keep the moments'],
-      ['派对已经准备好了', '10月20日是菜菜的生日。现在就领好通行证，一起赴约吧。', '庆典 / A little wish'],
+      ['全岛总览', '先在岛上，慢慢逛一逛', '从雪啾国出发，穿过一片透亮的海。点点岛上的地名，看看我们为你留下的地方。', 'passport', '领取生日通行证', 0, 0, 'island'],
+      ['庆典码头', '海风把你，带到这里', '菜菜与吱吱把这里变成了家，也为每一位来客留了一个位置。从这座小码头开始，留下你的名字吧。', 'passport', '去领取通行证', 246, 384, 'anchor'],
+      ['岛民事务所', '把小小心意，装进口袋', '完成庆典任务，收下属于你的金币。让参与庆典的每一步，都变成下一份相遇的期待。', 'office', '去看看庆典任务', 587, 461, 'flag'],
+      ['肥啾邮局', '让肥啾，替你寄出期待', '一只肥啾，一封来信。花 50 金币拆开生日回忆卡，把今天的心愿寄给未来的自己。', 'draw', '去抽生日回忆卡', 797, 620, 'mail'],
+      ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 617, 800, 'cards'],
+      ['生日庆典', '今天的主角，正在等你', '10 月 20 日是菜菜的生日。领好生日通行证，在不吱岛一起留下这次赴约的回忆。', 'passport', '带上通行证赴约', 422, 648, 'cake'],
     ];
-    return heading('07', 'A little journey to our island', '沿着海风，登岛吧', '向下滚动，镜头会带你走过小岛。也可以点下一站，或直接跳过导览。') + `<div class="guide-topbar"><a href="passport.html" class="btn">跳过导览，去领通行证 ${icon('arrow')}</a><span class="pill">${LIVE ? '不吱岛 · 登岛地图' : '地图为原创场景示意'}</span></div><div class="voyage-layout" id="voyage"><div class="voyage-sticky"><div class="glass voyage-map"><svg viewBox="0 0 1200 1000" role="img" aria-label="不吱岛地图，依次经过海面、码头、事务所、邮局、收藏室和庆典"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/island-map.svg')}" width="1200" height="1000"/></g></svg><span class="map-compass">N<br>↑</span><div class="map-status"><span class="mono" id="voyage-count">01 / 06</span><span id="voyage-location">海面</span></div></div><div class="voyage-buttons"><button class="btn" id="voyage-prev" type="button" aria-label="上一站">← 上一站</button><button class="btn primary" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div></div><div class="voyage-stops">${stops.map(([name, text, label], index) => `<section class="voyage-stop" id="stop-${index}" data-stop="${index}"><div class="glass panel"><div class="eyebrow">${String(index + 1).padStart(2, '0')} / ${label}</div><h2>${name}</h2><p>${text}</p>${index === 5 ? link('passport', '领取我的生日通行证', 'btn primary') : '<span class="small muted">继续向下，海风会带路 ↓</span>'}</div></section>`).join('')}</div></div>`;
+    return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图"><div class="voyage-map"><svg class="guide-map-art" viewBox="100 60 1000 880" role="img" aria-label="不吱岛全景地图：庆典码头、岛民事务所、肥啾邮局、回忆收藏室与生日庆典"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/island-map.svg')}" width="1200" height="1000"/></g></svg><header class="guide-map-heading"><span class="room-label">不吱岛 · 岛上散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。</p></header><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button><div class="map-pins" role="group" aria-label="岛上地点">${stops.slice(1).map(([name,,,,,x,y,motif],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div><span class="guide-map-compass" aria-hidden="true">N<span>✧</span>S</span><p class="guide-map-hint">${LIVE ? '点选岛上的地点，开启你的小岛旅程' : '原创地图示意 · 轻点地名，慢慢逛逛'}</p></div><div class="voyage-buttons" aria-label="导览翻页"><button class="btn" id="voyage-prev" type="button" aria-label="上一站" disabled>← 上一站</button><button class="btn" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div><section class="guide-info glass" aria-live="polite" aria-atomic="true" aria-labelledby="voyage-card-title"><div class="guide-info-meta"><span id="voyage-count">01 / 06</span><span id="voyage-location">全岛总览</span></div><h2 id="voyage-card-title">${stops[0][1]}</h2><p id="voyage-card-copy">${stops[0][2]}</p><a class="guide-destination" id="voyage-destination" href="passport.html">${stops[0][4]} ${icon('arrow')}</a></section><template id="voyage-stops">${stops.map(([name,title,text,route,action])=>`<section data-guide-entry data-location="${esc(name)}"><h2>${esc(title)}</h2><p>${esc(text)}</p><a href="${PATHS[route][0]}">${esc(action)} ${icon('arrow')}</a></section>`).join('')}</template></section>`;
   }
 
   function renderIslanders() {
@@ -816,7 +814,7 @@
       ['02', '星光鼠标与点击反馈', '电脑跟随鼠标，手机点击短暂绽放；输入时保留文字光标。', 'home', 'sparkles'],
       ['03', '展开一册生日回忆', '当前开放扇形展馆，可拖动、翻页、筛选和查看卡片；其他排列由设置控制。', 'collection', 'cards'],
       ['04', '肥啾任务进度', '完成真实演示任务后，小肥啾向3／6／9任务里程碑前进。', 'office', 'bird'],
-      ['05', '沿着地图登岛', '滚动或点下一站，镜头沿路线移动、缩放和转向。', 'guide', 'anchor'],
+      ['05', '沿着地图登岛', '在大地图上点选地名，或用下一站轻轻巡游。', 'guide', 'anchor'],
       ['06', '岛民画廊', '横向欣赏角色海报，阅读名字与身份，预留未来个人 OC 入口。', 'islanders', 'heart'],
       ['07', '肥啾叼卡与生日流星雨', '肥啾叼着来信轻轻浮动，抽取时带着大流星送达，揭晓后停在卡片旁庆祝。', 'draw', 'mail'],
       ['08', '签到的小小星光', '每日签到完成时短暂绽放，不持续干扰阅读。', 'checkin', 'sun'],
@@ -830,7 +828,7 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261018-arcana1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261019-map1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
 

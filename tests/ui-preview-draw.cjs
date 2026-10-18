@@ -49,6 +49,58 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, name + '.png'), animations: 'disabled' });
   }
 
+  if (process.argv.includes('--guide-only')) {
+    await visit('guide');
+    check(await page.locator('.guide-explorer').count()===1,'Guide presents one map-first explorer instead of a split reading layout');
+    check(await page.locator('[data-map-stop]').count()===5,'Five real island locations have native clickable map labels');
+    check(await page.locator('.voyage-stop').count()===0,'Long scroll-driven description cards are removed');
+    check(await page.locator('.guide-info').count()===1,'Only one current-place description accompanies the map');
+    check(await page.locator('#map-camera image').evaluate(async el=>{const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=el.getAttribute('href')});const c=document.createElement('canvas');c.width=1200;c.height=1000;const ctx=c.getContext('2d');ctx.drawImage(img,0,0,1200,1000);return ctx.getImageData(10,10,1,1).data[3]===0}),'Original island artwork has a transparent sea surround so the enlarged map has no rectangular image seams');
+    for(const width of [320,390,621,768,1024,1440]) {
+      await page.setViewportSize({width,height:900});await visit('guide');
+      const metrics=await page.locator('.voyage-map').evaluate(el=>{const r=el.getBoundingClientRect(),main=document.querySelector('main').getBoundingClientRect();return {width:r.width,height:r.height,main:main.width}});
+      check(metrics.width>=metrics.main*.95&&metrics.height>=450,`${width}px: map dominates the page instead of a small sidebar`);
+      check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}px: guide has no horizontal overflow`);
+      check(await page.locator('[data-map-stop]').evaluateAll(pins=>{const map=document.querySelector('.voyage-map').getBoundingClientRect();return pins.every(el=>{const r=el.getBoundingClientRect();return r.width>=44&&r.height>=44&&r.left>=map.left&&r.right<=map.right&&r.top>=map.top&&r.bottom<=map.bottom})}),`${width}px: all map labels stay visible and finger-sized`);
+      check(await page.locator('[data-map-stop]').evaluateAll(pins=>{const boxes=pins.map(el=>el.getBoundingClientRect());return boxes.every((a,i)=>boxes.every((b,j)=>i===j||Math.min(a.right,b.right)-Math.max(a.left,b.left)<=1||Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)<=1))}),`${width}px: island labels do not overlap`);
+      for(const stop of [1,2,3,4,5]) {
+        await page.locator(`[data-map-stop="${stop}"]`).click({timeout:2500});
+        check(await page.locator('#voyage').getAttribute('data-stop')===String(stop),`${width}px: place ${stop} is actually clickable, not covered by the info card`);
+      }
+      await page.locator('#voyage-overview').click();
+      await capture(`guide-overview-${width}`);
+    }
+    await page.setViewportSize({width:390,height:844});await visit('guide');
+    await page.getByRole('button',{name:'查看肥啾邮局',exact:true}).click();
+    check((await page.locator('#voyage-location').textContent())==='肥啾邮局','Clicking an island label selects its own location');
+    check((await page.locator('#voyage-count').textContent())==='04 / 06','Map labels and tour progress stay in sync');
+    check(await page.locator('#voyage-destination').getAttribute('href')==='draw.html','Postal label points to the real draw page');
+    check(await page.getByRole('button',{name:'查看肥啾邮局',exact:true}).getAttribute('aria-pressed')==='true','Selected label is visibly and accessibly marked');
+    await page.locator('#voyage-next').click();
+    check((await page.locator('#voyage-location').textContent())==='回忆收藏室','Next stop works without long document scrolling');
+    await page.locator('#voyage-prev').click();
+    check((await page.locator('#voyage-location').textContent())==='肥啾邮局','Previous stop returns to the corresponding map label');
+    await page.locator('#voyage-overview').click();
+    check((await page.locator('#voyage-count').textContent())==='01 / 06'&&await page.locator('#voyage-prev').isDisabled(),'Overview returns to the whole island and first stop');
+    await page.getByRole('button',{name:'查看岛民事务所',exact:true}).focus();await page.keyboard.press('Enter');
+    check((await page.locator('#voyage-location').textContent())==='岛民事务所','Map locations also work with the keyboard');
+    await capture('guide-office-390');
+    await page.getByRole('button',{name:'查看生日庆典',exact:true}).click();
+    check(await page.locator('#voyage-next').isDisabled(),'Final tour stop has an honest disabled next control');
+    check(await page.locator('#voyage-destination').getAttribute('href')==='passport.html','Birthday area keeps the passport entry point');
+    await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});await visit('guide');
+    const before=await page.locator('#map-camera').getAttribute('transform');await page.locator('#voyage-next').click();
+    await page.waitForFunction(old=>document.querySelector('#map-camera').getAttribute('transform')!==old,before);
+    check((await page.locator('#voyage-location').textContent())==='庆典码头','Existing next-station journey retains a real camera movement');
+    await page.locator('#motion-toggle').click();
+    check(await page.locator('#map-camera').getAttribute('transform')==='translate(0 0)','Motion-off keeps a still whole-island view');
+    await page.getByRole('button',{name:'查看回忆收藏室',exact:true}).click();
+    check((await page.locator('#voyage-location').textContent())==='回忆收藏室','Turning motion off never disables map navigation');
+    check(await page.locator('#map-camera').getAttribute('transform')==='translate(0 0)','Static interaction does not restart camera motion');
+    check(errors.length===0,`No map explorer errors: ${errors.join('; ')}`);
+    console.log(`PASS ${checks} guide assertions; dominant map, five anchored labels, six widths, native clicks, keyboard, camera and static navigation`);return;
+  }
+
   if (process.argv.includes('--ritual-only')) {
     await page.emulateMedia({reducedMotion:'no-preference'});
     await visit('draw');

@@ -109,8 +109,25 @@ server.stderr.on('data', chunk => { logs += chunk; });
   await page.goto(base + '/mailbox.html', { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.querySelector('.letters').textContent.includes('尚未发布'));
   assert.equal(await page.locator('.mailbox-side nav a').getAttribute('href'), '#live-notices');
+  await page.goto(base + '/guide.html', {waitUntil:'networkidle'});
+  await page.locator('[data-guide-ready="true"]').waitFor();
+  assert.equal(await page.locator('[data-map-stop]').count(),5,'Production mode also binds the five island labels');
+  assert(await page.locator('.voyage-map').evaluate(el=>el.getBoundingClientRect().height>=460),'Production serves the new large-map stylesheet');
+  await page.getByRole('button',{name:'查看肥啾邮局',exact:true}).click();
+  assert.equal(await page.locator('#voyage-destination').getAttribute('href'),'draw.html');
+  assert.equal(await page.locator('[data-balance]').first().textContent(),'10','Exploring the map never charges a draw or awards coins');
+  // Only the temporary server/database is configured; no external admin endpoint is used.
+  const visual=await fetch(base+'/api/visual-settings').then(r=>r.json());
+  const configured=await fetch(base+'/api/admin/visual-settings',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer isolated-layout-test-token-not-production-20261017'},body:JSON.stringify({...visual,effectGuide:false})});
+  assert.equal(configured.status,200);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.goto(base+'/guide.html',{waitUntil:'networkidle'});await page.locator('[data-guide-ready="true"]').waitFor();
+  assert.equal(await page.locator('.world').getAttribute('data-motion'),'on','The global switch remains on while only guide motion is disabled');
+  await page.getByRole('button',{name:'查看生日庆典',exact:true}).click();
+  assert.equal(await page.locator('#voyage-location').textContent(),'生日庆典','Admin guide-motion setting does not disable actual guide navigation');
+  assert.equal(await page.locator('#map-camera').getAttribute('transform'),'translate(0 0)');
   assert.deepEqual(errors, []);
-  console.log('PASS production-mode souvenir PNG download, passport tabs, cross-context account recovery without extra coins, rounded font, registration, draw, collection, sign-in, ledger and notices; no real accounts touched');
+  console.log('PASS production-mode souvenir PNG download, passport tabs, cross-context account recovery without extra coins, registration, draw, collection, sign-in, ledger, notices and large-map navigation with guide motion disabled; no real accounts touched');
 })().catch(error => { console.error(error.message); process.exitCode = 1; }).finally(async () => {
   await browser?.close();
   const exited = new Promise(resolve => server.once('exit', resolve));
