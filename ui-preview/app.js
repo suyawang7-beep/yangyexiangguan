@@ -565,8 +565,9 @@
     });
     const host=document.querySelector('#main');
     if(!state.passport&&host){
-      const login=document.createElement('section');login.className='glass panel';login.innerHTML='<h2>已有通行证？恢复账户</h2><form id="live-login"><label>唯一参与者编号<input name="id" required autocomplete="off" placeholder="BZI-..."></label><label>恢复密钥<input name="key" required type="password" autocomplete="off"></label><button class="btn primary" type="submit">恢复我的岛民数据</button></form>';
+      const login=document.createElement('section');login.className='glass panel';login.innerHTML='<div class="eyebrow">WELCOME BACK · BUZHI ISLAND</div><h2>欢迎回岛，老岛民！</h2><p class="small muted">换手机、换浏览器也不用重新登记。使用首次登岛保存的编号与恢复密钥，找回原来的金币、任务和生日回忆卡。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登岛恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入首次登记时保存的密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示密钥</button></div><button class="btn primary full" type="submit">找回我的岛民身份 →</button><p class="small muted">恢复密钥属于私密凭证，请勿发送到公开聊天或直播间。只有昵称或编号无法安全找回账户。</p></form>';
       host.append(login);
+      login.querySelector('#toggle-returning-key').onclick=()=>{const field=login.querySelector('#returning-key');const visible=field.type==='password';field.type=visible?'text':'password';login.querySelector('#toggle-returning-key').textContent=visible?'隐藏密钥':'显示密钥';login.querySelector('#toggle-returning-key').setAttribute('aria-pressed',String(visible))};
       login.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget;try{const data=await liveApi('login',{id:f.elements.id.value.trim(),recoveryKey:f.elements.key.value.trim()});liveToken=data.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(data.profile)}catch(err){toast(err.message)}};
     }
   }
