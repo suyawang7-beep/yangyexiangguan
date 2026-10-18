@@ -1,8 +1,42 @@
-/* moon1: only card backs and frames. Front artwork, content and rarity stay intact. */
-body .world .memory-card:not(.card-back){border-color:#c6b58c9c}
-body .world .memory-card:not(.card-back):after{content:'';position:absolute;inset:0;z-index:2;background:url('assets/memory-card-frame.svg?v=20261018-moon1') center/100% 100% no-repeat;pointer-events:none;opacity:.9}
-body .world .memory-card:not(.card-back) .card-inner{border-color:#b9a77e80}
-body .world .card-back{padding:0;border-color:#b9a77d;border-radius:17px;background:#e8e4d5;isolation:isolate}
+/* arcana1: original ocean-fantasy reward cards. No changes to art mapping or rewards. */
+body .world .pool-preview{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+body .world .memory-card:not(.card-back){
+  --relic-metal:#b7c9d1;--relic-ink:#e8f0ed;--relic-night:#243f4b;--relic-deep:#162b36;--relic-gem:#9fc6cc;
+  padding:8px;border:1px solid #acb4ad;border-radius:12px;color:var(--relic-ink);
+  background:repeating-linear-gradient(103deg,#ffffff0a 0 1px,transparent 1px 4px),linear-gradient(135deg,#f0e9d6,#d3cfbd 48%,#f3eddb);
+  box-shadow:inset 0 0 0 2px #ece6d1,0 7px 22px #16384d2b;
+}
+body .world .memory-card[data-rarity="N"]{--relic-metal:#b7c9d1;--relic-night:#334e59;--relic-deep:#243946;--relic-gem:#adcac7}
+body .world .memory-card[data-rarity="R"]{--relic-metal:#a3c7dd;--relic-night:#23475f;--relic-deep:#142e44;--relic-gem:#9fcfea}
+body .world .memory-card[data-rarity="SR"]{--relic-metal:#d1b7e0;--relic-night:#494567;--relic-deep:#272b48;--relic-gem:#dec3f1}
+body .world .memory-card[data-rarity="SSR"]{--relic-metal:#dfc58b;--relic-night:#20495c;--relic-deep:#102b40;--relic-gem:#a1dbe2}
+body .world .memory-card[data-rarity="UR"]{--relic-metal:#f0d49a;--relic-night:#545049;--relic-deep:#2e3547;--relic-gem:#fae2a4;--relic-ink:#fff0cf}
+body .world .memory-card:not(.card-back):after{content:'';position:absolute;inset:0;z-index:2;background:url('assets/memory-card-frame.svg?v=20261018-arcana1') center/100% 100% no-repeat;pointer-events:none;opacity:.95}
+body .world .memory-card:not(.card-back) .card-inner{padding:8px 9px 9px;border:1px solid var(--relic-metal);border-radius:7px;background:radial-gradient(ellipse at 50% 32%,var(--relic-night),var(--relic-deep) 80%);box-shadow:inset 0 0 20px #071c3240}
+body .world .memory-card .card-topline{min-height:18px;gap:6px;position:relative;z-index:1}
+body .world .memory-card .card-number{font:7px/1.4 Georgia,serif;letter-spacing:1.2px;color:var(--relic-metal)}
+body .world .memory-card .rarity{font:600 11px/1.4 Georgia,serif;letter-spacing:1.5px;color:var(--relic-metal);border:1px solid var(--relic-metal);border-radius:2px 7px;padding:1px 5px;background:#ffffff06}
+body .world .memory-card .card-picture{margin:5px 0 0;border:1px solid var(--relic-metal);border-radius:50% 50% 5px 5px / 36% 36% 5px 5px;background:radial-gradient(ellipse at 50% 50%,#c8dbde1c,transparent 68%),linear-gradient(170deg,#ffffff04,#010d191f);isolation:isolate;overflow:hidden}
+body .world .memory-card .card-picture:before{inset:0;width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0;box-shadow:none;background:url('assets/memory-card-celestial.svg?v=20261018-arcana1') center/100% 100% no-repeat;opacity:.65;pointer-events:none}
+body .world .memory-card .card-picture>.icon{width:51%;height:51%;color:var(--relic-gem);stroke-width:.8;filter:drop-shadow(0 0 10px #bfe5ec44);position:relative;z-index:1}
+body .world .memory-card .card-picture>[data-official-card]{position:relative;z-index:1}
+body .world .memory-card .card-nameplate{position:relative;flex:none;text-align:center;margin:9px 0 0;padding:3px 0 5px;border-top:1px solid var(--relic-metal);border-bottom:1px solid var(--relic-metal)}
+.card-nameplate .card-crest{position:absolute;top:-8px;left:50%;translate:-50% 0;background:var(--relic-deep);padding:0 7px;color:var(--relic-metal);font:12px/1 Georgia,serif;pointer-events:none}
+body .world .memory-card .card-title{font:400 17px/1.5 'Buzhi Hand',var(--display);letter-spacing:1px;color:var(--relic-ink);margin:4px 0 2px;text-shadow:0 1px 7px #0003}
+body .world .memory-card .card-subtitle{font:5.5px/1.5 Georgia,serif;letter-spacing:1.3px;color:var(--relic-metal);margin:0}
+body .world .memory-card .card-bottomline{font:5.5px/1.4 Georgia,serif;letter-spacing:.4px;color:var(--relic-metal);margin-top:7px;min-height:8px;align-items:center}
+body .world .memory-card .quantity{top:auto;bottom:16px;right:17px;padding:1px 5px;border:1px solid var(--relic-metal);border-radius:3px;background:var(--relic-deep);color:var(--relic-ink);font:9px/1.4 Georgia,serif;z-index:3}
+.memory-card .quantity~.card-inner .card-bottomline>span:last-child{visibility:hidden}
+body .world .memory-card.locked{opacity:.78;filter:saturate(.55)}
+body .world .memory-card.locked .card-picture>.icon{opacity:.55}
+body .world .memory-card[data-rarity="UR"] .card-picture{box-shadow:inset 0 0 23px #f0d49a18}
+body .world .memory-card[data-rarity="N"] .card-picture:before{opacity:.2}
+body .world .memory-card[data-rarity="R"] .card-picture:before{opacity:.4}
+body .world .memory-card[data-rarity="SSR"] .card-picture:before,body .world .memory-card[data-rarity="UR"] .card-picture:before{opacity:.85}
+body .world .memory-card[data-rarity="N"]:after,body .world .memory-card[data-rarity="R"]:after{filter:grayscale(.85)}
+body .world .memory-card[data-rarity="SR"]:after{filter:hue-rotate(275deg) saturate(.65)}
+body .world .memory-card[data-rarity="SSR"] .card-nameplate:after,body .world .memory-card[data-rarity="UR"] .card-nameplate:after{content:'◆';position:absolute;top:-5px;right:6px;font-size:6px;color:var(--relic-metal);text-shadow:0 0 5px var(--relic-gem)}
+body .world .card-back{padding:0;border-color:#b9a77d;border-radius:12px;background:#e8e4d5;isolation:isolate}
 body .world .card-back:before{display:none}
 .card-back .card-back-art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none}
 .card-back .card-back-label{position:absolute;left:13%;right:13%;bottom:18.5%;color:#e5d3a3;text-align:center}
@@ -10,4 +44,6 @@ body .world .card-back:before{display:none}
 body .world .card-back .card-back-label h2{font:400 23px/1.3 'Buzhi Hand',var(--display);letter-spacing:5px;margin:5px 0 3px;padding-left:5px;color:#eee0b8}
 body .world .card-back .card-back-label p{font:7px/1.7 var(--display);letter-spacing:1px;margin:0;color:#d0c099}
 .card-back .card-back-edition{position:absolute;left:12%;right:12%;bottom:5.4%;font:6px Georgia,serif;letter-spacing:1.4px;text-align:center;color:#7f7255}
-/* The fixed back is identical before every draw; it never encodes card rarity. */
+@media(max-width:620px){body .world .memory-card:not(.card-back){padding:7px}body .world .memory-card:not(.card-back) .card-inner{padding:6px 7px 7px}body .world .memory-card .card-title{font-size:14px;letter-spacing:.5px}body .world .memory-card .card-subtitle{font-size:5px;letter-spacing:.7px}body .world .memory-card .card-bottomline{font-size:5px;letter-spacing:0}body .world .memory-card .card-number{font-size:6px}body .world .memory-card .rarity{font-size:9px}body .world .memory-card .quantity{bottom:14px;right:15px}}
+@media(max-width:620px){body .world .pool-preview{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}}
+/* The back is identical for every draw and never discloses the hidden rarity. */

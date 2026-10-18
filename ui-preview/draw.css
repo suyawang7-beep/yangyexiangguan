@@ -215,3 +215,47 @@ body[data-page="draw"] .draw-stage[data-delivery-ready="true"].is-revealed .memo
   :is(.draw-delivery,.draw-courier,.courier-wing,.courier-eye){animation:none!important}
   .draw-button-bird svg {animation:none!important;transition:none!important}
 }
+
+/* arcana1: existing courier + meteors + star burst, with one finite celestial seal. */
+.draw-nightfall{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 40%,#112440f5,#030914fa 78%);transition:opacity .35s ease-out}
+body[data-page="draw"] .world[data-draw-night]>.container,body[data-page="draw"] .world[data-draw-night]>.site-header{position:relative;z-index:1}
+.world[data-draw-night="true"] .draw-nightfall{opacity:1}
+.world[data-draw-night="true"] .site-header,.world[data-draw-night="true"] .desktop-nav a,.world[data-draw-night="true"] .postal-location,.world[data-draw-night="true"] .postal-intro h1,.world[data-draw-night="true"] .postal-intro h1 em,.world[data-draw-night="true"] .draw-result-label,.world[data-draw-night="true"] .draw-cost strong,.world[data-draw-night="true"] .draw-info{color:#e4edf5}
+.world[data-draw-night="true"] .wallet,.world[data-draw-night="true"] .motion-toggle{background:#122a48df;color:#e3edf6;border-color:#b6d4e866}
+.world[data-draw-night="true"] .demo-line,.world[data-draw-night="true"] .postal-location>span,.world[data-draw-night="true"] .postal-edition,.world[data-draw-night="true"] .postal-intro>p,.world[data-draw-night="true"] .draw-stage .stage-caption,.world[data-draw-night="true"] .draw-info .draw-status,.world[data-draw-night="true"] .draw-info .draw-description{color:#b8cadb}
+body[data-page="draw"] .world[data-draw-night="true"] .draw-info{background:rgba(12,27,47,.88);border-color:#abc6e780;box-shadow:0 10px 35px #020a1d40}
+.world[data-draw-night="true"] .postal-pool-note .pill{background:#28334edb;color:#e9d9f0;border-color:#d3bdd366}
+.world[data-draw-night="true"] .draw-stage:before{background:radial-gradient(ellipse,#4b64843d,transparent 70%);box-shadow:0 0 0 26px #cde4ff0d,0 0 0 55px #cde4ff08;border-color:#adc8e626}
+.world[data-draw-night="true"] .draw-info a{color:#d1e3ef}
+.world[data-draw-night="true"] .postal-note,.world[data-draw-night="true"] .postal-stamp,.world[data-draw-night="true"] .postal-collection,.world[data-draw-night="true"] .scene-decor,.world[data-draw-night="true"] .site-footer{opacity:.16}
+[data-motion="off"] .draw-nightfall{display:none}
+.draw-ritual{position:absolute;width:min(96vw,490px);aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;opacity:0;pointer-events:none;overflow:hidden;border-radius:50%;color:#c7ab74;background:radial-gradient(ellipse,#243d6c3d,#4f6d9366 36%,#658cb829 61%,transparent 72%)}
+.draw-orbit{position:absolute;inset:3%;filter:drop-shadow(0 0 6px #ffefba80)}
+.draw-orbit svg{display:block;width:100%;height:100%}
+.draw-rising-light{position:absolute;left:25%;right:25%;top:8%;bottom:8%;background:linear-gradient(90deg,transparent,#fdf1cf33,#e6f9ff66,#fdf1cf33,transparent);mask-image:linear-gradient(transparent,#000 45%,transparent);opacity:0}
+.draw-wish-star{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4px;opacity:0;background:#fff5d8;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);filter:drop-shadow(0 0 5px white);transform:translate(var(--wish-x),var(--wish-y))}
+.draw-wish-star:nth-child(3n){width:15px;height:15px;background:#e2edff}
+.draw-ritual[data-ritual-state="drawing"]{animation:ritual-awaken 3s ease-out both}
+.draw-ritual[data-ritual-state="drawing"] .draw-orbit{animation:ritual-orbit 3s ease-out both}
+.draw-ritual[data-ritual-state="drawing"] .draw-rising-light{animation:ritual-light 3s ease-out both}
+.draw-ritual[data-ritual-state="drawing"] .draw-wish-star{animation:ritual-gather 2.4s ease-out var(--wish-delay) both}
+.draw-ritual[data-ritual-state="revealing"]{animation:ritual-dissolve 1.25s ease-out both}
+.draw-ritual[data-ritual-state="revealing"] .draw-orbit{animation:ritual-release 1.25s ease-out both}
+.draw-ritual[data-ritual-state="revealing"] .draw-wish-star{animation:ritual-scatter .95s ease-out var(--wish-delay) both}
+body[data-page="draw"] .draw-stage[data-delivery-ready="true"].is-drawing .memory-card{animation:arcana-unseal 3s ease-in both}
+body[data-page="draw"] .draw-stage[data-delivery-ready="true"].is-revealed .memory-card{animation:arcana-reveal .8s cubic-bezier(.22,1,.36,1) both}
+.draw-stage.is-drawing .draw-meteor{height:4px;box-shadow:0 0 12px #e0ecffd9}
+.draw-stage.is-drawing .draw-meteor:nth-child(3n){width:clamp(320px,50vw,780px);height:5px}
+.draw-stage.is-drawing .draw-meteor:nth-child(5n){background:linear-gradient(90deg,#fffce9,#edd8a9bb 12%,#c3deff55 45%,transparent)}
+.draw-stage[data-delivery-motion="off"] .draw-ritual,[data-motion="off"] .draw-ritual{display:none}
+@keyframes ritual-awaken{0%{opacity:0}22%{opacity:.6}60%,100%{opacity:1}}
+@keyframes ritual-orbit{from{transform:scale(.65) rotate(-38deg);opacity:.3}to{transform:scale(1) rotate(16deg);opacity:1}}
+@keyframes ritual-light{0%,12%{opacity:0;transform:scaleY(.2)}65%{opacity:.8}100%{opacity:0;transform:scaleY(1.1)}}
+@keyframes ritual-gather{0%{opacity:0;transform:translate(calc(var(--wish-x) * 1.25),calc(var(--wish-y) * 1.25)) scale(.2)}35%{opacity:.9}100%{opacity:.5;transform:translate(calc(var(--wish-x) * .85),calc(var(--wish-y) * .85)) scale(1)}}
+@keyframes ritual-dissolve{0%{opacity:1}100%{opacity:0}}
+@keyframes ritual-release{from{transform:scale(1) rotate(16deg)}to{transform:scale(1.18) rotate(38deg)}}
+@keyframes ritual-scatter{from{opacity:1;transform:translate(calc(var(--wish-x) * .85),calc(var(--wish-y) * .85)) scale(1.6)}to{opacity:0;transform:translate(calc(var(--wish-x) * 1.25),calc(var(--wish-y) * 1.25)) scale(.2)}}
+@keyframes arcana-unseal{0%,78%{transform:perspective(900px) rotateY(0) rotate(-7deg)}100%{transform:perspective(900px) rotateY(88deg) rotate(-3deg)}}
+@keyframes arcana-reveal{from{transform:perspective(900px) rotateY(-88deg) rotate(-3deg);opacity:.6}to{transform:perspective(900px) rotateY(0) rotate(-3deg);opacity:1}}
+@media(max-width:620px){.draw-stage .draw-meteor:nth-child(n+11):nth-child(-n+16){display:block}.draw-stage.is-drawing .draw-meteor:nth-child(3n){width:clamp(220px,76vw,410px)}.draw-ritual{width:min(96vw,390px)}.draw-wish-star:nth-child(n+12){display:none}.draw-orbit{inset:5%}}
+@media(prefers-reduced-motion:reduce){.draw-ritual,.draw-nightfall{display:none}}

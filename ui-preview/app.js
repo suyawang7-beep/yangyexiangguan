@@ -149,7 +149,7 @@
   function cardMarkup(card, { owned = true, quantity = 0, interactive = false } = {}) {
     const tag = interactive ? 'button' : 'div';
     return `<${tag} ${interactive ? `type="button" data-card="${card.id}" aria-label="${esc(card.name)}，${card.rarity}，${owned ? `已拥有${quantity}张` : '未获得'}"` : ''} class="memory-card ${owned ? '' : 'locked'}" data-rarity="${card.rarity}">
-      ${quantity ? `<span class="quantity">× ${quantity}</span>` : ''}<div class="card-inner"><div class="card-topline"><span class="card-number">${card.id} / 2026</span><span class="rarity">${card.rarity}</span></div><div class="card-picture">${cardPicture(card)}</div><div class="card-title">${esc(card.name)}</div><p class="card-subtitle">BUZHI ISLAND MEMORIES</p><div class="card-bottomline"><span>${owned ? 'BIRTHDAY COLLECTION' : '等待相遇'}</span><span>10.20 ✦</span></div></div></${tag}>`;
+      ${quantity ? `<span class="quantity">× ${quantity}</span>` : ''}<div class="card-inner"><div class="card-topline"><span class="card-number">${card.id} / 2026</span><span class="rarity">${card.rarity}</span></div><div class="card-picture">${cardPicture(card)}</div><div class="card-nameplate"><span class="card-crest" aria-hidden="true">✧</span><div class="card-title">${esc(card.name)}</div><p class="card-subtitle">BUZHI · CELESTIAL ARCHIVE</p></div><div class="card-bottomline"><span>${owned ? 'BIRTHDAY COLLECTION' : '等待相遇'}</span><span>10.20 ✦</span></div></div></${tag}>`;
   }
   function ledgerMarkup() {
     return state.ledger.length ? `<ul class="ledger">${state.ledger.slice(0, 6).map((entry) => `<li><span>${esc(entry.label)}</span><b class="${entry.amount < 0 ? 'negative' : ''}">${entry.amount > 0 ? '+' : ''}${entry.amount}</b></li>`).join('')}</ul>` : '<p class="small muted">还没有收支，庆典的故事等你开启。</p>';
@@ -303,7 +303,7 @@
   }
 
   function drawBack() {
-    return `<div class="memory-card card-back"><img class="card-back-art" src="assets/memory-card-back.svg?v=20261018-moon1" alt="" aria-hidden="true" width="300" height="425" draggable="false"><div class="card-back-label"><span class="card-back-kicker">CELEBRATION ARCHIVE</span><h2>不吱岛</h2><p>生日回忆 · 静候开启</p></div><span class="card-back-edition">BUZHI ISLAND · 2026</span></div>`;
+    return `<div class="memory-card card-back"><img class="card-back-art" src="assets/memory-card-back.svg?v=20261018-arcana1" alt="" aria-hidden="true" width="300" height="425" draggable="false"><div class="card-back-label"><span class="card-back-kicker">CELESTIAL ARCHIVE</span><h2>不吱岛</h2><p>星海秘藏 · 生日回忆</p></div><span class="card-back-edition">BUZHI ISLAND · 2026</span></div>`;
   }
   function renderDraw() {
     const first = state.history.length === 0;
@@ -830,7 +830,7 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261018-bird1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261018-arcana1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
 

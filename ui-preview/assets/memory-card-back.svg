@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="425" viewBox="0 0 300 425" fill="none">
-  <!-- Original Buzhi Island design: a moonlit archive, not a game asset. -->
+  <!-- Original Buzhi Island celestial seal: a moonlit archive, not a game asset. -->
   <defs>
     <linearGradient id="paper" x1="12" y1="0" x2="280" y2="425" gradientUnits="userSpaceOnUse"><stop stop-color="#f1efdf"/><stop offset=".5" stop-color="#e6e2d1"/><stop offset="1" stop-color="#d7d9cd"/></linearGradient>
     <linearGradient id="midnight" x1="42" y1="65" x2="255" y2="352" gradientUnits="userSpaceOnUse"><stop stop-color="#253545"/><stop offset=".55" stop-color="#102b3b"/><stop offset="1" stop-color="#243c49"/></linearGradient>
@@ -26,10 +26,12 @@
   </g>
   <g stroke="url(#metal)" stroke-width=".9">
     <circle cx="150" cy="174" r="65"/><circle cx="150" cy="174" r="58" stroke-dasharray="1 6"/>
+    <circle cx="150" cy="174" r="76" stroke-width=".45" opacity=".45"/>
     <path d="M150 98v17m0 118v17M74 174h17m118 0h17m-130-54 12 12m84 84 12 12m-108 0 12-12m84-84 12-12"/>
     <path d="m120 104 5 13m50 114 5 13M80 144l13 5m114 50 13 5m-140 0 13-5m114-50 13-5m-100 95 5-13m50-114 5-13" opacity=".6"/>
   </g>
   <path d="M171 130c-48-8-68 56-20 78 19 9 34 1 43-10-39 5-61-40-23-68Z" fill="url(#metal)"/>
+  <g stroke="url(#metal)" stroke-width=".7" opacity=".8"><path d="m150 92 4 7-4 7-4-7Zm0 151 4 7-4 7-4-7ZM68 174l7-4 7 4-7 4Zm151 0 7-4 7 4-7 4ZM90 115l8 2 2 8-8-2Zm110 110 8 2 2 8-8-2ZM90 235l2-8 8-2-2 8Zm110-110 2-8 8-2-2 8Z"/><path d="M111 255q-12-13-11-29m0 9-7-7m7 15-8-4m97 16q12-13 11-29m0 9 7-7m-7 15 8-4"/></g>
   <path d="m143 151 5 16 16 5-16 5-5 16-5-16-16-5 16-5Z" fill="#e7d6a4"/>
   <circle cx="143" cy="172" r="4" fill="#fff2c8"/>
   <g stroke="#e5cf96" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">

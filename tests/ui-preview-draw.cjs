@@ -49,6 +49,95 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.screenshot({ path: resolve(process.env.UI_PREVIEW_CAPTURE_DIR, name + '.png'), animations: 'disabled' });
   }
 
+  if (process.argv.includes('--ritual-only')) {
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    await visit('draw');
+    check(await page.locator('.draw-ritual').count()===1,'Draw reuses a bounded celestial ritual stage');
+    check(await page.locator('.draw-nightfall').count()===1,'Ceremony provides a full-screen non-interactive night backdrop');
+    check(await page.locator('.draw-ritual [aria-hidden="true"]').count()>0,'New celestial decorations are excluded from assistive reading');
+    check(await page.locator('.draw-meteor').count()===30,'Thirty reusable meteor nodes provide a richer one-shot shower');
+    check(await page.locator('.draw-ritual').evaluate(el=>getComputedStyle(el).pointerEvents==='none'&&getComputedStyle(el).opacity==='0'),'Ritual is dormant and does not intercept controls before drawing');
+    await visit('passport');await page.locator('#nickname').fill('星海开卡检查');await page.locator('#claim-pass').click();await page.locator('#public-id').waitFor();
+    await visit('draw');
+    await page.locator('#draw-button').click();
+    await page.waitForFunction(()=>document.querySelector('#draw-stage.is-drawing'));
+    check(await page.locator('#draw-stage').getAttribute('aria-busy')==='true','Original draw state, not a second settlement, drives the ritual');
+    await page.waitForFunction(()=>document.querySelector('.draw-ritual').getAnimations({subtree:true}).some(a=>a.animationName==='ritual-awaken'&&a.currentTime>650&&a.currentTime<2500));
+    const moving=await page.locator('.draw-ritual').evaluate(el=>({opacity:+getComputedStyle(el).opacity,animations:el.getAnimations({subtree:true}).map(a=>({name:a.animationName,iterations:a.effect.getTiming().iterations}))}));
+    check(moving.opacity>0&&moving.animations.length>=3,'Visible orbit, rising light and surrounding stars animate during the real draw');
+    check(await page.locator('.draw-nightfall').evaluate(el=>+getComputedStyle(el).opacity>.9&&getComputedStyle(el).pointerEvents==='none'),'Background actually darkens during the draw without blocking controls');
+    check(await page.locator('.draw-info').evaluate(el=>getComputedStyle(el).backgroundColor==='rgba(12, 27, 47, 0.88)'),'Draw controls use a readable night surface, not a bright competing panel');
+    check(moving.animations.every(a=>a.iterations===1),'Ritual runs once rather than adding perpetual animation');
+    check(await page.locator('.draw-meteor').evaluateAll(els=>els.filter(el=>getComputedStyle(el).display!=='none').length<=16),'Small phones use a bounded reduced meteor count');
+    if(process.env.UI_PREVIEW_CAPTURE_DIR){await mkdir(process.env.UI_PREVIEW_CAPTURE_DIR,{recursive:true});await page.screenshot({path:resolve(process.env.UI_PREVIEW_CAPTURE_DIR,'ritual-in-progress-390.png')});}
+    await page.waitForFunction(()=>document.querySelector('#draw-stage.is-revealed'));
+    check((await page.locator('.header-actions [data-balance]').textContent())==='0','Enhanced performance deducts exactly one 50-coin draw');
+    check(await page.locator('#stage-card .card-nameplate').count()===1,'Actual saved reward replaces the uniform back');
+    await page.waitForFunction(()=>document.querySelector('.draw-ritual').getAnimations({subtree:true}).every(a=>a.playState==='finished'));
+    check(await page.locator('.draw-ritual').evaluate(el=>+getComputedStyle(el).opacity===0),'Ceremony fades away after reveal');
+    await page.waitForFunction(()=>+getComputedStyle(document.querySelector('.draw-nightfall')).opacity===0);
+    check(await page.locator('.world').getAttribute('data-draw-night')==='false','Original daytime appearance returns after the reveal');
+    await page.locator('#motion-toggle').click();
+    check(await page.locator('.draw-ritual').evaluate(el=>getComputedStyle(el).display==='none'),'Global motion switch hides the complete ritual');
+    await page.locator('#motion-toggle').click();
+    check(await page.locator('.draw-ritual').evaluate(el=>el.getAnimations({subtree:true}).every(a=>a.playState==='finished')),'Turning motion back on never replays a completed ceremony');
+    await page.evaluate(()=>localStorage.removeItem('buzhi-ui-preview-v3'));
+    await visit('passport');await page.locator('#nickname').fill('中断开卡检查');await page.locator('#claim-pass').click();await page.locator('#public-id').waitFor();await visit('draw');
+    await page.locator('#draw-button').click();await page.waitForFunction(()=>document.querySelector('#draw-stage.is-drawing'));
+    await page.locator('#motion-toggle').click();await page.waitForFunction(()=>document.querySelector('#draw-stage.is-revealed'));
+    check((await page.locator('.header-actions [data-balance]').textContent())==='0','Stopping effects mid-draw reveals the saved reward without another charge');
+    check(await page.locator('.draw-ritual').evaluate(el=>getComputedStyle(el).display==='none'),'Interrupted ceremony leaves no overlay behind');
+    check(await page.locator('.draw-nightfall').evaluate(el=>+getComputedStyle(el).opacity===0),'Interrupting effects restores the original background immediately');
+    await page.emulateMedia({reducedMotion:'reduce'});await visit('draw');
+    check(await page.locator('.draw-ritual').evaluate(el=>getComputedStyle(el).display==='none'),'System reduced-motion preference disables the ceremony');
+    await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
+    await page.evaluate(()=>{localStorage.removeItem('buzhi-ui-preview-v3');localStorage.setItem('buzhi-ui-motion','on')});
+    await visit('passport');await page.locator('#nickname').fill('电脑开卡检查');await page.locator('#claim-pass').click();await page.locator('#public-id').waitFor();await visit('draw');await page.locator('#draw-button').click();
+    await page.waitForFunction(()=>document.querySelector('.draw-ritual').getAnimations({subtree:true}).some(a=>a.animationName==='ritual-awaken'&&a.currentTime>650));
+    check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Desktop meteor/light layers do not cause horizontal overflow');
+    if(process.env.UI_PREVIEW_CAPTURE_DIR)await page.screenshot({path:resolve(process.env.UI_PREVIEW_CAPTURE_DIR,'ritual-in-progress-1440.png')});
+    check(errors.length===0,`No ritual errors: ${errors.join('; ')}`);
+    console.log(`PASS ${checks} ritual assertions; finite live ceremony, bounded phone effects, preserved settlement and reduced/interrupted motion`);return;
+  }
+
+  if (process.argv.includes('--fantasy-only')) {
+    await visit('draw');
+    check(await page.locator('.pool-preview .card-nameplate').count()===8,'Every preview card uses the redesigned fantasy nameplate');
+    check(await page.locator('.pool-preview .card-picture').first().evaluate(el=>getComputedStyle(el,'::before').backgroundImage.includes('memory-card-celestial.svg')),'Actual celestial artwork decorates the arched card window');
+    check(await page.locator('.pool-preview .card-picture').first().evaluate(el=>parseFloat(getComputedStyle(el).borderTopLeftRadius)>parseFloat(getComputedStyle(el).borderBottomLeftRadius)),'Card art sits inside an arched fantasy window');
+    for(const width of [320,390,768,1440]) {
+      await page.setViewportSize({width,height:1000});await visit('draw');
+      check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Fantasy cards fit ${width}px`);
+      check(await page.locator('.pool-preview .card-title').evaluateAll(els=>els.every(el=>el.scrollWidth<=el.clientWidth+1&&el.scrollHeight<=el.clientHeight+1)),`Card names remain readable at ${width}px`);
+      const cramped=await page.locator('.pool-preview .memory-card').evaluateAll(els=>els.map(el=>{const inner=el.querySelector('.card-inner').getBoundingClientRect(),title=el.querySelector('.card-title').getBoundingClientRect(),art=el.querySelector('.card-picture').getBoundingClientRect();return {title:el.querySelector('.card-title').textContent,artHeight:art.height,clipped:title.bottom>inner.bottom-2||title.left<inner.left||title.right>inner.right}}).filter(el=>el.clipped||el.artHeight<45));
+      check(cramped.length===0,`Preview artwork and names fit their clipping ancestors at ${width}px: ${JSON.stringify(cramped)}`);
+      await capture(`fantasy-draw-${width}`);
+      if(process.env.UI_PREVIEW_CAPTURE_DIR)await page.locator('.pool-preview').screenshot({path:resolve(process.env.UI_PREVIEW_CAPTURE_DIR,`fantasy-pool-${width}.png`),animations:'disabled'});
+    }
+    await visit('collection');
+    const cards=page.locator('#collection-grid .memory-card');
+    check(await cards.count()===16,'All 16 cards, not just the first preview, use the fantasy design');
+    check(await cards.locator('.card-nameplate').count()===16,'One shared design covers the full collection');
+    check(await cards.evaluateAll(els=>new Set(els.map(el=>getComputedStyle(el).getPropertyValue('--relic-metal').trim())).size===5),'Five rarity tiers have five distinct metal palettes');
+    check(await cards.evaluateAll(els=>els.every(el=>getComputedStyle(el,'::after').pointerEvents==='none')),'Ornamental frames never intercept card clicks');
+    await capture('fantasy-collection-1440');
+    await page.setViewportSize({width:390,height:844});await visit('passport');
+    await page.locator('#nickname').fill('星海魔法卡检查');await page.locator('#claim-pass').click();await page.locator('#public-id').waitFor();
+    await visit('draw');await page.locator('#draw-button').click();await page.waitForFunction(()=>document.querySelector('#stage-card [data-rarity]'));
+    check(['SR','SSR'].includes(await page.locator('#stage-card .memory-card').getAttribute('data-rarity')),'First-draw SR/SSR guarantee is unchanged');
+    check((await page.locator('.header-actions [data-balance]').textContent())==='0','Redesign leaves the 50-coin settlement unchanged');
+    const name=await page.locator('#stage-card .card-title').textContent();
+    check(await page.locator('#stage-card .card-nameplate').count()===1,'Revealed reward uses the new front');
+    await capture('fantasy-result-390');await visit('collection');await page.locator('[data-filter="owned"]').click();
+    const card=page.locator('.collection-exhibit .memory-card').first();await card.click();await page.locator('#card-detail[open]').waitFor();
+    check((await page.locator('#card-detail-title').textContent())===name,'Collection details retain the real drawn card');
+    check(await page.locator('#card-detail .card-nameplate').count()===1,'Enlarged details use the same fantasy front');
+    await capture('fantasy-detail-390');
+    check(errors.length===0,`No fantasy-card errors: ${errors.join('; ')}`);
+    console.log(`PASS ${checks} fantasy-card assertions; all 16 fronts, five palettes, four widths, draw and details`);
+    return;
+  }
+
   if (process.argv.includes('--mystery-only')) {
     await visit('draw');
     check(await page.locator('.card-back img[src*="memory-card-back.svg"]').count()===1,'Waiting card uses the new original moon-and-sea back');
@@ -227,7 +316,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   await page.locator('#public-id').waitFor();
   await visit('draw');
   check(await page.locator('.draw-courier svg').count() === 1, 'One bird courier carries the card, including when reduced motion is enabled');
-  check(await page.locator('.draw-meteor').count() === 18, 'Draw scene provides eighteen staggered meteor trails');
+  check(await page.locator('.draw-meteor').count() === 30, 'Draw scene provides thirty staggered meteor trails');
   check(await page.locator('.draw-meteor-sky').evaluate(el => getComputedStyle(el).display) === 'none', 'Reduced motion hides the meteor sky');
   const initialState = await context.storageState();
   const firstButton = await layout('#draw-button');
@@ -364,7 +453,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
   await interrupted.goto(`${base}/ui-preview/draw.html`, { waitUntil: 'networkidle' });
   await interrupted.waitForSelector('[data-delivery-ready="true"]');
   const mobileMeteors = await interrupted.locator('.draw-meteor').evaluateAll(list => list.filter(el => getComputedStyle(el).display !== 'none').length);
-  check(mobileMeteors === 10, 'Mobile keeps ten trails instead of eighteen');
+  check(mobileMeteors === 16, 'Mobile keeps sixteen trails instead of thirty');
   await interrupted.locator('#draw-button').click();
   if (process.env.UI_PREVIEW_CAPTURE_DIR) {
     await interrupted.waitForTimeout(650);

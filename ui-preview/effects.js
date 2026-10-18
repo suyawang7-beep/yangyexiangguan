@@ -322,17 +322,35 @@
       <g class="courier-happiness" stroke="#a8b5d6" stroke-width="2.5" stroke-linecap="round"><path d="m163 16 3-9m12 18 8-4m-8 17 9 2"/></g>
     </svg></div>`);
     const sky = document.createElement('div'); sky.className = 'draw-meteor-sky'; sky.setAttribute('aria-hidden', 'true');
-    sky.innerHTML = Array.from({ length: 18 }, (_, i) => `<i class="draw-meteor" style="--meteor-x:${58 + i * 19 % 83}%;--meteor-y:${-28 + i * 11 % 72}%;--meteor-delay:${(i * .075).toFixed(3)}s;--meteor-duration:${(1.3 + i % 4 * .15).toFixed(2)}s"></i>`).join('');
+    sky.innerHTML = Array.from({ length: 30 }, (_, i) => `<i class="draw-meteor" style="--meteor-x:${42 + i * 19 % 103}%;--meteor-y:${-28 + i * 11 % 72}%;--meteor-delay:${(i * .055).toFixed(3)}s;--meteor-duration:${(1.3 + i % 4 * .15).toFixed(2)}s"></i>`).join('');
     stage.prepend(sky);
+    const ritual = document.createElement('div'); ritual.className = 'draw-ritual';
+    ritual.setAttribute('aria-hidden', 'true'); ritual.dataset.ritualState = 'rest';
+    const nightfall = world.querySelector('.draw-nightfall') || document.createElement('div');
+    nightfall.className = 'draw-nightfall'; nightfall.setAttribute('aria-hidden', 'true');
+    if (!nightfall.isConnected) world.append(nightfall);
+    world.dataset.drawNight = 'false';
+    ritual.innerHTML = `<div class="draw-orbit"><svg viewBox="0 0 400 400" fill="none" aria-hidden="true"><g stroke="currentColor"><circle cx="200" cy="200" r="172" stroke-width="1"/><circle cx="200" cy="200" r="164" stroke-width=".6"/><circle cx="200" cy="200" r="149" stroke-dasharray="1 9" stroke-width="2"/><circle cx="200" cy="200" r="122" stroke-width=".5"/><path d="M200 14v34m0 304v34M14 200h34m304 0h34M69 69l24 24m214 214 24 24M69 331l24-24m214-214 24-24" stroke-width="1"/><path d="m200 32 6 15-6 15-6-15Zm0 306 6 15-6 15-6-15ZM32 200l15-6 15 6-15 6Zm306 0 15-6 15 6-15 6Z"/><path d="M114 309q43-12 86 0t86 0m-148 10q31-8 62 0t62 0" stroke-width=".7"/><path d="M211 77c-22-5-35 28-11 38 10 5 20 1 24-5-21 4-32-22-13-33Z" fill="currentColor" stroke="none"/></g></svg></div><div class="draw-rising-light"></div>`;
+    ritual.insertAdjacentHTML('beforeend', Array.from({length:16},(_,i)=>{const a=i*Math.PI/8,r=170+(i%3)*10;return `<i class="draw-wish-star" style="--wish-x:${(Math.cos(a)*r).toFixed(1)}px;--wish-y:${(Math.sin(a)*r).toFixed(1)}px;--wish-delay:${(i%4*.1).toFixed(1)}s"></i>`}).join(''));
+    stage.prepend(ritual);
     stage.dataset.deliveryReady = 'true';
     installDrawButtonBird(stage);
-    subscribe(() => { stage.dataset.deliveryMotion = enabled() ? 'on' : 'off'; });
+    const restRitual = () => { ritual.dataset.ritualState = 'rest'; world.dataset.drawNight = 'false'; };
+    subscribe(() => { stage.dataset.deliveryMotion = enabled() ? 'on' : 'off'; if (!enabled()) restRitual(); });
     const sweep = document.createElement('div'); sweep.className = 'reveal-starlight'; sweep.setAttribute('aria-hidden', 'true');
     sweep.innerHTML = '<span>✦</span><i></i><b>✧</b>'; stage.append(sweep);
+    let phase = 'rest';
+    ritual.addEventListener('animationend', event => {
+      if (event.target === ritual && event.animationName === 'ritual-dissolve') restRitual();
+    });
     new MutationObserver(() => {
-      if (stage.classList.contains('is-revealed') && enabled()) {
+      const next = stage.classList.contains('is-drawing') ? 'drawing' : stage.classList.contains('is-revealed') ? 'revealing' : 'rest';
+      if (next === phase) return;
+      phase = next; ritual.dataset.ritualState = enabled() ? next : 'rest';
+      world.dataset.drawNight = String(enabled() && next !== 'rest');
+      if (next === 'revealing' && enabled()) {
         const bounds = stage.getBoundingClientRect();
-        document.dispatchEvent(new CustomEvent('buzhi:burst', { detail: { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height * .45, count: 52 } }));
+        document.dispatchEvent(new CustomEvent('buzhi:burst', { detail: { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height * .45, count: 72 } }));
       }
     }).observe(stage, { attributes: true, attributeFilter: ['class'] });
   }
