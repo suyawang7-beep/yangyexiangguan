@@ -45,6 +45,7 @@ server.stderr.on('data', chunk => { logs += chunk; });
   assert((await page.locator('#recovery-secret').inputValue()).length > 12, 'One-time recovery key must be shown, never silently discarded');
   assert.equal(await page.locator('#recovery-participant').inputValue(), await page.locator('#public-id').inputValue());
   await page.locator('#recovery-saved').click();
+  await page.locator('#recovery-once').waitFor({ state: 'detached' });
   assert.equal(await page.locator('#recovery-once').count(), 0, 'Dismissed secret must be removed from the DOM');
   await page.locator('#public-id').waitFor();
   assert.match(await page.locator('#public-id').inputValue(), /^BZI-/);
