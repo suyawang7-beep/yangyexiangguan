@@ -1,4 +1,5 @@
 import {createMessageBoard} from './message-board.mjs';
+import {createAccountRecovery} from './account-recovery.mjs';
 import {createResidentCenter} from './resident-center.mjs';
 import {createMembership} from './membership.mjs';
 import {listVisitors} from './visitors.mjs';
@@ -13,8 +14,8 @@ import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync,co
 import {dirname,resolve,extname} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery','residents']);
-const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js','residents.js']);
+const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery','residents','account-recovery']);
+const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js','residents.js','account-recovery.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
 const BUILD_REVISION=/^[a-f0-9]{7,40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA||'')?process.env.RAILWAY_GIT_COMMIT_SHA:'unknown';
@@ -110,6 +111,7 @@ function auditAdmin(action,details){db.prepare('INSERT INTO admin_audit(action,d
 const operations=createOperations(db,DB_PATH,auditAdmin);
 const membership=createMembership(db,auditAdmin,tx);
 const residentCenter=createResidentCenter(db,membership);
+const accountRecovery=createAccountRecovery(db,auditAdmin,tx);
 const messageBoard=createMessageBoard(db,auditAdmin,tx);
 const maintenance=createMaintenance(db,operations,auditAdmin,tx);
 function adminAudit(){return db.prepare('SELECT id,action,details,created_at FROM admin_audit ORDER BY id DESC LIMIT 100').all().map(row=>({...row,details:JSON.parse(row.details)}))}
@@ -206,6 +208,10 @@ res.writeHead(200,headers);return res.end(body);
 if(req.method==='GET'&&/^\/assets\/(characters|cards|decor|oc)\/[a-zA-Z0-9_-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);try{assetPath(name)}catch{throw error(404,'素材不存在')}const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(new URL('..',import.meta.url).pathname,'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');const body=readFileSync(file);res.writeHead(200,{'content-type':'image/webp','cache-control':'no-store, max-age=0','x-content-type-options':'nosniff'});return res.end(body)}if(req.method==='GET'&&path.startsWith('/admin/')&&ADMIN_SCRIPTS.has(path.slice(7))){const body=readFileSync(new URL('../admin/'+path.slice(7),import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}if((path==='/admin'||(path.startsWith('/admin/')&&ADMIN_PAGES.has(path.slice(7))))&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path.startsWith('/api/admin/'))admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:path==='/api/resident/work'?24000:8192):{};let data;
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
+else if(path==='/api/recovery/request'&&req.method==='POST')data=accountRecovery.request(b,req.socket.remoteAddress);
+else if(path==='/api/recovery/reset'&&req.method==='POST')data=accountRecovery.reset(b);
+else if(path==='/api/admin/recovery/requests'&&req.method==='GET'){admin(req);data=accountRecovery.list()}
+else if(path==='/api/admin/recovery/review'&&req.method==='POST'){admin(req);data=accountRecovery.review(b)}
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
 else if(path==='/api/password'&&req.method==='POST')data=updatePassword(auth(req),b);
 else if(path==='/api/admin/residents'&&req.method==='GET'){admin(req);data=residentCenter.adminList()}
