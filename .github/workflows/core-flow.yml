@@ -14,6 +14,7 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
+      - run: node tests/deployment-artifact.mjs
       - run: node tests/flow.mjs
       - run: node tests/online-flow.mjs
       - run: node tests/activity-flow.mjs
@@ -30,4 +31,5 @@ jobs:
       - run: node tests/maintenance-admin.cjs
       - run: node tests/site-acceptance.cjs
       - run: CHROMIUM_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())") node tests/production-layout.cjs
+
 
