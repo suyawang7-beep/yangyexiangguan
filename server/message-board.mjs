@@ -9,10 +9,12 @@ export function createMessageBoard(db, audit, tx) {
     replied_at TEXT
   );
   CREATE INDEX IF NOT EXISTS island_messages_newest ON island_messages(id DESC);`);
+  const columns=db.prepare('PRAGMA table_info(island_messages)').all().map(c=>c.name);
+  if(!columns.includes('hidden'))db.exec('ALTER TABLE island_messages ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0');
   const err=(status,message)=>Object.assign(new Error(message),{status});
   const publicRows=()=>db.prepare(`SELECT m.id,m.body,m.anonymous AS anonymous,m.reply,m.created_at AS createdAt,m.replied_at AS repliedAt,
     CASE WHEN m.anonymous=1 THEN '匿名岛民' ELSE u.nickname END AS author
-    FROM island_messages m JOIN users u ON u.id=m.user_id ORDER BY m.id DESC LIMIT 100`).all()
+    FROM island_messages m JOIN users u ON u.id=m.user_id WHERE m.hidden=0 ORDER BY m.id DESC LIMIT 100`).all()
     .map(m=>({...m,anonymous:!!m.anonymous}));
   function submit(userId,payload) {
     const body=typeof payload.body==='string'?payload.body.trim():'';
@@ -31,5 +33,14 @@ export function createMessageBoard(db, audit, tx) {
       audit('message.reply',{id,hasReply:!!body});return {id,reply:body||null};
     });
   }
-  return {publicRows,submit,adminRows,reply};
+  function moderate(payload){
+    const id=Number(payload.id),action=payload.action;
+    if(!Number.isSafeInteger(id)||id<1||!['hide','show','delete'].includes(action))throw err(400,'管理操作无效');
+    return tx(()=>{const row=db.prepare('SELECT id FROM island_messages WHERE id=?').get(id);if(!row)throw err(404,'留言不存在');
+      if(action==='delete')db.prepare('DELETE FROM island_messages WHERE id=?').run(id);
+      else db.prepare('UPDATE island_messages SET hidden=? WHERE id=?').run(action==='hide'?1:0,id);
+      audit('message.'+action,{id});return {id,action};
+    });
+  }
+  return {publicRows,submit,adminRows,reply,moderate};
 }
