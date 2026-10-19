@@ -86,8 +86,8 @@
   ].map(([rarity,name,motif],i)=>({id:'BZ-'+String(i+17).padStart(2,'0'),rarity,name,motif,characters:'不吱岛',story:'新的生日回忆，等待与你相遇。'})));
   let TASKS = [
     { id: 'arrival', title: '向不吱岛报到', text: '领好通行证，留下你今天赴约的足迹。', reward: 0, motif: 'flag' },
-    { id: 'wish', title: '给菜菜写一句生日祝福', text: '把想说的话交给岛主，领取任务完成代码。', reward: 25, motif: 'heart' },
-    { id: 'live', title: '赴一场生日直播的约', text: '在直播里相见，一起留下庆典的回忆。', reward: 25, motif: 'calendar' },
+    { id: 'wish', title: '给菜菜写一句生日祝福', text: '每天可完成一次，北京时间次日00:00重置；每日须使用新的任务完成代码。', reward: 25, motif: 'heart' },
+    { id: 'live', title: '赴一场生日直播的约', text: '每位岛民仅能完成并领取一次，参与生日直播后使用完成代码。', reward: 25, motif: 'calendar' },
     { id: 'song', title: '点亮小岛的庆生歌', text: '参与直播互动后，向岛主领取完成代码。', reward: 25, motif: 'music' },
     { id: 'memory', title: '分享一段相遇的故事', text: '哪一段小小瞬间，让你决定留下来？', reward: 25, motif: 'mail' },
     { id: 'islander', title: '和岛民打一个招呼', text: '让今天的小岛，多一点温柔的声音。', reward: 25, motif: 'bird' },
@@ -231,7 +231,7 @@
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
     state.balance=profile.coins;
     state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
-    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t);
+    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t.startsWith('wish:')?'wish':t);
     state.bonuses=profile.bonuses;
     state.checkins=profile.checkins;
     state.demoIslander=true;
@@ -286,7 +286,7 @@
     const title = heading('02', 'Little tasks, little happiness', '岛民事务所', '庆典由每一位岛民一起完成。做一点小事，领取金币，也留下一份参与的证明。');
     if (!state.passport) return title + needPassport();
     return title + `<div class="office-layout"><div>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>${LIVE ? '已登录不等于已核验岛民。请完成对应活动后，填写岛主私信发放的代码，奖励以服务器记录为准。' : `若想体验任务界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button>`}</div>` : ''}<div class="task-list">${TASKS.filter(task => task.id !== 'arrival').map((task) => {
-      const completed = state.tasks.includes(task.id);
+      const completed = task.id === 'wish' ? state.tasks.includes('wish') : state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
       return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : '输入完成代码'}</button>`}</div></article>`;
     }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track" data-completed="${state.tasks.length}"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p class="small muted">请填写岛主私信发放的一次性完成代码。</p><div class="form-field"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
