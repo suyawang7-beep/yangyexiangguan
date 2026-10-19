@@ -27,6 +27,44 @@ function check(value, label) {checks++;if (!value) failures.push(label);}
     await page.goto(`${base}/${name}.html`,{waitUntil:'networkidle'});
     await page.waitForSelector('[data-effects-ready="true"]');
   }
+  if (process.argv.includes('--liquid-only') || process.argv.includes('--liquid-baseline')) {
+    const baseline=process.argv.includes('--liquid-baseline');
+    const names=baseline?['office','collection','mailbox']:['index','passport','verify','office','checkin','draw','collection','islanders','mailbox','guide','effects'];
+    await page.emulateMedia({reducedMotion:'reduce'});
+    if(!baseline){
+      await visit('passport');await page.locator('#nickname').fill('全站玻璃检查');await page.locator('#claim-pass').click();await page.locator('#public-id').waitFor();
+    }
+    for(const width of baseline?[1440]:[1440,390]) {
+      await page.setViewportSize({width,height:1000});
+      for(const name of names){
+        console.log(`Liquid ${name} ${width}`);await visit(name);
+        check(await page.locator('.site-liquid').count()===1,`${name}/${width}: its own full-page liquid sea is installed`);
+        check(await page.locator('[data-liquid-room]').count()>=1,`${name}/${width}: main content backdrop is treated, not just the header`);
+        check(await page.locator('[data-liquid-surface]').count()>=3,`${name}/${width}: header, panels and footer use unified glass`);
+        if(baseline)continue;
+        check(await page.locator('.site-liquid').evaluate(el=>{const s=getComputedStyle(el),r=el.getBoundingClientRect();return s.position==='fixed'&&s.pointerEvents==='none'&&s.backgroundImage!=='none'&&r.width>=innerWidth&&r.height>=innerHeight&&el.getAttribute('aria-hidden')==='true'}),`${name}/${width}: visible fixed liquid layer stays decorative and covers the viewport`);
+        check(await page.locator('[data-liquid-surface]').evaluateAll(els=>els.filter(el=>el.getBoundingClientRect().width>0).every(el=>{const s=getComputedStyle(el),plane=el.querySelector(':scope > .liquid-room-glass');return (s.backdropFilter!=='none'||plane&&getComputedStyle(plane).backdropFilter!=='none')&&s.backgroundImage.includes('rgba(')})),`${name}/${width}: rendered surfaces or their independent glass planes are genuinely translucent and refractive`);
+        check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name}/${width}: new background never widens the document`);
+        check(await page.locator('main h1').evaluate(el=>getComputedStyle(el).opacity==='1'),`${name}/${width}: headings are not faded to simulate transparency`);
+        check(await page.locator('.liquid-flow').evaluateAll(els=>els.length===2&&els.every(el=>el.getAnimations().every(a=>a.playState!=='running'))),`${name}/${width}: reduced-motion leaves a still liquid backdrop`);
+        if(process.env.UI_PREVIEW_CAPTURE_DIR&&(width===1440||['office','draw','mailbox'].includes(name))){await mkdir(process.env.UI_PREVIEW_CAPTURE_DIR,{recursive:true});await page.screenshot({path:resolve(process.env.UI_PREVIEW_CAPTURE_DIR,`liquid-${name}-${width}.png`),animations:'disabled',timeout:15000});}
+      }
+    }
+    if(!baseline){
+      await page.emulateMedia({reducedMotion:'no-preference'});await visit('office');
+      await page.waitForFunction(()=>[...document.querySelectorAll('.liquid-flow')].every(el=>el.getAnimations().some(a=>a.playState==='running')));
+      const start=await page.locator('.liquid-flow').first().evaluate(el=>getComputedStyle(el).transform);
+      await page.waitForTimeout(180);
+      check(await page.locator('.liquid-flow').first().evaluate((el,before)=>getComputedStyle(el).transform!==before,start),'Subpage liquid current actually moves, not just a styled marker');
+      await page.locator('#motion-toggle').click();
+      check(await page.locator('.liquid-flow,.glass-breath-light').evaluateAll(els=>els.every(el=>el.getAnimations().every(a=>a.playState!=='running'))),'Global switch pauses liquid currents and panel breathing on subpages');
+      await page.evaluate(()=>{const entry=document.createElement('article');entry.className='board-entry';entry.textContent='异步送达的一封信';document.querySelector('main').append(entry);});
+      await page.waitForSelector('.board-entry[data-liquid-surface]');
+      check(await page.locator('.board-entry .glass-breath-light').count()===1,'Late-arriving message surfaces receive the same glass treatment once');
+      check(errors.length===0,`No liquid-site page errors: ${errors.join('; ')}`);
+    }
+    assert.deepEqual(failures,[],failures.join('; '));console.log(`PASS ${checks} full-site liquid assertions`);return;
+  }
   await visit('guide');
   check((await page.locator('#map-camera image').getAttribute('href')).includes('buzhi-archipelago-soft-palette-draft.png'),'Guide actually loads the approved low-saturation archipelago');
   check(await page.locator('.guide-water-motion,.guide-cloud-motion').count()>=2,'Registered water and cloud layers accompany the map');

@@ -95,7 +95,7 @@ body .world :is(.hero-copy,.glass,.floating-note,.birthday-seal,.news-strip,.let
   backdrop-filter:blur(var(--glass-blur)) saturate(125%);
 }
 .ambient-surface{position:relative}
-.glass-breath-light{display:block;position:absolute;inset:1px;border-radius:inherit;pointer-events:none!important;opacity:.18;background:radial-gradient(ellipse at 15% 5%,#fff8,transparent 56%),radial-gradient(ellipse at 90% 95%,#d0faff66,transparent 60%);background-size:180% 160%;background-position:0% 35%;z-index:0}
+.glass-breath-light{display:block;position:absolute;inset:1px;border-radius:inherit;pointer-events:none!important;opacity:.18;background:radial-gradient(ellipse at 15% 5%,#fff8,transparent 56%),radial-gradient(ellipse at 90% 95%,#d0faff66,transparent 60%);background-size:180% 160%;background-position:0% 35%;z-index:-1}
 .island-sticker use{transform-box:fill-box;transform-origin:center}
 /* Existing home pseudo-elements are paused alongside the new managed effects. */
 .world[data-ambient-active="false"] .home-hero::before,.world[data-ambient-active="false"] .home-hero::after,
@@ -104,4 +104,55 @@ body .world :is(.hero-copy,.glass,.floating-note,.birthday-seal,.news-strip,.let
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   body .world :is(.hero-copy,.glass,.floating-note,.birthday-seal,.news-strip,.letter,.sidebar-card,.task-card){background:#eaf6fff2}
   .glass-breath-light{display:none}
+}
+
+/* liquid-site1: full-page treatment for every public route, not home only.
+   Existing room layouts, paper souvenirs, card art and readable inputs stay intact. */
+body .world[data-liquid-site]{
+  --liquid-accent:rgba(182,181,231,.24);
+  --liquid-room-fill:linear-gradient(128deg,rgba(240,254,255,.15),rgba(192,232,248,.07) 58%,rgba(230,223,251,.11));
+}
+body:not([data-page="home"]) .world[data-liquid-site]{
+  background:radial-gradient(ellipse at 87% 12%,var(--liquid-accent),transparent 52%),linear-gradient(145deg,#c8edf2,#b5dfed 48%,#dce6f7);
+}
+body[data-page="office"] .world{--liquid-accent:rgba(163,214,198,.24)}
+body[data-page="checkin"] .world{--liquid-accent:rgba(245,223,169,.18)}
+body[data-page="draw"] .world{--liquid-accent:rgba(164,177,225,.28)}
+body[data-page="mailbox"] .world{--liquid-accent:rgba(226,190,213,.22)}
+.site-liquid{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none!important;background:radial-gradient(ellipse at 8% 5%,#f0ffff59,transparent 56%),linear-gradient(140deg,#89d5e333,#b2d3ef22 60%,#d2bcea2b);contain:strict}
+.liquid-flow{display:block;position:absolute;inset:-15%;pointer-events:none;filter:blur(3px);background:radial-gradient(ellipse 38% 6% at 25% 25%,#ffffff8c,transparent 85%),radial-gradient(ellipse 35% 5% at 72% 70%,#e0ffffb3,transparent 92%),repeating-conic-gradient(from 30deg at 55% 45%,#ffffff12 0 3deg,transparent 8deg 46deg);transform-origin:center;opacity:.44}
+.liquid-flow-far{background:radial-gradient(ellipse 42% 8% at 70% 18%,#ffffffb3,transparent 85%),radial-gradient(ellipse 36% 9% at 15% 80%,#bce8ff80,transparent 95%);filter:blur(14px);opacity:.3}
+body[data-page="home"] .site-liquid{opacity:.25}
+body .world[data-liquid-site] [data-liquid-surface]{
+  background:var(--liquid-room-fill);
+  border-color:#ffffffb8;
+  box-shadow:inset 0 1px 1px #ffffffe0,inset 0 -1px 0 #ffffff38,0 14px 38px #356e8d1c;
+  -webkit-backdrop-filter:blur(14px) saturate(130%);
+  backdrop-filter:blur(14px) saturate(130%);
+}
+body .world[data-liquid-site] [data-liquid-room]{border-radius:26px}
+/* Fixed meteors must stay relative to the viewport. Blur a sibling decorative
+   plane instead of making their postal-room ancestor a containing block. */
+body .world[data-liquid-site] .postal-experience[data-liquid-room]{isolation:isolate;-webkit-backdrop-filter:none;backdrop-filter:none}
+.liquid-room-glass{position:absolute;inset:0;border-radius:inherit;pointer-events:none!important;z-index:-1;-webkit-backdrop-filter:blur(14px) saturate(130%);backdrop-filter:blur(14px) saturate(130%)}
+/* A room already refracts the sea. Its inner cards need only a light second
+   pass; avoid repeatedly blurring a large animated backdrop on phones. */
+body .world[data-liquid-site] [data-liquid-room] [data-liquid-surface]{-webkit-backdrop-filter:blur(4px) saturate(125%);backdrop-filter:blur(4px) saturate(125%)}
+body .world[data-ambient-active="false"] :is(.ocean,.ambient,.bubble),body .world[data-ambient-active="false"] .ocean::after{animation-play-state:paused!important}
+body .world[data-liquid-site] :is(.filter-bar,.checkin-summary,.privacy-note,.info-note)[data-liquid-surface]{border-radius:18px}
+body .world[data-liquid-site] :is(.site-header,.site-footer,.mobile-nav)[data-liquid-surface]{border-color:#ffffffa6}
+body:not([data-page="home"]) .world[data-liquid-site] .site-header{border-radius:22px}
+.liquid-room-photo{position:absolute;inset:0;border-radius:inherit;pointer-events:none!important;background-image:var(--liquid-room-photo,none);background-position:var(--liquid-room-position,center);background-size:var(--liquid-room-size,cover);opacity:.12;filter:blur(7px) saturate(.7);z-index:-1}
+/* Preserve state distinctions; lighter glass must not erase a completed day. */
+body .world[data-liquid-site] .day.done{background:linear-gradient(135deg,#c4f3dd55,#bee1e338);border-color:#76a799}
+body .world[data-liquid-site] .day.current{border-color:#578da9}
+@media(max-width:620px){
+  body .world[data-liquid-site] [data-liquid-surface]{-webkit-backdrop-filter:blur(9px) saturate(120%);backdrop-filter:blur(9px) saturate(120%)}
+  body:not([data-page="home"]) .world[data-liquid-site] .site-header{border-radius:18px}
+  body .world[data-liquid-site] .mobile-nav{border-radius:18px 18px 0 0;background:linear-gradient(120deg,#e5faffb8,#e5eefeaa)}
+  .liquid-flow{filter:blur(5px)}.liquid-flow-far{filter:blur(12px)}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  body .world[data-liquid-site] [data-liquid-surface]{background:#eaf6fff2}
+  .liquid-room-photo{display:none}
 }

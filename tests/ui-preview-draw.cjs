@@ -105,6 +105,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.emulateMedia({reducedMotion:'no-preference'});
     await visit('draw');
     check(await page.locator('.draw-ritual').count()===1,'Draw reuses a bounded celestial ritual stage');
+    check(await page.locator('.draw-meteor-sky').evaluate(el=>{const r=el.getBoundingClientRect();return Math.abs(r.left)<1&&Math.abs(r.width-innerWidth)<1}),'Fixed meteor sky retains full viewport width outside glass containing blocks');
     check(await page.locator('.draw-nightfall').count()===1,'Ceremony provides a full-screen non-interactive night backdrop');
     check(await page.locator('.draw-ritual [aria-hidden="true"]').count()>0,'New celestial decorations are excluded from assistive reading');
     check(await page.locator('.draw-meteor').count()===30,'Thirty reusable meteor nodes provide a richer one-shot shower');
@@ -114,6 +115,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.locator('#draw-button').click();
     await page.waitForFunction(()=>document.querySelector('#draw-stage.is-drawing'));
     check(await page.locator('#draw-stage').getAttribute('aria-busy')==='true','Original draw state, not a second settlement, drives the ritual');
+    check(await page.locator('.liquid-flow,.glass-breath-light').evaluateAll(els=>els.every(el=>el.getAnimations().every(a=>a.playState!=='running'))),'Liquid background and pane breathing rest while the dark draw ceremony takes focus');
     await page.waitForFunction(()=>document.querySelector('.draw-ritual').getAnimations({subtree:true}).some(a=>a.animationName==='ritual-awaken'&&a.currentTime>650&&a.currentTime<2500));
     const moving=await page.locator('.draw-ritual').evaluate(el=>({opacity:+getComputedStyle(el).opacity,animations:el.getAnimations({subtree:true}).map(a=>({name:a.animationName,iterations:a.effect.getTiming().iterations}))}));
     check(moving.opacity>0&&moving.animations.length>=3,'Visible orbit, rising light and surrounding stars animate during the real draw');
@@ -145,7 +147,8 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
     await page.evaluate(()=>{localStorage.removeItem('buzhi-ui-preview-v3');localStorage.setItem('buzhi-ui-motion','on')});
     await visit('passport');await page.locator('#nickname').fill('电脑开卡检查');await page.locator('#claim-pass').click();await page.locator('#public-id').waitFor();await visit('draw');await page.locator('#draw-button').click();
-    await page.waitForFunction(()=>document.querySelector('.draw-ritual').getAnimations({subtree:true}).some(a=>a.animationName==='ritual-awaken'&&a.currentTime>650));
+    try {await page.waitForFunction(()=>document.querySelector('.draw-ritual').getAnimations({subtree:true}).some(a=>a.animationName==='ritual-awaken'&&a.currentTime>650));}
+    catch(error){console.error('Desktop ritual state:',await page.evaluate(()=>({motion:document.querySelector('.world').dataset.motion,stage:document.querySelector('#draw-stage').className,ritual:document.querySelector('.draw-ritual').dataset.ritualState,animations:document.querySelector('.draw-ritual').getAnimations({subtree:true}).map(a=>({name:a.animationName,state:a.playState,time:a.currentTime}))})));throw error;}
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Desktop meteor/light layers do not cause horizontal overflow');
     if(process.env.UI_PREVIEW_CAPTURE_DIR)await page.screenshot({path:resolve(process.env.UI_PREVIEW_CAPTURE_DIR,'ritual-in-progress-1440.png')});
     check(errors.length===0,`No ritual errors: ${errors.join('; ')}`);

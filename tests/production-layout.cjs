@@ -107,6 +107,18 @@ server.stderr.on('data', chunk => { logs += chunk; });
   assert.equal(await page.locator('.office-layout .task-card').count(), 6);
   assert.equal(await page.locator('.welcome-strip, [data-task="arrival"]').count(), 0);
   assert.match(await page.locator('.ledger').textContent(), /50/);
+  // Exercise an actual upload only on this temporary server's asset directory.
+  const background=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='#327b93';ctx.fillRect(0,0,8,8);return c.toDataURL('image/webp').split(',')[1]});
+  const adminHeaders={'content-type':'application/json',authorization:'Bearer isolated-layout-test-token-not-production-20261017'};
+  const uploaded=await fetch(base+'/api/admin/assets/upload',{method:'POST',headers:adminHeaders,body:JSON.stringify({name:'decor/office-background.webp',base64:background})});
+  assert.equal(uploaded.status,200);
+  const positioned=await fetch(base+'/api/admin/assets/layout',{method:'POST',headers:adminHeaders,body:JSON.stringify({name:'decor/office-background.webp',settings:{scale:100,x:25,y:65,opacity:100,fit:'cover',layer:0}})});
+  assert.equal(positioned.status,200);
+  await page.goto(base+'/office.html',{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>document.querySelector('.office-layout > .liquid-room-photo')&&getComputedStyle(document.querySelector('.office-layout > .liquid-room-photo')).backgroundImage.includes('/assets/decor/office-background.webp'));
+  assert.equal(await page.locator('.office-layout > .liquid-room-photo').evaluate(el=>getComputedStyle(el).opacity),'0.12','Managed photographs stay soft underlays, not opaque content backgrounds');
+  assert.equal(await page.locator('.office-layout > .liquid-room-photo').evaluate(el=>getComputedStyle(el).backgroundPosition),'25% 65%','Existing admin crop position still applies');
+  assert.equal(await page.locator('.office-layout').evaluate(el=>getComputedStyle(el).opacity),'1','Do not fade the actual task content');
   await page.goto(base + '/mailbox.html', { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.querySelector('.letters').textContent.includes('尚未发布'));
   assert.equal(await page.locator('.mailbox-side nav a').getAttribute('href'), '#live-notices');
@@ -128,7 +140,7 @@ server.stderr.on('data', chunk => { logs += chunk; });
   assert.equal(await page.locator('#voyage-location').textContent(),'生日庆典','Admin guide-motion setting does not disable actual guide navigation');
   assert.equal(await page.locator('#map-camera').getAttribute('transform'),'translate(0 0)');
   assert.deepEqual(errors, []);
-  console.log('PASS production-mode souvenir PNG download, passport tabs, cross-context account recovery without extra coins, registration, draw, collection, sign-in, ledger, notices and large-map navigation with guide motion disabled; no real accounts touched');
+  console.log('PASS production-mode souvenir PNG, account recovery, registration, draw, collection, sign-in, ledger, notices, managed photograph glass underlay and static guide navigation; no real accounts/assets touched');
 })().catch(error => { console.error(error.message); process.exitCode = 1; }).finally(async () => {
   await browser?.close();
   const exited = new Promise(resolve => server.once('exit', resolve));

@@ -20,7 +20,7 @@
   document.head.append(featureStyles);
   const glassStyles = document.createElement('link');
   glassStyles.rel = 'stylesheet'; glassStyles.id = 'glass-surfaces';
-  glassStyles.href = new URL('glass-surfaces.css?v=20261019-ambient1', document.currentScript.src).href;
+  glassStyles.href = new URL('glass-surfaces.css?v=20261019-liquid-site1', document.currentScript.src).href;
   document.head.append(glassStyles);
   const motionSubscribers = new Set();
   const sync = () => motionSubscribers.forEach((callback) => callback());
@@ -30,14 +30,18 @@
   // One lifecycle for every new ambient effect: reuse on render, pause offscreen,
   // stop while hidden/reduced/off. No persistent JavaScript animation loop.
   const ambientItems = new Map();
+  const liquidSurfaces = '.glass,.hero-copy,.birthday-seal,.day,.oc-slide,.info-note,.privacy-note,.map-status,.ticket,.pass-preview,.news-strip,.sidebar-card,.task-card,.collection-summary,.filter-bar,.mailbox-side,.letter,.draw-info,.checkin-summary,.floating-note,.section-heading,.site-header,.site-footer,.mobile-nav,.passport-entry-tabs,.calendar-date,.office-sign,.board-wallet,.ticket-tools,.postal-collection,.board-form,.board-entry,.passport-preview-note,.ticket-gift,.filter-tabs';
+  const liquidRooms = '.home-hero,.passport-grid,.office-layout,.checkin-layout,.postal-experience,.collection-summary,.oc-gallery,.mailbox-layout,#voyage,.effects-intro,.effects-index,.board-area,.empty-state';
+  let ambientMutationObserver, ambientQueued = false;
   function syncAmbient() {
-    world.dataset.ambientActive = String(enabled());
+    const restingForDraw = world.dataset.drawNight === 'true';
+    world.dataset.ambientActive = String(enabled() && !restingForDraw);
     ambientItems.forEach((item, el) => {
       if (!el.isConnected) {
         item.animations.forEach(a => a.cancel()); ambientObserver.unobserve(el); ambientItems.delete(el); return;
       }
-      const allowed = enabled() && (!item.guide || allowedMode('effectGuide'));
-      const running = allowed && item.visible;
+      const allowed = enabled() && (!item.guide || allowedMode('effectGuide')) && (!item.mode || allowedMode(item.mode));
+      const running = allowed && item.visible && !restingForDraw;
       el.dataset.ambientRunning = String(running);
       item.animations.forEach(animation => {
         if (running) { if (animation.playState !== 'running') animation.play(); }
@@ -50,11 +54,35 @@
     syncAmbient();
   }, {threshold:0});
   subscribe(syncAmbient);
-  function bindAmbient(el, animations, guide = false) {
+  new MutationObserver(syncAmbient).observe(world,{attributes:true,attributeFilter:['data-draw-night']});
+  function bindAmbient(el, animations, guide = false, mode = null) {
     animations.forEach(a => a.pause());
-    ambientItems.set(el,{animations,guide,visible:false});ambientObserver.observe(el);
+    ambientItems.set(el,{animations,guide,mode,visible:false});ambientObserver.observe(el);
+  }
+  function installSiteLiquid() {
+    if (world.querySelector(':scope > .site-liquid')) return;
+    world.dataset.liquidSite = 'true';
+    const sea=document.createElement('div');sea.className='site-liquid';sea.setAttribute('aria-hidden','true');
+    sea.innerHTML='<span class="liquid-flow liquid-flow-near"></span><span class="liquid-flow liquid-flow-far"></span>';
+    world.prepend(sea);
+    const animations=Array.from(sea.children,(current,i)=>current.animate([
+      {transform:`translate3d(${i?3:-3}%,0,0) rotate(${i?3:-3}deg) scale(1)`,opacity:i?.3:.44},
+      {transform:`translate3d(${i?-3:3}%,${i?2:-2}%,0) rotate(${i?-3:3}deg) scale(1.08)`,opacity:i?.46:.65}
+    ],{duration:i?24500:19000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'}));
+    bindAmbient(sea,animations,false,'effectWater');
   }
   function installAmbient() {
+    installSiteLiquid();
+    document.querySelectorAll(liquidRooms).forEach(room=>{
+      room.dataset.liquidRoom='true';
+      if(getComputedStyle(room).position==='static')room.classList.add('ambient-surface');
+      if(!room.querySelector(':scope > .liquid-room-photo')){
+        const photo=document.createElement('span');photo.className='liquid-room-photo';photo.setAttribute('aria-hidden','true');room.prepend(photo);
+      }
+      if(room.matches('.postal-experience')&&!room.querySelector(':scope > .liquid-room-glass')){
+        const glass=document.createElement('span');glass.className='liquid-room-glass';glass.setAttribute('aria-hidden','true');room.prepend(glass);
+      }
+    });
     document.querySelectorAll('.island-sticker').forEach((sticker,i) => {
       if (ambientItems.has(sticker)) return;
       const art = sticker.querySelector('use'); if (!art) return;
@@ -67,14 +95,16 @@
       ],{duration:6800+i%4*1200,iterations:Infinity,easing:'ease-in-out'});
       animation.currentTime=i*830;bindAmbient(sticker,[animation]);
     });
-    document.querySelectorAll('.hero-copy,.glass,.floating-note,.birthday-seal,.news-strip,.letter,.sidebar-card,.task-card').forEach((surface,i) => {
-      if (ambientItems.has(surface) || surface.closest('.memory-card,.draw-ritual')) return;
+    document.querySelectorAll(liquidSurfaces+',[data-liquid-room]').forEach((surface,i) => {
+      if (surface.matches('.souvenir-ticket') || surface.closest('.memory-card,.draw-ritual,dialog')) return;
+      surface.dataset.liquidSurface='true';
+      if (ambientItems.has(surface)) return;
       if (getComputedStyle(surface).position === 'static') surface.classList.add('ambient-surface');
       const light=document.createElement('span');light.className='glass-breath-light';light.setAttribute('aria-hidden','true');surface.append(light);
       const animation=light.animate([
-        {opacity:.18,backgroundPosition:'0% 35%'},
-        {opacity:.42,backgroundPosition:'100% 65%'},
-        {opacity:.18,backgroundPosition:'0% 35%'}
+        {opacity:.18},
+        {opacity:.42},
+        {opacity:.18}
       ],{duration:12500+i%3*1500,iterations:Infinity,easing:'ease-in-out'});
       animation.currentTime=i*700;bindAmbient(surface,[animation]);
     });
@@ -84,7 +114,13 @@
       const frames=water?[{strokeDashoffset:0,opacity:.2},{strokeDashoffset:-71,opacity:.55}]:[{transform:'translateX(-12px)',opacity:.12},{transform:'translateX(16px)',opacity:.23}];
       bindAmbient(el,[el.animate(frames,{duration:water?8500:23000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'})],true);
     });
-    const hero=document.querySelector('.home-hero');if(hero&&!ambientItems.has(hero))bindAmbient(hero,[]);
+    if(!ambientMutationObserver){
+      ambientMutationObserver=new MutationObserver(records=>{
+        const changed=records.some(record=>Array.from(record.addedNodes).some(node=>node.nodeType===1&&!node.matches('.glass-breath-light,.liquid-room-photo,.liquid-room-glass'))||Array.from(record.removedNodes).some(node=>node.nodeType===1));
+        if(changed&&!ambientQueued){ambientQueued=true;queueMicrotask(()=>{ambientQueued=false;installAmbient();});}
+      });
+      ambientMutationObserver.observe(document.querySelector('#main'),{childList:true,subtree:true});
+    }
     syncAmbient();
   }
   const bird = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 33C-1 13 18 2 32 14l8-2-2 9c10 17-17 24-29 12Z" fill="#f5fbff" stroke="#598eaf" stroke-width="2"/><path d="m35 24 9 3-9 3" fill="#e7bf7b"/><circle cx="29" cy="22" r="2" fill="#285777"/><path d="M12 28q8-8 14 0" fill="none" stroke="#aacde3" stroke-width="3"/><path d="m17 41-3 5m12-5 3 5" stroke="#598eaf" stroke-width="2"/></svg>';

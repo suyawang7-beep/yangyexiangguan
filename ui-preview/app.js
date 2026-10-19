@@ -193,7 +193,7 @@
     const selected=backgrounds[PAGE];
     if(selected&&managedAssets[selected[0]]){
       const host=document.querySelector(selected[1]);
-      if(host){const photo='url("/assets/'+selected[0]+'?v='+(managedVersions[selected[0]]||assetVersion)+'")';if(PAGE==='home'){host.style.backgroundImage='linear-gradient(130deg,#eaf8ffdb,#cceefa9c 55%,#e8e6ffb8)';host.style.setProperty('--home-sea-photo',photo);host.style.setProperty('--home-sea-position',(managedLayouts[selected[0]]?.x??50)+'% '+(managedLayouts[selected[0]]?.y??50)+'%')}else{host.style.backgroundImage='linear-gradient(120deg,rgba(233,247,255,.21),rgba(242,223,252,.18)),'+photo;applyAssetLayout(host,selected[0],true)}host.style.backgroundSize='cover';host.style.backgroundPosition='center'}
+      if(host){const photo='url("/assets/'+selected[0]+'?v='+(managedVersions[selected[0]]||assetVersion)+'")';if(PAGE==='home'){host.style.backgroundImage='linear-gradient(130deg,#eaf8ffdb,#cceefa9c 55%,#e8e6ffb8)';host.style.setProperty('--home-sea-photo',photo);host.style.setProperty('--home-sea-position',(managedLayouts[selected[0]]?.x??50)+'% '+(managedLayouts[selected[0]]?.y??50)+'%')}else{host.style.removeProperty('background-image');host.style.setProperty('--liquid-room-photo',photo);const layout=managedLayouts[selected[0]];host.style.setProperty('--liquid-room-position',(layout?.x??50)+'% '+(layout?.y??50)+'%');host.style.setProperty('--liquid-room-size',layout?.fit==='cover'?'cover':(layout?.scale??100)+'% auto')}host.style.backgroundSize='cover';host.style.backgroundPosition='center'}
     }
     const hero=document.querySelector('.hero-art img, .mini-art');
     if(hero&&managedAssets['decor/home-poster.webp']){hero.src=assetUrl('decor/home-poster.webp');applyAssetLayout(hero,'decor/home-poster.webp')}
@@ -847,7 +847,7 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261019-ambient1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261019-liquid-site1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
 
