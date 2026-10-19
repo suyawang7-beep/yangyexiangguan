@@ -84,7 +84,8 @@
       const art=image('empty-letter','pencil-empty-art');art.width=520;art.height=260;decorative(art);host.prepend(art);
     });
     stamp(main.querySelector('.ticket-station'),'arrival','已登岛 · 海风记得你');
-    if(main.querySelector('#checkin-button')?.disabled)stamp(main.querySelector('.checkin-head'),'checkin','今日已签到');
+    const checkin=main.querySelector('#checkin-button');
+    if(checkin?.disabled&&checkin.textContent.includes('今天已签到'))stamp(main.querySelector('.checkin-head'),'checkin','今日已签到');
     main.querySelectorAll('.task-card.completed .task-action').forEach(host=>stamp(host,'task','任务已完成'));
     const camera=main.querySelector('#map-camera');
     if(camera&&!camera.querySelector('.pencil-map-callouts')){

@@ -31,7 +31,7 @@
   // stop while hidden/reduced/off. No persistent JavaScript animation loop.
   const ambientItems = new Map();
   const liquidSurfaces = '.glass,.hero-copy,.birthday-seal,.day,.oc-slide,.info-note,.privacy-note,.map-status,.ticket,.pass-preview,.news-strip,.sidebar-card,.task-card,.collection-summary,.filter-bar,.mailbox-side,.letter,.draw-info,.checkin-summary,.floating-note,.section-heading,.site-header,.site-footer,.mobile-nav,.passport-entry-tabs,.calendar-date,.office-sign,.board-wallet,.ticket-tools,.postal-collection,.board-form,.board-entry,.passport-preview-note,.ticket-gift,.filter-tabs';
-  const liquidRooms = '.home-hero,.passport-grid,.office-layout,.checkin-layout,.postal-experience,.collection-summary,.oc-gallery,.mailbox-layout,#voyage,.effects-intro,.effects-index,.board-area,.empty-state';
+  const liquidRooms = '.home-hero,.passport-grid,.office-layout,.checkin-layout,.postal-experience,.collection-summary,.oc-gallery,.mailbox-layout,#voyage,.effects-intro,.effects-index,.board-area,.empty-state,#membershipApplication';
   let ambientMutationObserver, ambientQueued = false;
   function syncAmbient() {
     const restingForDraw = world.dataset.drawNight === 'true';

@@ -25,7 +25,11 @@ function check(value,label){assert.ok(value,label);checks++;}
   const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
   await context.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
-  const visit=async name=>{await page.goto(`${base}/${name}.html`,{waitUntil:'networkidle'});await page.waitForSelector('[data-effects-ready="true"]');};
+  const visit=async name=>{
+    await page.goto(`${base}/${name}.html`,{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>document.querySelector('[data-effects-ready="true"][data-pencil-ready="true"]')&&document.querySelector('link[href*="pencil-case.css"]')?.sheet&&document.querySelector('#glass-surfaces')?.sheet);
+    await page.evaluate(()=>document.fonts.ready);
+  };
   await visit('index');
   check(await page.locator('.pencil-stickers').count()===1,'Selected hand-drawn sticker layer is present, not just the old SVG stickers');
   if(process.argv.includes('--empty-only')){
@@ -44,8 +48,8 @@ function check(value,label){assert.ok(value,label);checks++;}
     await page.emulateMedia({reducedMotion:'no-preference'});await visit('mailbox');
     await page.locator('.pencil-reveal').scrollIntoViewIfNeeded();
     await page.evaluate(()=>{document.querySelector('.pencil-replay').click();document.querySelector('.pencil-replay').click();});
-    await page.waitForFunction(()=>document.querySelector('.pencil-reveal video').currentTime>.1);
-    check(await page.locator('.pencil-reveal video').evaluate(v=>!v.paused),'Rapid replay does not let a stale play promise pause the latest playback');
+    const playing=await page.waitForFunction(()=>{const v=document.querySelector('.pencil-reveal video');return v.currentTime>.1&&!v.paused&&v.parentElement.dataset.playing==='true';});
+    check(await playing.jsonValue(),'Rapid replay reaches real running playback, rather than accepting the previous ended frame');await playing.dispose();
     console.log('PASS rapid replay');return;
   }
   if(process.argv.includes('--mobile-postcard-only')){
@@ -84,8 +88,8 @@ function check(value,label){assert.ok(value,label);checks++;}
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.locator('.pencil-reveal').scrollIntoViewIfNeeded();
   await page.locator('.pencil-replay').click();
-  await page.waitForFunction(()=>document.querySelector('.pencil-reveal video').currentTime>0.15);
-  check(await video.evaluate(v=>!v.paused),'Drawing process is a real playable sequence');
+  const playback=await page.waitForFunction(()=>{const v=document.querySelector('.pencil-reveal video');return v.currentTime>.15&&!v.paused;});
+  check(await playback.jsonValue(),'Drawing process is a real playable sequence');await playback.dispose();
   await page.locator('#motion-toggle').click();
   check(await video.evaluate(v=>v.paused),'Global switch pauses drawing playback');
   check(await page.locator('.pencil-reveal').getAttribute('data-playing')==='false','Turning motion off restores the finished illustration');
@@ -135,6 +139,16 @@ function check(value,label){assert.ok(value,label);checks++;}
   check(Boolean(port),'Temporary production server starts');
   const live=`http://127.0.0.1:${port}`;
   for(const [path,type] of [['/assets/pencil/postcard.png','image/png'],['/assets/pencil/postcard-drawing.mp4','video/mp4']]){const response=await fetch(live+path);check(response.status===200&&response.headers.get('content-type')===type,`Actual production route serves ${path} with the correct MIME`);}
+  const registered=await fetch(live+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:'隔离未认证贴纸检查'})}).then(r=>r.json());
+  const visitor=await browser.newContext({viewport:{width:390,height:1000},reducedMotion:'reduce'});
+  await visitor.addInitScript(token=>sessionStorage.setItem('buzhi-online-token',token),registered.token);
+  await visitor.route('**/*',r=>r.request().url().startsWith(live+'/')?r.continue():r.abort());
+  const visitorPage=await visitor.newPage();visitorPage.on('pageerror',e=>errors.push(e.message));
+  await visitorPage.goto(live+'/checkin.html',{waitUntil:'domcontentloaded'});
+  await visitorPage.waitForSelector('#checkin-button[data-membership-blocked="true"]');
+  await visitorPage.waitForSelector('[data-pencil-ready="true"]');
+  check(await visitorPage.locator('[data-pencil-stamp="checkin"]').count()===0,'Unverified visitor lockout is not a successful check-in and must never receive an earned stamp');
+  await visitor.close();
   check(errors.length===0,`No browser errors: ${errors.join('; ')}`);
   console.log(`PASS ${checks} pencil-case assertions: ${process.argv.includes('--features-only')?'targeted interactions':'seven treatments, eleven pages, three widths'} and production assets`);
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();await new Promise(r=>staticServer.close(r));if(productionServer){const stopped=new Promise(r=>productionServer.once('exit',r));productionServer.kill();await stopped;}if(folder)rmSync(folder,{recursive:true,force:true});});

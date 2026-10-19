@@ -16,6 +16,7 @@ const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcemen
 const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
+const BUILD_REVISION=/^[a-f0-9]{7,40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA||'')?process.env.RAILWAY_GIT_COMMIT_SHA:'unknown';
 if(ADMIN.length<32)throw Error('Set a random ADMIN_TOKEN of at least 32 characters');
 mkdirSync(dirname(DB_PATH),{recursive:true});
 const ASSET_DIR=resolve(process.env.ASSET_DIR||resolve(dirname(DB_PATH),'assets'));
@@ -159,7 +160,7 @@ function restoreAsset(b){const name=String(b.name||''),version=String(b.version|
 
 function readBody(req,maxSize=8192){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>maxSize){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
 function send(res,code,data){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))}
-http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;
+http.createServer(async(req,res)=>{try{res.setHeader('x-buzhi-revision',BUILD_REVISION);const path=new URL(req.url||'/', 'http://localhost').pathname;
 if(path==='/api/admin/site-maintenance'&&req.method==='GET'){admin(req);return send(res,200,maintenanceState())}
 if(path==='/api/admin/site-maintenance'&&req.method==='POST'){admin(req);if(!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');return send(res,200,saveSiteMaintenance(await readBody(req,8192)))}
 if(path==='/api/site-maintenance'&&req.method==='GET')return send(res,200,maintenanceState());
