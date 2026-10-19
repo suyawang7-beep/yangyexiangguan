@@ -12,13 +12,14 @@ const dbPath=join(folder,'isolated.sqlite'),port=53000+Math.floor(Math.random()*
 const admin='isolated-recovery-admin-secret-0000000000';
 let browser,db,server,logs='';
 async function api(path,body,token){const r=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});return {status:r.status,data:await r.json()}}
-function preserved(){return Object.fromEntries(['ledger','tasks','draws','checkins','codes','bonuses','memberships','admin_coin_grants'].map(t=>[t,db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all()]))}
+function preserved(){return Object.fromEntries(['ledger','tasks','task_writings','draws','checkins','codes','bonuses','memberships','admin_coin_grants'].map(t=>[t,db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all()]))}
 async function start(){server=spawn(process.execPath,['server/index.mjs'],{cwd:root,env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:dbPath,ADMIN_TOKEN:admin,ASSET_DIR:join(folder,'assets')},stdio:['ignore','ignore','pipe']});server.stderr.on('data',c=>logs+=c);for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)return}catch{}await new Promise(r=>setTimeout(r,100))}throw Error(logs)}
 async function stop(){if(server&&server.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}}
 (async()=>{try{
  await start();db=new DatabaseSync(dbPath);
  const a=(await api('register',{nickname:'找回测试岛民'})).data,b=(await api('register',{nickname:'另一位岛民'})).data;
  const {verifyAccount}=require('./helpers/membership.cjs');await verifyAccount(base,admin,a);
+ assert.equal((await api('task-writing',{taskId:'memory',content:'这是重置密钥前必须保留的隔离测试回忆文字'},a.token)).status,200);
  assert.equal((await api('checkin',{},a.token)).status,200);assert.equal((await api('draw',{},a.token)).status,200);
  assert.equal((await api('admin/coins/grant',{userId:a.id,amount:25,reason:'隔离测试赠送记录',requestId:randomUUID()},admin)).status,200);
  assert.equal((await api('admin/codes',{taskId:'live',count:1},admin)).status,200);
@@ -60,6 +61,16 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  await page.goto(base+'/passport.html');await page.locator('#passport-returning-tab').click();await page.locator('#returning-id').fill(a.id);await page.locator('#returning-key').fill(delivered);
  const request=page.waitForRequest(r=>r.url().endsWith('/api/login')&&r.method()==='POST');const loginResponse=page.waitForResponse(r=>r.url().endsWith('/api/login'));
  await page.locator('#live-login button[type=submit]').click();assert.deepEqual((await request).postDataJSON(),{id:a.id,recoveryKey:delivered});const logged=await loginResponse;assert.equal(logged.status(),200);assert.deepEqual((await logged.json()).profile,profile);
+ // A completed server reset may arrive after the administrator has logged out.
+ const late=await context.newPage();await late.goto(base+'/admin/recovery');await late.locator('#token').fill(admin);await late.locator('#enter').click();
+ await late.locator('#islanderSearchText').fill(a.id);await late.locator('#islanderSearchButton').click();await late.getByRole('button',{name:'账户找回',exact:true}).click();
+ await late.locator('#islanderRecoveryConfirmed').check();await late.locator('#islanderRecoveryNote').fill(payload.note);late.on('dialog',d=>d.accept());
+ let release,seen;const gate=new Promise(r=>release=r),started=new Promise(r=>seen=r);
+ await late.route('**/api/admin/islanders/reset-key',async route=>{const response=await route.fetch();seen();await gate;await route.fulfill({response})});
+ await late.locator('#islanderResetKey').click();await started;await late.locator('#adminRouteLogout').click();
+ const complete=late.waitForResponse(r=>r.url().endsWith('/api/admin/islanders/reset-key'));release();await complete;await late.waitForFunction(()=>!document.querySelector('#islanderResetKey').disabled);
+ assert.equal(await late.locator('#islanderRecoveryKey').count(),0,'A late reset response cannot restore a secret after logout');
+ assert.equal(await late.locator('#islanderRecoveryResult').textContent(),'');await late.close();
  assert.deepEqual(preserved(),before);assert.deepEqual(errors,[]);
  console.log('PASS: admin reset UI -> exact key copy -> returning-islander frontend -> login 200; original data preserved');
  }finally{if(browser)await browser.close();if(db)db.close();await stop()}

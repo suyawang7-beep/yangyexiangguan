@@ -640,7 +640,7 @@
     select(0);
   }
   function bindLiveOffice(){
-    const dialog=document.querySelector('#task-dialog');let task=null;
+    const dialog=document.querySelector('#task-dialog');if(!dialog)return;let task=null;
     const writing=dialog.querySelector('#task-writing'),count=dialog.querySelector('#task-writing-count'),tip=dialog.querySelector('#task-dialog-tip');
     const updateCount=()=>{const length=Array.from(writing.value.trim().replace(/\s/g,'')).length;count.textContent=length+' / 15 字';count.style.color=length>=15?'#16876a':''};
     writing.addEventListener('input',updateCount);

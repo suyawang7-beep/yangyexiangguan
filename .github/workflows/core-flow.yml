@@ -32,3 +32,15 @@ jobs:
             echo "::endgroup::"
           done
           exit "$status"
+  windows-routes:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install chromium
+      - run: node tests/deployment-artifact.mjs
+      - run: node tests/recovery-flow.cjs

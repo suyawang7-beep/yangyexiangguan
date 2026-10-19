@@ -21,7 +21,7 @@ async function start(){
 }
 async function stop(){if(!server||server.exitCode!==null)return;const done=new Promise(r=>server.once('exit',r));server.kill();await done;}
 async function api(path,body,token){const response=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});return {status:response.status,data:await response.json()}}
-function snapshot(){const db=new DatabaseSync(dbPath);try{return Object.fromEntries(['users','ledger','tasks','checkins','draws','bonuses','codes'].map(t=>[t,db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all()]))}finally{db.close()}}
+function snapshot(){const db=new DatabaseSync(dbPath);try{return Object.fromEntries(['users','ledger','tasks','task_writings','checkins','draws','bonuses','codes'].map(t=>[t,db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all()]))}finally{db.close()}}
 try{
  await start();
  const initial=await api('activity');assert.equal(initial.status,200,'Activity status endpoint must be available');
