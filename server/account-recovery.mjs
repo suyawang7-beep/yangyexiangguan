@@ -24,7 +24,7 @@ export function createAccountRecovery(db,audit,tx){
  if(typeof password!=='string'||password.length<10||password.length>128||token.length>150)throw fail(400,'凭证或新密码不符合要求');
  return tx(()=>{const row=db.prepare("SELECT user_id,token_hash,expires_at,status FROM account_recovery_requests WHERE id=?").get(id);if(!row||row.status!=='approved'||row.expires_at<now()||!row.token_hash||!timingSafeEqual(Buffer.from(hash(token)),Buffer.from(row.token_hash)))throw fail(403,'重置凭证无效或已过期');
  const salt=randomBytes(16).toString('hex');const passwordHash=salt+':'+scryptSync(password,salt,64).toString('hex');
- db.prepare("UPDATE users SET password_hash=? WHERE id=?").run(passwordHash,row.user_id);
+ db.prepare("UPDATE users SET password_hash=?,secret_hash=? WHERE id=?").run(passwordHash,hash(randomBytes(32).toString('hex')),row.user_id);
  db.prepare('DELETE FROM sessions WHERE user_id=?').run(row.user_id);
  db.prepare("UPDATE account_recovery_requests SET status='completed',token_hash=NULL,completed_at=? WHERE id=?").run(now(),id);
  audit('recovery.complete',{requestId:id,userId:row.user_id});return {ok:true,message:'密码已设置，请返回通行证页面登录'}})}
