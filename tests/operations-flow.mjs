@@ -1,3 +1,4 @@
+import {verifyAccount} from './helpers/membership.cjs';
 // Backups and exports must preserve all participant records and deny credential-free access.
 import {spawn} from 'node:child_process';
 import {mkdtempSync,rmSync,writeFileSync,truncateSync,statSync,unlinkSync} from 'node:fs';
@@ -20,7 +21,7 @@ try{
  let ready=false;for(let i=0;i<60;i++){try{if((await fetch(base+'/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}assert(ready,logs);
  const empty=await api('admin/backups',undefined,admin);assert.equal(empty.status,200,'Admin can list snapshots');assert.deepEqual(empty.data,[]);
  const account=(await api('register',{nickname:'隔离备份测试'})).data;
- const {token,recoveryKey,id}=account;
+ const {token,recoveryKey,id}=account;await verifyAccount(base,admin,account);
  const code=(await api('admin/codes',{taskId:'letter',count:1},admin)).data.codes[0];
  await api('redeem',{taskId:'letter',code},token);await api('checkin',{},token);await api('draw',{},token);
  db=new DatabaseSync(dbPath);

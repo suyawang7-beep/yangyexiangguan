@@ -23,6 +23,11 @@ jobs:
       - run: node tests/operations-admin.cjs
       - run: node tests/content-flow.mjs
       - run: node tests/content-admin.cjs
+      - run: node tests/admin-pages.cjs
+      - run: node tests/membership-flow.mjs
+      - run: node tests/membership-admin.cjs
+      - run: node tests/maintenance-flow.mjs
+      - run: node tests/maintenance-admin.cjs
       - run: node tests/site-acceptance.cjs
       - run: CHROMIUM_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())") node tests/production-layout.cjs
 

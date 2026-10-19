@@ -1,3 +1,4 @@
+const {verifyAccount}=require('./helpers/membership.cjs');
 /* Isolated shared-layout/real-API check. Uses only temporary accounts/database. */
 const { chromium } = require('playwright');
 const { spawn } = require('node:child_process');
@@ -86,7 +87,7 @@ server.stderr.on('data', chunk => { logs += chunk; });
   assert.equal(await returningPage.locator('#returning-key').count(), 0, 'Recovery fields disappear after successful login');
   assert.equal(await returningPage.evaluate(key => [...Object.values(localStorage), ...Object.values(sessionStorage)].some(value => String(value).includes(key)), recovery.key), false, 'Recovery credential is never persisted by tab switching or login');
   await returningContext.close();
-  await page.goto(base + '/draw.html', { waitUntil: 'networkidle' });
+  await verifyAccount(base,'isolated-layout-test-token-not-production-20261017',{id:recovery.id,token:await page.evaluate(()=>sessionStorage.getItem('buzhi-online-token'))});await page.goto(base + '/draw.html', { waitUntil: 'networkidle' });
   await page.locator('#draw-button').waitFor();
   assert.equal(await page.locator('[data-balance]').first().textContent(), '50');
   await page.locator('#draw-button').click();
@@ -135,3 +136,4 @@ server.stderr.on('data', chunk => { logs += chunk; });
   await exited;
   rmSync(folder, { recursive: true, force: true });
 });
+

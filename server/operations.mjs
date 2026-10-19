@@ -51,6 +51,7 @@ export function createOperations(db,dbPath,audit){
   try{
    // Explicit columns: no recovery hashes, sessions, or redemption-code credentials.
    const data={
+    memberships:db.prepare('SELECT user_id,status,submitted_at,reviewed_at FROM memberships ORDER BY user_id').all(),
     users:db.prepare('SELECT u.id,u.nickname,u.created_at,COALESCE((SELECT SUM(l.amount) FROM ledger l WHERE l.user_id=u.id),0) AS coins FROM users u ORDER BY u.rowid').all(),
     ledger:db.prepare('SELECT id,user_id,amount,reason,created_at FROM ledger ORDER BY id').all(),
     tasks:db.prepare('SELECT user_id,task_id,redeemed_at FROM tasks ORDER BY rowid').all(),
@@ -71,3 +72,4 @@ export function createOperations(db,dbPath,audit){
  }
  return {listBackups,createBackup,backupFile,exportOperations};
 }
+

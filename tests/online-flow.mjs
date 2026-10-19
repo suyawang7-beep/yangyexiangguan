@@ -1,3 +1,4 @@
+import {verifyAccount} from './helpers/membership.cjs';
 import {spawn} from 'node:child_process';
 import {DatabaseSync} from 'node:sqlite';
 import {mkdtempSync,rmSync} from 'node:fs';
@@ -44,7 +45,7 @@ const initialCleanup=await api('admin/test-cleanup',undefined,admin);assert.equa
 const deniedCleanup=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:[]});assert.equal(deniedCleanup.status,403);
 const wrongCleanup=await api('admin/test-cleanup',{confirm:'wrong',ids:[]},admin);assert.equal(wrongCleanup.status,409);
 let c=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(c.status,200);
-let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);
+let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);await verifyAccount(root,admin,reg.data);
 let bad=await api('redeem',{taskId:'letter',code:'wrong'},token);assert.equal(bad.status,400);
 let red=await api('redeem',{taskId:'letter',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,75);
 let again=await api('redeem',{taskId:'letter',code:c.data.codes[0]},token);assert.notEqual(again.status,200);
@@ -89,7 +90,7 @@ await page.locator('#token').fill(admin);
 await page.locator('#enter').click();
 await page.locator('#stats .stat').first().waitFor();
 assert.match(await page.locator('#notices').textContent(),/岛主公告测试/);
-await page.locator('#auditAssets').click();
+await page.locator('#adminNavigation a[href="/admin/asset-check"]').click();await page.locator('#auditAssets').click();
 await page.locator('#auditSummary').getByText(/检查完成：0 \/ 18/).waitFor({timeout:15000});
 assert.equal(await page.locator('#auditRows tr').count(),18);
 await page.goto(root+'/legacy');
@@ -129,7 +130,7 @@ await publicPage.locator('#nickname').fill('新版页面测试');
 await publicPage.locator('#claim-pass').click();
 await publicPage.locator('#public-id').waitFor();
 assert.match(await publicPage.locator('#public-id').inputValue(),/^BZI-/);
-await publicPage.goto(root+'/draw.html');
+await verifyAccount(root,admin,{id:await publicPage.locator('#public-id').inputValue(),token:await publicPage.evaluate(()=>sessionStorage.getItem('buzhi-online-token'))});await publicPage.goto(root+'/draw.html');
 await publicPage.locator('#draw-button').waitFor();
 assert.match(await publicPage.locator('[data-balance]').first().textContent(),/50/);
 await publicPage.locator('#draw-button').click();
@@ -147,7 +148,7 @@ await publicPage.waitForFunction(()=>document.querySelector('#checkin-button')?.
 // Exercise actual deletion only on an isolated disposable test database.
 const disposable=await api('register',{nickname:'自动化测试待清理'});assert.equal(disposable.status,200);
 const protectedAccount=await api('register',{nickname:'自动化测试保留'});assert.equal(protectedAccount.status,200);
-await api('checkin',{},protectedAccount.data.token);
+await verifyAccount(root,admin,protectedAccount.data);await api('checkin',{},protectedAccount.data.token);
 const isolated=new DatabaseSync(join(dir,'test.sqlite'));
 isolated.prepare('UPDATE users SET created_at=? WHERE id IN (?,?)').run('2026-01-01T00:00:00.000Z',disposable.data.id,protectedAccount.data.id);
 isolated.close();
@@ -159,4 +160,5 @@ assert(cleared.data.deleted>=1);
 const deletedSession=await api('me',undefined,disposable.data.token);assert.notEqual(deletedSession.status,200);
 const preservedSession=await api('me',undefined,protectedAccount.data.token);assert.equal(preservedSession.status,200);
 console.log('PASS remote account and admin: register, code redemption, check-in, recovery, overview, protected admin UI, published/draft notices, home/mailbox publish-update-delete sync');
-}finally{await browser?.close();processServer.kill('SIGTERM');rmSync(dir,{recursive:true,force:true})}
+}finally{await browser?.close();if(processServer.exitCode===null){const done=new Promise(r=>processServer.once('exit',r));processServer.kill('SIGTERM');await done}rmSync(dir,{recursive:true,force:true})}
+

@@ -1,0 +1,15 @@
+const {chromium}=require('playwright'),{spawn}=require('node:child_process'),{mkdtempSync,rmSync}=require('node:fs'),{tmpdir}=require('node:os'),{join}=require('node:path'),assert=require('node:assert/strict');
+const folder=mkdtempSync(join(tmpdir(),'buzhi-admin-pages-')),port=57000+Math.floor(Math.random()*700),base='http://127.0.0.1:'+port,secret='isolated-admin-pages-secret-0000000000';
+const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..'),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:join(folder,'test.sqlite'),ADMIN_TOKEN:secret},stdio:['ignore','ignore','pipe']});let browser,logs='';server.stderr.on('data',d=>logs+=d);
+(async()=>{let ready=false;for(let i=0;i<60;i++){try{if((await fetch(base+'/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}assert(ready,logs);
+ assert.equal((await fetch(base+'/admin/not-a-page')).status,404);
+ browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
+ for(const width of [390,1440]){const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  assert.equal((await page.goto(base+'/admin/characters')).status(),200,'Independent admin page URL');await page.locator('#token').fill(secret);await page.locator('#enter').click();await page.locator('#ocProfilesPanel').waitFor();
+  assert.equal(await page.locator('#app > section:visible').count(),1);assert.equal(await page.locator('#adminNavigation a[aria-current="page"]').getAttribute('href'),'/admin/characters');
+  for(const slug of ['overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','cards','assets','asset-check','backups']){await page.locator('#adminNavigation a[href="/admin/'+slug+'"]').click();assert.equal(new URL(page.url()).pathname,'/admin/'+slug);assert.equal(await page.locator('#app > section:visible').count(),1);assert.equal(await page.locator('#adminNavigation a[aria-current="page"]').getAttribute('href'),'/admin/'+slug);}
+  await page.goBack();assert.equal(new URL(page.url()).pathname,'/admin/asset-check');await page.goForward();assert.equal(new URL(page.url()).pathname,'/admin/backups');
+  assert.equal(await page.evaluate(()=>Object.keys(localStorage).length+Object.keys(sessionStorage).length),0,'Admin credential stays in memory');assert(!page.url().includes(secret));
+  await page.locator('#adminRouteLogout').click();assert.equal(await page.locator('#app').isVisible(),false);assert.equal(await page.locator('#adminNavigation').isVisible(),false);assert.deepEqual(errors,[]);await page.close();
+ }console.log('PASS independent admin URLs, single-section pages, navigation, history, logout and memory-only credentials at mobile/desktop');
+})().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{await browser?.close();if(server.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}rmSync(folder,{recursive:true,force:true})});

@@ -15,7 +15,7 @@ let logs='',browser;server.stderr.on('data',c=>logs+=c);
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
  for(const width of [390,1440]){
   const page=await browser.newPage({viewport:{width,height:900},timezoneId:'America/Los_Angeles'});
-  await page.goto(base+'/admin');await page.locator('#token').fill(secret);await page.locator('#enter').click();
+  await page.goto(base+'/admin/activity');await page.locator('#token').fill(secret);await page.locator('#enter').click();
   await page.locator('#activityForm').waitFor({timeout:3000});
   await page.locator('#activityStartsAt').fill('2099-10-20T00:00');await page.locator('#activityEndsAt').fill('2099-10-26T00:00');
   await page.locator('#saveActivity').click();await page.locator('#activityStatus').getByText(/未开始/).waitFor();

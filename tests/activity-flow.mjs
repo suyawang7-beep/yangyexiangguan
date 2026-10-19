@@ -1,3 +1,4 @@
+import {verifyAccount} from './helpers/membership.cjs';
 // Real isolated SQLite/API tests: catches missing gates, partial writes, lost settings and time-boundary errors.
 import {spawn} from 'node:child_process';
 import {mkdtempSync,rmSync} from 'node:fs';
@@ -28,7 +29,7 @@ try{
  assert.equal((await api('admin/activity')).status,403);
  assert.equal((await api('admin/activity',{startsAt:null,endsAt:null})).status,403);
  const account=await api('register',{nickname:'隔离活动测试'});assert.equal(account.status,200);assert.equal(account.data.profile.coins,50);
- const {id,token,recoveryKey}=account.data;
+ const {id,token,recoveryKey}=account.data;await verifyAccount(base,admin,account.data);
  const generated=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(generated.status,200);
  const code=generated.data.codes[0];
  const before=snapshot();

@@ -86,7 +86,7 @@
     text(ctx,dateParts?`${dateParts[2].padStart(2,'0')}.${dateParts[3].padStart(2,'0')}`:'生日庆典',1118,159,86,{align:'right',family:'Georgia, serif',width:265});
     text(ctx,data.birthday,1115,195,18,{align:'right',width:260});
     text(ctx,data.nickname,342,274,50,{width:690,family:'"Buzhi Signature", "Buzhi Rounded", sans-serif'});
-    text(ctx,data.demo?'演示访客 · 未核验':'访客 · 未核验',344,310,19,{color:'#637c91'});
+    text(ctx,data.demo?'演示访客 · 未核验':data.verified?'已认证岛民':'访客 · 未核验',344,310,19,{color:'#637c91'});
     line(ctx,342,339,1120,339);
     text(ctx,'本次庆典 / CELEBRATING',344,378,14);
     text(ctx,data.eventName,344,417,30,{width:240});
@@ -117,11 +117,14 @@
     const data={nickname:String(supplied.nickname),id:String(supplied.id),avatarLabel:String(supplied.avatarLabel),avatarColor:String(supplied.avatarColor),birthday:String(supplied.birthday),eventName:String(supplied.eventName),period:String(supplied.period),demo:supplied.demo===true};
     const status=host.querySelector('#ticket-render-status'),button=host.querySelector('#save-pass');
     try {
-      const [,island]=await Promise.all([
+      const [,island,verified]=await Promise.all([
         Promise.all([document.fonts.load('400 50px "Buzhi Rounded"'),document.fonts.load('400 51px "Buzhi Hand"'),document.fonts.load('400 50px "Buzhi Signature"',data.nickname)]).catch(()=>{}),
-        image('assets/island-mark.svg')
+        image('assets/island-mark.svg'),
+        !data.demo&&sessionStorage.getItem('buzhi-online-token')?fetch('/api/membership',{headers:{authorization:'Bearer '+sessionStorage.getItem('buzhi-online-token')}}).then(async r=>r.ok&&(await r.json()).status==='verified').catch(()=>false):false
       ]);
       if(cancelled||!host.isConnected)return;
+      data.verified=verified===true;
+      const identity=host.querySelector('.ticket-readable dd');if(identity&&!data.demo)identity.textContent=data.verified?'已认证岛民':'访客 · 未核验';
       const canvas=document.createElement('canvas');paint(canvas,data,island);
       const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('PNG export unavailable')),'image/png'));
       if(cancelled||!host.isConnected)return;
@@ -145,3 +148,4 @@
   window.addEventListener('pagehide',event=>{if(!event.persisted)dispose()});
   window.BuzhiTicket=Object.freeze({mount});
 })();
+
