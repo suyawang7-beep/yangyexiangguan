@@ -159,7 +159,7 @@ http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://
 if(path==='/api/admin/site-maintenance'&&req.method==='GET'){admin(req);return send(res,200,maintenanceState())}
 if(path==='/api/admin/site-maintenance'&&req.method==='POST'){admin(req);if(!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');return send(res,200,saveSiteMaintenance(await readBody(req,8192)))}
 if(path==='/api/site-maintenance'&&req.method==='GET')return send(res,200,maintenanceState());
-if(maintenanceState().enabled&&!path.startsWith('/admin')&&path!=='/health'){
+if(maintenanceState().enabled&&!path.startsWith('/admin')&&!path.startsWith('/api/admin/')&&path!=='/health'){
  if(path.startsWith('/api/'))throw error(503,'小岛正在维护中，暂时无法操作，请稍后再来');
  if(req.method==='GET'&&(path==='/'||path==='/legacy'||path.endsWith('.html'))){res.writeHead(503,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','retry-after':'300'});return res.end(maintenanceHtml(maintenanceState().message))}
  if(req.method!=='GET'&&req.method!=='HEAD')throw error(503,'小岛正在维护中');
