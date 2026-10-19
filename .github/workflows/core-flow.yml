@@ -14,6 +14,7 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
+      - run: node tests/recovery-flow.cjs
       - run: node tests/deployment-artifact.mjs
       - run: node tests/flow.mjs
       - run: node tests/online-flow.mjs

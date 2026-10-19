@@ -101,7 +101,22 @@ $('coinGrantReload').onclick=()=>loadCoinGrants().catch(e=>msg(e.message,true));
 </script><script>
 let islanderRecoverySelected=null;
 $('islanderSearchButton').onclick=async()=>{const term=$('islanderSearchText').value.trim();$('islanderSearchResults').replaceChildren();$('islanderRecoveryAction').hidden=true;islanderRecoverySelected=null;try{const result=await req('islanders/find?q='+encodeURIComponent(term));$('islanderSearchStatus').textContent='找到 '+result.items.length+' 条匹配记录。请核对同名账户。';for(const u of result.items){const line=node('div','');line.className='flex';line.style.cssText='padding:10px;border-bottom:1px solid #c1d9e8';line.append(node('span',u.nickname+' · '+u.id+' · '+u.coins+'金币 · '+(u.status==='verified'?'已认证':'未认证')));const send=node('button','填入金币发放');send.type='button';send.onclick=()=>{$('coinGrantId').value=u.id;$('coinGrantId').dispatchEvent(new Event('input'));window.showAdminPage?.('coins')};const reset=node('button','账户找回');reset.type='button';reset.className='secondary';reset.onclick=()=>{islanderRecoverySelected=u;$('islanderRecoverySelected').textContent='待找回：'+u.nickname+' / '+u.id;$('islanderRecoveryAction').hidden=false;$('islanderRecoveryNote').value='';$('islanderRecoveryConfirmed').checked=false;$('islanderRecoveryResult').textContent=''};line.append(send,reset);$('islanderSearchResults').append(line)}}catch(e){$('islanderSearchStatus').textContent=e.message}};
-$('islanderResetKey').onclick=async()=>{const u=islanderRecoverySelected,note=$('islanderRecoveryNote').value.trim();if(!u||!$('islanderRecoveryConfirmed').checked||note.length<6)return $('islanderRecoveryResult').textContent='请先完成身份核验并填写说明';if(!confirm('此操作会立即使 '+u.nickname+'（'+u.id+'）的旧恢复密钥及所有登录会话失效。确定已核实本人吗？'))return;const button=$('islanderResetKey');button.disabled=true;try{const out=await req('islanders/reset-key',{userId:u.id,confirmed:true,note});$('islanderRecoveryResult').textContent='新恢复密钥（仅展示一次，请妥善交给本人）：\\n'+out.recoveryKey+'\\n'+out.warning;msg('恢复密钥已重置，旧账户资料完整保留')}catch(e){$('islanderRecoveryResult').textContent=e.message}finally{button.disabled=false}};
+$('islanderResetKey').onclick=async()=>{
+ const u=islanderRecoverySelected,note=$('islanderRecoveryNote').value.trim();
+ if(!u||!$('islanderRecoveryConfirmed').checked||note.length<6)return $('islanderRecoveryResult').textContent='请先完成身份核验并填写说明';
+ if(!confirm('此操作会立即使 '+u.nickname+'（'+u.id+'）的旧恢复密钥及所有登录会话失效。确定已核实本人吗？'))return;
+ const button=$('islanderResetKey'),result=$('islanderRecoveryResult');button.disabled=true;result.replaceChildren();
+ try{
+  const out=await req('islanders/reset-key',{userId:u.id,confirmed:true,note});
+  result.append(node('p','新恢复密钥仅展示一次。请同时交付正确的岛民编号，复制密钥时不要附带说明文字。'));
+  const idLabel=node('label','岛民参与者编号：'+out.userId);result.append(idLabel);
+  const label=node('label','新恢复密钥（请保密）');label.htmlFor='islanderRecoveryKey';
+  const key=document.createElement('input');key.id='islanderRecoveryKey';key.value=out.recoveryKey;key.readOnly=true;key.autocomplete='off';key.spellcheck=false;key.addEventListener('click',()=>key.select());
+  const copy=node('button','复制新恢复密钥');copy.id='islanderRecoveryCopy';copy.type='button';copy.className='secondary';
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(key.value);msg('新恢复密钥已复制，请通过核验过的渠道交付本人')}catch{key.focus();key.select();msg('自动复制不可用，请复制已选中的密钥',true)}};
+  result.append(label,key,copy,node('p',out.warning));msg('恢复密钥已重置，旧账户资料完整保留');
+ }catch(e){result.textContent=e.message}finally{button.disabled=false}
+};
 </script><script src="/admin/membership.js"></script><script src="/admin/maintenance.js"></script><script src="/admin/messages.js"></script><script src="/admin/navigation.js"></script></body></html>
 
 
