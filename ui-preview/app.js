@@ -76,6 +76,13 @@
     ['N', '来客留名', 'flag', '岛民', '不必大声宣布，我们记得你来过。'],
     ['N', '晚安小啾', 'bird', '小岛日常', '把今天的故事合上，明天继续相见。'],
   ].map(([rarity, name, motif, characters, story], index) => ({ id: `BZ-${String(index + 1).padStart(2, '0')}`, rarity, name, motif, characters, story }));
+  // Keep the original 16 card IDs intact. Add 16 released cards for the 32-card pool.
+  CARDS.push(...[
+    ...Array.from({length:2},(_,i)=>['SSR','星海回忆 '+(17+i),'star']),
+    ...Array.from({length:4},(_,i)=>['SR','星海回忆 '+(19+i),'star']),
+    ...Array.from({length:4},(_,i)=>['R','星海回忆 '+(23+i),'star']),
+    ...Array.from({length:6},(_,i)=>['N','星海回忆 '+(27+i),'star'])
+  ].map(([rarity,name,motif],i)=>({id:'BZ-'+String(i+17).padStart(2,'0'),rarity,name,motif,characters:'不吱岛',story:'新的生日回忆，等待与你相遇。'})));
   let TASKS = [
     { id: 'arrival', title: '向不吱岛报到', text: '领好通行证，留下你今天赴约的足迹。', reward: 0, motif: 'flag' },
     { id: 'wish', title: '给菜菜写一句生日祝福', text: '把想说的话交给岛主，领取任务完成代码。', reward: 25, motif: 'heart' },
