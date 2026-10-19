@@ -1,3 +1,4 @@
+import {createMessageBoard} from './message-board.mjs';
 import {createMembership} from './membership.mjs';
 import {listVisitors} from './visitors.mjs';
 import {createMaintenance} from './maintenance.mjs';
@@ -11,8 +12,8 @@ import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync,co
 import {dirname,resolve,extname} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const ADMIN_PAGES=new Set(['overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors']);
-const ADMIN_SCRIPTS=new Set(['navigation.js','membership.js','maintenance.js']);
+const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors']);
+const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
 if(ADMIN.length<32)throw Error('Set a random ADMIN_TOKEN of at least 32 characters');
@@ -72,6 +73,7 @@ function saveVisualSettings(payload){if(!payload||typeof payload!=='object'||Arr
 function auditAdmin(action,details){db.prepare('INSERT INTO admin_audit(action,details,created_at) VALUES(?,?,?)').run(action,JSON.stringify(details),now())}
 const operations=createOperations(db,DB_PATH,auditAdmin);
 const membership=createMembership(db,auditAdmin,tx);
+const messageBoard=createMessageBoard(db,auditAdmin,tx);
 const maintenance=createMaintenance(db,operations,auditAdmin,tx);
 function adminAudit(){return db.prepare('SELECT id,action,details,created_at FROM admin_audit ORDER BY id DESC LIMIT 100').all().map(row=>({...row,details:JSON.parse(row.details)}))}
 function codeStats(){return db.prepare('SELECT task_id,COUNT(*) total,SUM(CASE WHEN redeemed_by IS NULL THEN 1 ELSE 0 END) unused,SUM(CASE WHEN redeemed_by IS NOT NULL THEN 1 ELSE 0 END) redeemed FROM codes GROUP BY task_id ORDER BY task_id').all()}
@@ -160,6 +162,10 @@ else if(path==='/api/admin/audit/clear'&&req.method==='POST'){admin(req);data=ma
 else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
+else if(path==='/api/messages'&&req.method==='GET')data=messageBoard.publicRows();
+else if(path==='/api/messages'&&req.method==='POST')data=messageBoard.submit(auth(req),b);
+else if(path==='/api/admin/messages'&&req.method==='GET'){admin(req);data=messageBoard.adminRows()}
+else if(path==='/api/admin/messages/reply'&&req.method==='POST'){admin(req);data=messageBoard.reply(b)}
 else if(path==='/api/announcements'&&req.method==='GET')data=announcements(false);
 else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries(allAssetNames().map(name=>[name,existsSync(assetPath(name))])),versions:Object.fromEntries(allAssetNames().map(name=>[name,existsSync(assetPath(name))?Math.trunc(statSync(assetPath(name)).mtimeMs):0])),layouts:getAssetLayouts()};
 else if(path==='/api/activity'&&req.method==='GET')data=getActivity();
