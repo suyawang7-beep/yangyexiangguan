@@ -1,4 +1,5 @@
 import {createMessageBoard} from './message-board.mjs';
+import {createResidentCenter} from './resident-center.mjs';
 import {createMembership} from './membership.mjs';
 import {listVisitors} from './visitors.mjs';
 import {createMaintenance} from './maintenance.mjs';
@@ -101,6 +102,7 @@ const VISUAL_KEYS={collectionGrid:false,collectionFan:true,collectionRing:false,
 function getVisualSettings(){const rows=db.prepare('SELECT key,enabled FROM visual_settings').all();const result={...VISUAL_KEYS};for(const row of rows)if(Object.hasOwn(result,row.key))result[row.key]=!!row.enabled;return result}
 function saveVisualSettings(payload){if(!payload||typeof payload!=='object'||Array.isArray(payload)||Object.keys(payload).length!==Object.keys(VISUAL_KEYS).length||Object.keys(payload).some(key=>!Object.hasOwn(VISUAL_KEYS,key)||typeof payload[key]!=='boolean'))throw error(400,'视效配置格式无效');if(!['collectionGrid','collectionFan','collectionRing'].some(k=>payload[k])||!['ocSlider','ocStagger','ocDepth'].some(k=>payload[k]))throw error(400,'每个画廊必须至少保留一种展示方式');return tx(()=>{const stmt=db.prepare('INSERT INTO visual_settings(key,enabled,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET enabled=excluded.enabled,updated_at=excluded.updated_at');for(const [k,v] of Object.entries(payload))stmt.run(k,v?1:0,now());auditAdmin('visual.update',{settings:payload});return getVisualSettings()})}
 function auditAdmin(action,details){db.prepare('INSERT INTO admin_audit(action,details,created_at) VALUES(?,?,?)').run(action,JSON.stringify(details),now())}
+const residentCenter=createResidentCenter(db,membership);
 const operations=createOperations(db,DB_PATH,auditAdmin);
 const membership=createMembership(db,auditAdmin,tx);
 const messageBoard=createMessageBoard(db,auditAdmin,tx);
@@ -170,7 +172,7 @@ if(maintenanceState().enabled&&!path.startsWith('/admin')&&!path.startsWith('/ap
  if(req.method!=='GET'&&req.method!=='HEAD')throw error(503,'小岛正在维护中');
 }
 if(req.method==='GET'&&path==='/membership-client.js'){const body=readFileSync(new URL('../client/membership.js',import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}
-const pageNames=new Set(['index.html','passport.html','verify.html','office.html','checkin.html','draw.html','collection.html','mailbox.html','guide.html','islanders.html']);
+const pageNames=new Set(['resident.html','index.html','passport.html','verify.html','office.html','checkin.html','draw.html','collection.html','mailbox.html','guide.html','islanders.html']);
 const previewRoot=resolve(new URL('../ui-preview/',import.meta.url).pathname);
 const suffix=path==='/'?'index.html':path.startsWith('/ui-preview/')?path.slice('/ui-preview/'.length):path.slice(1);
 if(req.method==='GET'&&!path.startsWith('/api/')&&pageNames.has(suffix)&&path!=='/legacy'){
@@ -200,6 +202,9 @@ if(req.method==='GET'&&/^\/assets\/(characters|cards|decor|oc)\/[a-zA-Z0-9_-]+\.
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
+else if(path==='/api/resident'&&req.method==='GET')data=residentCenter.read(auth(req));
+else if(path==='/api/resident/profile'&&req.method==='POST')data=residentCenter.save(auth(req),b);
+else if(path==='/api/resident/work'&&req.method==='POST')data=residentCenter.work(auth(req),b);
 else if(path==='/api/membership'&&req.method==='GET')data=membership.get(auth(req));
 else if(path==='/api/membership/apply'&&req.method==='POST')data=membership.apply(auth(req),b);
 else if(path==='/api/admin/memberships'&&req.method==='GET'){admin(req);data=membership.list(new URL(req.url,'http://localhost').searchParams)}
