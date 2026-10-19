@@ -10,7 +10,9 @@ const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..
  await page.goto(base+'/verify.html',{waitUntil:'networkidle'});await page.locator('#membershipApplyForm').waitFor();
  let captured;const held=new Promise(resolve=>captured=resolve),gate=new Promise(resolve=>release=resolve);
  await page.route('**/api/membership',async route=>{const response=await route.fetch();captured();await gate;await route.fulfill({response})});
+ await page.locator('#douyinId').fill('draft_to_preserve');
  await page.getByRole('button',{name:'刷新认证状态'}).click();await held;
+ assert.equal(await page.locator('#douyinId').inputValue(),'draft_to_preserve','Refreshing unchanged status must preserve the draft');
  await page.locator('#douyinId').fill('race_member_2026');await page.locator('#submitMembership').click();
  await page.locator('#membershipApplicationStatus').getByText(/待审核/).waitFor();
  release();await page.waitForResponse(r=>new URL(r.url()).pathname==='/api/membership');

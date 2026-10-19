@@ -1,11 +1,11 @@
 /* Production identity integration. Does not replace the shared ui-preview renderer or styles. */
 (() => {
- 'use strict';let current=null,revision=0,applying=false;
+ 'use strict';let current=null,revision=0,applying=false,renderedPanel=null,renderedState='';
  const ownToken=()=>sessionStorage.getItem('buzhi-online-token')||'';
  const labels={visitor:'游客 · 尚未申请',pending:'游客 · 待审核',verified:'已认证岛民',rejected:'游客 · 申请未通过',revoked:'游客 · 认证已撤销'};
  const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
  async function api(path,body){const token=ownToken(),r=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{...(token?{authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'content-type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw Error(data.error||'认证服务暂时不可用');return data}
- function renderApplication(){const main=document.querySelector('#main');if(!main)return;document.title='岛民认证 · 不吱岛';main.replaceChildren();const header=el('header');header.className='page-heading';header.append(el('h1','岛民认证'));main.append(header);const panel=el('section');panel.className='glass panel';panel.id='membershipApplication';panel.style.overflowWrap='anywhere';panel.append(el('h2','正式入团，开启完整庆典'),el('p','只有在抖音上正式入团，并经岛主核验账号归属的岛民，才可以签到、领取任务奖励和抽卡。游客仍可浏览和查看已有资料。'));main.append(panel);
+ function renderApplication(){const main=document.querySelector('#main');if(!main)return;const state=JSON.stringify([ownToken(),current]);if(renderedPanel?.isConnected&&renderedPanel.parentElement===main&&renderedState===state)return;document.title='岛民认证 · 不吱岛';main.replaceChildren();const header=el('header');header.className='page-heading';header.append(el('h1','岛民认证'));main.append(header);const panel=el('section');panel.className='glass panel';panel.id='membershipApplication';renderedPanel=panel;renderedState=state;panel.style.overflowWrap='anywhere';panel.append(el('h2','正式入团，开启完整庆典'),el('p','只有在抖音上正式入团，并经岛主核验账号归属的岛民，才可以签到、领取任务奖励和抽卡。游客仍可浏览和查看已有资料。'));main.append(panel);
   if(!ownToken()){const a=el('a','先登记或登录通行证');a.href='passport.html';a.className='btn primary';panel.append(a);return}
   if(!current){panel.append(el('p','正在读取认证状态…'));return}
   const status=el('p',labels[current.status]||'游客');status.id='membershipApplicationStatus';status.setAttribute('role','status');panel.append(status);const refresh=el('button','刷新认证状态');refresh.type='button';refresh.className='btn';refresh.onclick=update;panel.append(refresh);
@@ -23,4 +23,5 @@
  async function update(){if(applying)return;const mark=++revision;reflect();if(!ownToken())return;try{const result=await api('membership');if(mark!==revision)return;current=result;reflect()}catch(e){if(mark!==revision)return;current=null;reflect();if(location.pathname.endsWith('/verify.html'))document.querySelector('#membershipApplication')?.append(el('p',e.message))}}
  document.addEventListener('buzhi:render',update);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update,{once:true});else update();
 })();
+
 
