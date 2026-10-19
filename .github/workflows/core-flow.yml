@@ -28,6 +28,7 @@ jobs:
       - run: node tests/membership-flow.mjs
       - run: node tests/membership-admin.cjs
       - run: node tests/membership-race.cjs
+      - run: node tests/message-board-flow.mjs
       - run: node tests/maintenance-flow.mjs
       - run: node tests/maintenance-admin.cjs
       - run: node tests/site-acceptance.cjs
