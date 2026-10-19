@@ -12,7 +12,7 @@ import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync,co
 import {dirname,resolve,extname} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins']);
+const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery']);
 const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
