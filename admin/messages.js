@@ -7,7 +7,7 @@
       const author=node('strong',m.anonymous?'匿名 · '+m.nickname:m.nickname),time=node('small','　'+m.createdAt+' · '+m.userId),body=node('p',m.body),label=node('label','岛主回复'),input=document.createElement('textarea'),button=node('button','保存回复'),status=node('p','');
       input.value=m.reply||'';input.maxLength=1000;input.rows=3;input.style.width='100%';button.type='button';
       button.onclick=async()=>{button.disabled=true;try{await req('messages/reply',{id:m.id,reply:input.value});status.textContent='已保存';}catch(e){status.textContent=e.message}finally{button.disabled=false}};
-      article.append(author,time,body,label,input,button,status);list.append(article)}}
+      const toggle=node('button',m.hidden?'恢复公开':'隐藏留言'),remove=node('button','删除留言');toggle.type=remove.type='button';toggle.style.margin='0 8px';remove.style.margin='0 8px';toggle.onclick=async()=>{toggle.disabled=true;try{await req('messages/moderate',{id:m.id,action:m.hidden?'show':'hide'});await load()}catch(e){status.textContent=e.message;toggle.disabled=false}};remove.onclick=async()=>{if(!confirm('确定永久删除此留言及岛主回复？此操作不能撤销。'))return;remove.disabled=true;try{await req('messages/moderate',{id:m.id,action:'delete'});await load()}catch(e){status.textContent=e.message;remove.disabled=false}};article.append(author,time,body,label,input,button,toggle,remove,status);list.append(article)}}
     catch(e){list.textContent=e.message}}
   document.getElementById('islandMessageRefresh').onclick=load;
   document.addEventListener('admin-page',e=>{if(e.detail==='messages')load()});
