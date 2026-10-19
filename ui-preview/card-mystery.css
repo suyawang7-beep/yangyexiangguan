@@ -1,5 +1,8 @@
 /* arcana1: original ocean-fantasy reward cards. No changes to art mapping or rewards. */
-body .world .pool-preview{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+/* The postal shelf shows thumbnail cards, not full-sized collection cards. */
+body[data-page="draw"] .world .pool-preview{grid-template-columns:repeat(8,minmax(0,1fr));gap:12px}
+@media(max-width:1100px) and (min-width:761px){body[data-page="draw"] .world .pool-preview{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}}
+@media(max-width:760px) and (min-width:621px){body[data-page="draw"] .world .pool-preview{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}}
 body .world .memory-card:not(.card-back){
   --relic-metal:#b7c9d1;--relic-ink:#e8f0ed;--relic-night:#243f4b;--relic-deep:#162b36;--relic-gem:#9fc6cc;
   padding:8px;border:1px solid #acb4ad;border-radius:12px;color:var(--relic-ink);
