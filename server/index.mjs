@@ -12,7 +12,7 @@ import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync,co
 import {dirname,resolve,extname} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors']);
+const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance']);
 const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
@@ -147,7 +147,7 @@ if(path==='/api/admin/site-maintenance'&&req.method==='POST'){admin(req);if(!Str
 if(path==='/api/site-maintenance'&&req.method==='GET')return send(res,200,maintenanceState());
 if(maintenanceState().enabled&&!path.startsWith('/admin')&&path!=='/health'){
  if(path.startsWith('/api/'))throw error(503,'小岛正在维护中，暂时无法操作，请稍后再来');
- if(req.method==='GET'&&req.headers.accept?.includes('text/html')){res.writeHead(503,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','retry-after':'300'});return res.end(maintenanceHtml(maintenanceState().message))}
+ if(req.method==='GET'&&(path==='/'||path==='/legacy'||path.endsWith('.html'))){res.writeHead(503,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','retry-after':'300'});return res.end(maintenanceHtml(maintenanceState().message))}
  if(req.method!=='GET'&&req.method!=='HEAD')throw error(503,'小岛正在维护中');
 }
 if(req.method==='GET'&&path==='/membership-client.js'){const body=readFileSync(new URL('../client/membership.js',import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}
