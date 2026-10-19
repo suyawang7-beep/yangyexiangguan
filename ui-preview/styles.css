@@ -70,3 +70,13 @@ main{min-height:65vh;animation:page-arrive .7s ease-out both}.eyebrow{display:fl
   body .world .desktop-nav{display:none}
   body .world .site-header{flex-wrap:nowrap}
 }
+
+/* Mobile secondary destinations: only non-tab destinations, no duplicate bottom links. */
+.mobile-secondary-nav{display:none}
+@media(max-width:850px){
+ body .world .site-header{flex-wrap:wrap}
+ body .world .mobile-secondary-nav{display:grid;order:3;flex-basis:100%;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:7px 0 2px}
+ body .world .mobile-secondary-nav a{display:flex;align-items:center;justify-content:center;text-align:center;min-height:42px;padding:7px 2px;border:1px solid #ffffffba;border-radius:13px;background:#ffffff63;color:#376481;font-size:11px;white-space:nowrap}
+ body .world .mobile-secondary-nav a:focus-visible{outline:2px solid #286c99;outline-offset:2px}
+}
+@media(max-width:385px){body .world .mobile-secondary-nav a{font-size:10px}}
