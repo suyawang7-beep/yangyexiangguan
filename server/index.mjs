@@ -40,6 +40,11 @@ const schema=[
 'CREATE TABLE IF NOT EXISTS card_profiles(card_id TEXT PRIMARY KEY,name TEXT NOT NULL,story TEXT NOT NULL DEFAULT \'\',oc_id TEXT,updated_at TEXT NOT NULL)'
 ];
 for(const statement of schema)db.exec(statement);
+db.exec("CREATE TABLE IF NOT EXISTS site_maintenance (id INTEGER PRIMARY KEY CHECK(id=1), enabled INTEGER NOT NULL DEFAULT 0 CHECK(enabled IN (0,1)), message TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL)");
+function maintenanceState(){const row=db.prepare('SELECT enabled,message,updated_at FROM site_maintenance WHERE id=1').get();return {enabled:!!row?.enabled,message:row?.message||'岛主正在整理海风送来的生日礼物，小岛暂时休港，请稍后再来赴约 ♡',updatedAt:row?.updated_at||null}}
+function saveSiteMaintenance(b){if(typeof b.enabled!=='boolean'||typeof b.message!=='string'||b.message.length>300)throw error(400,'请输入有效的维护设置，公告最多300字');const t=now();db.prepare('INSERT INTO site_maintenance(id,enabled,message,updated_at) VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET enabled=excluded.enabled,message=excluded.message,updated_at=excluded.updated_at').run(b.enabled?1:0,b.message.trim(),t);auditAdmin('site.maintenance',{enabled:b.enabled});return maintenanceState()}
+function maintenanceHtml(message){const escaped=message.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>不吱岛 · 暂时休港</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;font-family:system-ui,"Microsoft YaHei",sans-serif;color:#285b7a;background:radial-gradient(circle at 20% 20%,#fff8 0,transparent 38%),linear-gradient(145deg,#b8e9f5,#d8effd 55%,#e9e2ff)}main{width:min(100%,640px);padding:clamp(30px,7vw,70px);border:1px solid #fff;border-radius:34px;text-align:center;background:#ffffff80;box-shadow:0 20px 75px #3e81ab26;backdrop-filter:blur(12px)}h1{font-size:clamp(30px,6vw,49px);margin:18px 0}p{font-size:17px;line-height:2;white-space:pre-wrap;overflow-wrap:anywhere}.symbol{font-size:48px}small{color:#6084a0}</style></head><body><main><div class="symbol">🌊</div><h1>不吱岛 · 暂时休港</h1><p>'+escaped+'</p><small>海风会替我们守着这座小岛，稍后再见 ♡</small></main></body></html>'}
+
 const TASKS=new Set(['letter','memory','quiz','creative','support','commission','wish','live','song','islander','party']);
 const CARDS=[...Array.from({length:1},(_,i)=>({id:'UR-'+(i+1),rarity:'UR'})),...Array.from({length:2},(_,i)=>({id:'SSR-'+(i+1),rarity:'SSR'})),...Array.from({length:4},(_,i)=>({id:'SR-'+(i+1),rarity:'SR'})),...Array.from({length:4},(_,i)=>({id:'R-'+(i+1),rarity:'R'})),...Array.from({length:5},(_,i)=>({id:'N-'+(i+1),rarity:'N'})),
   ...Array.from({length:1},(_,i)=>({id:'UR-'+(i+2),rarity:'UR'})),
@@ -137,6 +142,14 @@ function restoreAsset(b){const name=String(b.name||''),version=String(b.version|
 function readBody(req,maxSize=8192){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>maxSize){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
 function send(res,code,data){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))}
 http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;
+if(path==='/api/admin/site-maintenance'&&req.method==='GET'){admin(req);return send(res,200,maintenanceState())}
+if(path==='/api/admin/site-maintenance'&&req.method==='POST'){admin(req);if(!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');return send(res,200,saveSiteMaintenance(await readBody(req,8192)))}
+if(path==='/api/site-maintenance'&&req.method==='GET')return send(res,200,maintenanceState());
+if(maintenanceState().enabled&&!path.startsWith('/admin')&&path!=='/health'){
+ if(path.startsWith('/api/'))throw error(503,'小岛正在维护中，暂时无法操作，请稍后再来');
+ if(req.method==='GET'&&req.headers.accept?.includes('text/html')){res.writeHead(503,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','retry-after':'300'});return res.end(maintenanceHtml(maintenanceState().message))}
+ if(req.method!=='GET'&&req.method!=='HEAD')throw error(503,'小岛正在维护中');
+}
 if(req.method==='GET'&&path==='/membership-client.js'){const body=readFileSync(new URL('../client/membership.js',import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}
 const pageNames=new Set(['index.html','passport.html','verify.html','office.html','checkin.html','draw.html','collection.html','mailbox.html','guide.html','islanders.html']);
 const previewRoot=resolve(new URL('../ui-preview/',import.meta.url).pathname);
