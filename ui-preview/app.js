@@ -165,11 +165,11 @@
 
   const LIVE_TASKS=[
     {id:'arrival',title:'首次报到',text:'领取通行证即自动完成',reward:0,motif:'flag'},
-    {id:'letter',title:'生日来信',text:'完成后向岛主领取专属代码',reward:25,motif:'heart'},
+    {id:'letter',title:'生日来信',text:'每天可完成一次，北京时间次日00:00重置；领取当天专属代码',reward:25,motif:'heart'},
     {id:'memory',title:'岛屿回忆',text:'分享一次相遇与回忆',reward:25,motif:'mail'},
     {id:'quiz',title:'默契小测',text:'完成小测后领取代码',reward:25,motif:'star'},
     {id:'creative',title:'创作展投稿',text:'完成投稿后领取代码',reward:25,motif:'cards'},
-    {id:'support',title:'直播应援',text:'完成应援后领取代码',reward:25,motif:'music'},
+    {id:'support',title:'直播应援',text:'每位岛民只能领取一次，完成应援后领取代码',reward:25,motif:'music'},
     {id:'commission',title:'临时委托',text:'接受岛主发布的活动委托',reward:25,motif:'bird'}
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
@@ -231,7 +231,7 @@
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
     state.balance=profile.coins;
     state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
-    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t.startsWith('wish:')?'wish':t);
+    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t.startsWith('letter:')?'letter':t);
     state.bonuses=profile.bonuses;
     state.checkins=profile.checkins;
     state.demoIslander=true;
@@ -286,7 +286,7 @@
     const title = heading('02', 'Little tasks, little happiness', '岛民事务所', '庆典由每一位岛民一起完成。做一点小事，领取金币，也留下一份参与的证明。');
     if (!state.passport) return title + needPassport();
     return title + `<div class="office-layout"><div>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>${LIVE ? '已登录不等于已核验岛民。请完成对应活动后，填写岛主私信发放的代码，奖励以服务器记录为准。' : `若想体验任务界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button>`}</div>` : ''}<div class="task-list">${TASKS.filter(task => task.id !== 'arrival').map((task) => {
-      const completed = task.id === 'wish' ? state.tasks.includes('wish') : state.tasks.includes(task.id);
+      const completed = state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
       return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : '输入完成代码'}</button>`}</div></article>`;
     }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track" data-completed="${state.tasks.length}"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p class="small muted">请填写岛主私信发放的一次性完成代码。</p><div class="form-field"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
