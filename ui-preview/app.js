@@ -86,8 +86,8 @@
   ].map(([rarity,name,motif],i)=>({id:'BZ-'+String(i+17).padStart(2,'0'),rarity,name,motif,characters:'不吱岛',story:'新的生日回忆，等待与你相遇。'})));
   let TASKS = [
     { id: 'arrival', title: '向不吱岛报到', text: '领好通行证，留下你今天赴约的足迹。', reward: 0, motif: 'flag' },
-    { id: 'wish', title: '给菜菜写一句生日祝福', text: '把想说的话交给岛主，领取任务完成代码。', reward: 25, motif: 'heart' },
-    { id: 'live', title: '赴一场生日直播的约', text: '在直播里相见，一起留下庆典的回忆。', reward: 25, motif: 'calendar' },
+    { id: 'wish', title: '给菜菜写一句生日祝福', text: '每天可完成一次，北京时间次日00:00重置；每日须使用新的任务完成代码。', reward: 25, motif: 'heart' },
+    { id: 'live', title: '赴一场生日直播的约', text: '每位岛民仅能完成并领取一次，参与生日直播后使用完成代码。', reward: 25, motif: 'calendar' },
     { id: 'song', title: '点亮小岛的庆生歌', text: '参与直播互动后，向岛主领取完成代码。', reward: 25, motif: 'music' },
     { id: 'memory', title: '分享一段相遇的故事', text: '哪一段小小瞬间，让你决定留下来？', reward: 25, motif: 'mail' },
     { id: 'islander', title: '和岛民打一个招呼', text: '让今天的小岛，多一点温柔的声音。', reward: 25, motif: 'bird' },
@@ -165,11 +165,11 @@
 
   const LIVE_TASKS=[
     {id:'arrival',title:'首次报到',text:'领取通行证即自动完成',reward:0,motif:'flag'},
-    {id:'letter',title:'生日来信',text:'完成后向岛主领取专属代码',reward:25,motif:'heart'},
-    {id:'memory',title:'岛屿回忆',text:'分享一次相遇与回忆',reward:25,motif:'mail'},
+    {id:'letter',title:'生日来信',text:'写给菜菜的话，不少于15字；每天可写一次并领取25金币',reward:25,motif:'heart'},
+    {id:'memory',title:'岛屿回忆',text:'写下一段相遇与回忆，不少于15字；完成后领取25金币',reward:25,motif:'mail'},
     {id:'quiz',title:'默契小测',text:'完成小测后领取代码',reward:25,motif:'star'},
     {id:'creative',title:'创作展投稿',text:'完成投稿后领取代码',reward:25,motif:'cards'},
-    {id:'support',title:'直播应援',text:'完成应援后领取代码',reward:25,motif:'music'},
+    {id:'support',title:'直播应援',text:'每位岛民只能领取一次，完成应援后领取代码',reward:25,motif:'music'},
     {id:'commission',title:'临时委托',text:'接受岛主发布的活动委托',reward:25,motif:'bird'}
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
@@ -231,7 +231,7 @@
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
     state.balance=profile.coins;
     state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
-    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t);
+    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t.startsWith('letter:')?'letter':t);
     state.bonuses=profile.bonuses;
     state.checkins=profile.checkins;
     state.demoIslander=true;
@@ -269,7 +269,7 @@
   function renderHome() {
     let primary = link('passport', '领取生日通行证', 'btn primary');
     if (state.passport) primary = state.history.length ? link('collection', '查看我的回忆', 'btn primary') : link('draw', '去抽第一张卡', 'btn primary');
-    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">A birthday rendezvous · 2026</div><h1>雾岛吱&菜Gina🐟<span>の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.18 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}</div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="菜菜与吱吱的生日庆典主视觉" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div>${LIVE ? "" : `<span class="art-caption">双人主视觉示意 · 待替换正式立绘</span>`}</div></section>
+    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">✧ 菜菜生日特别企划 · 2026 ✧</div><h1>雾岛吱&菜Gina🐟<span>の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.18 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}</div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="菜菜与吱吱的生日庆典主视觉" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div>${LIVE ? "" : `<span class="art-caption">双人主视觉示意 · 待替换正式立绘</span>`}</div></section>
       <aside class="news-strip glass"><strong>✦ 岛上来信</strong><p>海风已经把邀请送达。10月18—25日，来不吱岛收藏一段生日回忆吧。</p><a href="mailbox.html">查看岛主信箱 ${icon('arrow')}</a></aside>`;
   }
 
@@ -288,8 +288,8 @@
     return title + `<div class="office-layout"><div>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>${LIVE ? '已登录不等于已核验岛民。请完成对应活动后，填写岛主私信发放的代码，奖励以服务器记录为准。' : `若想体验任务界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button>`}</div>` : ''}<div class="task-list">${TASKS.filter(task => task.id !== 'arrival').map((task) => {
       const completed = state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
-      return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : '输入完成代码'}</button>`}</div></article>`;
-    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track" data-completed="${state.tasks.length}"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p class="small muted">请填写岛主私信发放的一次性完成代码。</p><div class="form-field"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
+      return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : '输入完成代码'}</button>`}</div></article>`;
+    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track" data-completed="${state.tasks.length}"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p id="task-dialog-tip" class="small muted">请填写岛主私信发放的一次性完成代码。</p><div id="task-writing-wrap" hidden><label for="task-writing">写下你的心意（不少于15字）</label><textarea id="task-writing" maxlength="2000" rows="6" placeholder="在这里写下想说的话…"></textarea><p id="task-writing-count" class="small muted">0 / 15 字</p></div><div class="form-field" id="task-code-wrap"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
   }
 
   function streakCount() {
@@ -330,7 +330,7 @@
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
         <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 32 张'}</span></div>
         <p class="draw-description" id="draw-pool-description">${first ? '首次抽卡从公开的4张SSR与6张SR中抽取，每张概率为1/10。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，当前公开32张卡片，剩余18张待开放。正常卡池每张概率均为1/32。'}</p>
-        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池32张，各1/32。</p><ul class="probability-list"><li><span>UR · 2 张</span><strong>6.25%</strong></li><li><span>SSR · 4 张</span><strong>12.5%</strong></li><li><span>SR · 9 张</span><strong>28.125%</strong></li><li><span>R · 9 张</span><strong>28.125%</strong></li><li><span>N · 11 张</span><strong>34.375%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
+        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池32张，各1/32。</p><ul class="probability-list"><li><span>UR · 2 张</span><strong>6.25%</strong></li><li><span>SSR · 4 张</span><strong>12.5%</strong></li><li><span>SR · 6 张</span><strong>18.75%</strong></li><li><span>R · 9 张</span><strong>28.125%</strong></li><li><span>N · 11 张</span><strong>34.375%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
       </section>
     </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>${LIVE ? '看看有哪些回忆' : '以下为部分示意卡面'}</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
   }
@@ -641,9 +641,12 @@
   }
   function bindLiveOffice(){
     const dialog=document.querySelector('#task-dialog');let task=null;
-    document.querySelectorAll('[data-task]').forEach(b=>{b.disabled=false;b.onclick=()=>{task=TASKS.find(t=>t.id===b.dataset.task);if(!task||task.id==='arrival')return;dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.showModal()}});
-    dialog?.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
-    dialog?.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const code=dialog.querySelector('#task-code').value.trim();try{takeProfile(await liveApi('redeem',{taskId:task.id,code}));toast('奖励已存入正式账户')}catch(err){toast(err.message)}});
+    const writing=dialog.querySelector('#task-writing'),count=dialog.querySelector('#task-writing-count'),tip=dialog.querySelector('#task-dialog-tip');
+    const updateCount=()=>{const length=Array.from(writing.value.trim().replace(/\s/g,'')).length;count.textContent=length+' / 15 字';count.style.color=length>=15?'#16876a':''};
+    writing.addEventListener('input',updateCount);
+    document.querySelectorAll('[data-task]').forEach(button=>{button.onclick=()=>{task=TASKS.find(t=>t.id===button.dataset.task);if(!task||task.id==='arrival')return;const isWriting=task.id==='letter'||task.id==='memory';dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.querySelector('#task-writing-wrap').hidden=!isWriting;dialog.querySelector('#task-code-wrap').hidden=isWriting;dialog.querySelector('#task-code').required=!isWriting;dialog.querySelector('#task-code').value='';writing.value='';updateCount();tip.textContent=isWriting?'至少填写15个非空白字符，提交后自动获得25金币。':'请填写岛主私信发放的一次性完成代码。';dialog.showModal()}});
+    dialog.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
+    dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory';const content=writing.value.trim();if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}const submit=e.submitter;if(submit)submit.disabled=true;try{const profile=await liveApi(writingTask?'task-writing':'redeem',writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});dialog.close();takeProfile(profile);toast('任务完成，25金币已到账！')}catch(err){toast(err.message);if(submit)submit.disabled=false}});
   }
   function bindLiveCheckin(){
     document.querySelector('#checkin-button')?.addEventListener('click',async()=>{try{takeProfile(await liveApi('checkin',{}));toast('今日签到成功，10 金币已保存')}catch(err){toast(err.message)}});
