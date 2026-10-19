@@ -13,8 +13,8 @@ import {mkdirSync,readFileSync,existsSync,writeFileSync,renameSync,unlinkSync,co
 import {dirname,resolve,extname} from 'node:path';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery']);
-const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js']);
+const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery','residents']);
+const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js','residents.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
 const BUILD_REVISION=/^[a-f0-9]{7,40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA||'')?process.env.RAILWAY_GIT_COMMIT_SHA:'unknown';
@@ -202,6 +202,8 @@ if(req.method==='GET'&&/^\/assets\/(characters|cards|decor|oc)\/[a-zA-Z0-9_-]+\.
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
+else if(path==='/api/admin/residents'&&req.method==='GET'){admin(req);data=residentCenter.adminList()}
+else if(path==='/api/admin/residents/review'&&req.method==='POST'){admin(req);data=residentCenter.adminReview(b)}
 else if(path==='/api/resident'&&req.method==='GET')data=residentCenter.read(auth(req));
 else if(path==='/api/resident/profile'&&req.method==='POST')data=residentCenter.save(auth(req),b);
 else if(path==='/api/resident/work'&&req.method==='POST')data=residentCenter.work(auth(req),b);
