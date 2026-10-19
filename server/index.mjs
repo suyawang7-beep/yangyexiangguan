@@ -168,8 +168,8 @@ else if(path==='/api/admin/audit/clear'&&req.method==='POST'){admin(req);data=ma
 else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
-else if(path==='/api/messages'&&req.method==='GET')data=messageBoard.publicRows();
-else if(path==='/api/messages'&&req.method==='POST')data=messageBoard.submit(auth(req),b);
+else if(path==='/api/messages'&&req.method==='GET')data={items:messageBoard.publicRows(),accepting:getActivity().phase==='active'};
+else if(path==='/api/messages'&&req.method==='POST'){requireActiveActivity();data=messageBoard.submit(auth(req),b)}
 else if(path==='/api/admin/messages'&&req.method==='GET'){admin(req);data=messageBoard.adminRows()}
 else if(path==='/api/admin/messages/reply'&&req.method==='POST'){admin(req);data=messageBoard.reply(b)}
 else if(path==='/api/admin/messages/moderate'&&req.method==='POST'){admin(req);data=messageBoard.moderate(b)}
