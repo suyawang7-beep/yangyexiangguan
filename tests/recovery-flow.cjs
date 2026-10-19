@@ -56,6 +56,10 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  assert(!rendered.includes('\\n'),'Admin credential output must not contain literal backslash-n around the key');
  const delivered=await page.locator('#islanderRecoveryKey').inputValue();assert.equal(delivered,out.recoveryKey,'Selectable field contains only the key');
  await page.locator('#islanderRecoveryCopy').click();assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),delivered,'Copy button excludes labels and warnings');
+ await page.locator('#logout').click();
+ assert.equal(await page.locator('#islanderRecoveryKey').count(),0,'Logging out removes the plaintext recovery credential from the DOM');
+ await page.locator('#token').fill(admin);await page.locator('#enter').click();
+ assert.equal(await page.locator('#islanderRecoveryResult').textContent(),'','A new admin login cannot reveal the previous recovery key');
  await page.goto(base+'/passport.html');await page.locator('#passport-returning-tab').click();await page.locator('#returning-id').fill(a.id);await page.locator('#returning-key').fill(delivered);
  const request=page.waitForRequest(r=>r.url().endsWith('/api/login')&&r.method()==='POST');const loginResponse=page.waitForResponse(r=>r.url().endsWith('/api/login'));
  await page.locator('#live-login button[type=submit]').click();assert.deepEqual((await request).postDataJSON(),{id:a.id,recoveryKey:delivered});const logged=await loginResponse;assert.equal(logged.status(),200);assert.deepEqual((await logged.json()).profile,profile);

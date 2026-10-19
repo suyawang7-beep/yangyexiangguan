@@ -2,11 +2,13 @@ name: Buzhi Island core flow
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   browser-flow:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,25 +16,19 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
-      - run: node tests/recovery-flow.cjs
-      - run: node tests/deployment-artifact.mjs
-      - run: node tests/flow.mjs
-      - run: node tests/online-flow.mjs
-      - run: node tests/activity-flow.mjs
-      - run: node tests/activity-admin.cjs
-      - run: node tests/operations-flow.mjs
-      - run: node tests/backup-disconnect.mjs
-      - run: node tests/operations-admin.cjs
-      - run: node tests/content-flow.mjs
-      - run: node tests/content-admin.cjs
-      - run: node tests/admin-pages.cjs
-      - run: node tests/membership-flow.mjs
-      - run: node tests/membership-admin.cjs
-      - run: node tests/membership-race.cjs
-      - run: node tests/message-board-flow.mjs
-      - run: node tests/maintenance-flow.mjs
-      - run: node tests/maintenance-admin.cjs
-      - run: node tests/site-acceptance.cjs
-      - run: CHROMIUM_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())") node tests/production-layout.cjs
-
-
+      - name: Run every core regression and report all failures
+        shell: bash
+        run: |
+          export CHROMIUM_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")
+          status=0
+          for test in tests/recovery-flow.cjs tests/maintenance-relations.mjs tests/deployment-artifact.mjs tests/flow.mjs tests/online-flow.mjs tests/activity-flow.mjs tests/activity-admin.cjs tests/operations-flow.mjs tests/backup-disconnect.mjs tests/operations-admin.cjs tests/content-flow.mjs tests/content-admin.cjs tests/admin-pages.cjs tests/membership-flow.mjs tests/membership-admin.cjs tests/membership-race.cjs tests/message-board-flow.mjs tests/maintenance-flow.mjs tests/maintenance-admin.cjs tests/site-acceptance.cjs tests/production-layout.cjs; do
+            echo "::group::$test"
+            if timeout --kill-after=5s 120s node "$test"; then
+              echo "PASS $test"
+            else
+              echo "::error::FAIL $test"
+              status=1
+            fi
+            echo "::endgroup::"
+          done
+          exit "$status"
