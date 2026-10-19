@@ -1,65 +1,51 @@
-/* map1: one large island, native map labels, one lightweight current-place card. */
+/* archipelago1: full approved art; narrow screens pan only the map. */
 body[data-page="guide"] .world>.container{width:min(1440px,calc(100% - 48px))}
-body[data-page="guide"] .world main{position:relative;min-height:0}
-.guide-explorer{position:relative;isolation:isolate;margin:12px 0 20px}
-body[data-page="guide"] .world .voyage-map{position:relative;width:100%;height:clamp(560px,76svh,820px);min-height:0;max-height:none;aspect-ratio:auto;overflow:hidden;border:1px solid #ffffffe6;border-radius:30px;background:url('assets/map-water.svg?v=20261019-map1') 0 0/130px 100px repeat,linear-gradient(145deg,#cceff9,#afd8e8);box-shadow:0 15px 45px #527f9b24}
-body[data-page="guide"] .world .voyage-map>.guide-map-art{display:block;width:100%;height:100%;border-radius:0;background:transparent}
-.guide-map-heading{position:absolute;left:24px;top:24px;max-width:330px;padding:17px 23px 16px;border:1px solid #ffffffd9;border-radius:12px 22px 17px 20px;background:#f4fbffb8;backdrop-filter:blur(14px);box-shadow:0 8px 22px #608aa310}
-.guide-map-heading .room-label{font-size:10px;letter-spacing:2px;color:#567e90}
-body[data-page="guide"] .world .guide-map-heading h1{font:400 29px/1.4 'Buzhi Hand',var(--display);letter-spacing:2px;color:#315d73;margin:6px 0}
-.guide-map-heading p{font-size:11px;line-height:1.6;color:#5a7b8d;margin:0}
-.guide-map-heading .heading-stickers{opacity:.65}
-.guide-map-heading .island-sticker:first-child{width:35px;height:35px;right:0;top:1px}
+body[data-page="guide"] .world main{min-height:0}
+.guide-explorer{position:relative;isolation:isolate;margin:12px 0 24px}
+.guide-map-heading{position:relative;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:14px 4px 20px}
+.guide-map-heading .room-label{font-size:10px;letter-spacing:2px;color:#547586}
+body[data-page="guide"] .world .guide-map-heading h1{font:400 32px/1.4 'Buzhi Hand',var(--display);letter-spacing:2px;color:#315d73;margin:6px 0}
+.guide-map-heading p{font-size:12px;line-height:1.7;color:#4e7181;margin:0}
+.guide-map-heading .heading-stickers{right:150px;opacity:.7}
+.guide-map-heading .island-sticker:first-child{width:42px;height:42px;right:0;top:10px}
 .guide-map-heading .island-sticker:nth-child(2){display:none}
-.map-overview{position:absolute;top:24px;right:24px;display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 14px;border:1px solid #fff;border-radius:30px;background:#f4fbffce;color:#315d73;font-size:12px;box-shadow:0 5px 16px #507a9312;backdrop-filter:blur(10px)}
+.map-overview{flex:none;display:flex;align-items:center;gap:7px;min-height:44px;padding:10px 16px;border:1px solid #fff;border-radius:26px;background:#f4fbff80;color:#315d73;font-size:12px}
 .map-overview .icon{width:16px;height:16px}
-.map-overview[aria-pressed="true"]{background:#285c73;color:#fff;border-color:#e6f3f9}
+.map-overview[aria-pressed="true"]{background:#285c73;color:#fff}
+body[data-page="guide"] .world .voyage-map{position:relative;width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:auto;overflow:auto;border:1px solid #ffffffd9;border-radius:26px;background:#6baebc;box-shadow:0 14px 40px #426d8a26;overscroll-behavior-x:contain;scrollbar-color:#6d9aab #d9edf3;scrollbar-width:thin}
+.guide-map-stage{position:relative;width:100%;min-width:1000px;aspect-ratio:1584/993;overflow:hidden;isolation:isolate}
+body[data-page="guide"] .world .guide-map-art{display:block;width:100%;height:100%;background:none;border-radius:0}
 .map-pins{position:absolute;inset:0;pointer-events:none;visibility:hidden}
 [data-guide-ready="true"] .map-pins{visibility:visible}
-.island-map-pin{position:absolute;display:flex;align-items:center;justify-content:center;gap:5px;min-width:68px;min-height:44px;padding:7px 9px;transform:translate(-50%,-50%);pointer-events:auto;border:1px solid #fff;border-radius:5px 14px 6px 13px;background:#f7fcfff0;color:#315d73;box-shadow:0 5px 12px #365d7633;font-size:12px;white-space:nowrap;line-height:1.4;transition:background .2s,color .2s,box-shadow .2s}
-.island-map-pin:before{content:'';position:absolute;left:calc(50% - 3px);top:-5px;width:6px;height:6px;background:#f7fcff;border:1px solid #fff;border-right:0;border-bottom:0;transform:rotate(45deg)}
-.island-map-pin .icon{width:13px;height:13px;stroke-width:1.5}
-.island-map-pin:hover{background:#fff;box-shadow:0 7px 18px #365d7640}
-.island-map-pin[aria-pressed="true"]{background:#2c6175;color:#fff;box-shadow:0 0 0 4px #f5fbff6b,0 6px 18px #294f6b40}
-.island-map-pin[aria-pressed="true"]:before{background:#2c6175}
-.guide-map-compass{position:absolute;right:28px;top:96px;display:grid;justify-items:center;gap:3px;color:#50798b;font:10px Georgia,serif}
-.guide-map-compass span{font-size:34px;font-weight:400;line-height:1.2}
-.guide-map-hint{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);margin:0;padding:6px 12px;border-radius:20px;background:#e9f7fc9c;color:#4c7285;font-size:10px;letter-spacing:.5px;white-space:nowrap;pointer-events:none}
-body[data-page="guide"] .world .guide-info{position:absolute;left:24px;bottom:24px;width:282px;padding:19px 22px;border-radius:12px 25px 14px 22px;background:#f4fbffe3;box-shadow:0 10px 30px #507f971c;backdrop-filter:blur(14px)}
-.guide-info-meta{display:flex;align-items:center;gap:12px;color:#5d8393;font-size:10px;letter-spacing:1px}
-#voyage-count{font:11px Georgia,serif;letter-spacing:1px;color:#2e6279;border-right:1px solid #aec9d6;padding-right:12px}
-.guide-info h2{font:400 23px/1.5 'Buzhi Hand',var(--display);margin:10px 0 7px;color:#315d73;letter-spacing:.5px}
-.guide-info>p{font-size:12px;line-height:1.9;color:#557b8d;margin:0 0 11px}
-.guide-destination{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;font-size:12px;color:#2e6279;border-top:1px dashed #a6c4d38c;padding-top:7px}
+.island-map-pin{position:absolute;display:flex;align-items:center;justify-content:center;gap:5px;min-width:68px;min-height:44px;padding:7px 10px;transform:translate(-50%,-50%);pointer-events:auto;border:1px solid #fff;border-radius:6px 14px 6px 14px;background:#f6fbf5ed;color:#2d5363;box-shadow:0 4px 12px #234a6040;font-size:12px;white-space:nowrap;transition:background .2s,box-shadow .2s}
+.island-map-pin:after{content:'';position:absolute;left:calc(50% - 4px);bottom:-5px;width:8px;height:8px;background:inherit;transform:rotate(45deg);border-right:1px solid white;border-bottom:1px solid white}
+.island-map-pin .icon{width:13px;height:13px}
+.island-map-pin:hover{background:#fff}
+.island-map-pin[aria-pressed="true"]{background:#285c69;color:#fff;box-shadow:0 0 0 4px #ffffff70,0 6px 18px #294f6b40}
+.guide-map-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:14px 0}
+.guide-map-hint{font-size:11px;color:#426879;margin:0}
+body[data-page="guide"] .world .voyage-buttons{position:static;display:flex;gap:10px;margin:0}
+body[data-page="guide"] .world .voyage-buttons .btn{min-height:44px;padding:10px 18px;font-size:12px;border-radius:24px}
+body[data-page="guide"] .world .guide-info{position:relative;inset:auto;width:100%;padding:22px 26px;border-radius:18px 26px 18px 26px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 30px}
+.guide-info-meta{display:flex;gap:12px;align-items:center;color:#507789;font-size:11px;letter-spacing:1px;grid-column:1}
+#voyage-count{font:12px Georgia,serif;border-right:1px solid #aac5cf;padding-right:12px}
+.guide-info h2{font:400 26px/1.5 'Buzhi Hand',var(--display);margin:9px 0;color:#315d73;grid-column:1}
+.guide-info>p{font-size:12px;line-height:1.9;margin:0;color:#416878;max-width:800px;grid-column:1}
+.guide-destination{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:44px;font-size:12px;color:#2e6279;grid-column:2;grid-row:1/4;align-self:center}
 .guide-destination .icon{width:16px;height:16px}
-body[data-page="guide"] .world .voyage-buttons{position:absolute;right:24px;bottom:24px;margin:0;gap:8px;z-index:1}
-body[data-page="guide"] .world .voyage-buttons .btn{min-height:44px;padding:10px 17px;border-radius:24px;font-size:12px;background:#f5fbffe8;border:1px solid #fff}
-body[data-page="guide"] .world .voyage-buttons .btn:disabled{opacity:.6}
+.guide-water-motion,.guide-cloud-motion{pointer-events:none}.guide-water-motion{opacity:.38}
 body[data-page="guide"] .world .scene-decor{height:74px;margin:10px auto 20px;max-width:600px}
 body[data-page="guide"] .world .scene-decor .island-sticker{width:55px;height:55px}
-@media(max-width:850px){body[data-page="guide"] .world .guide-info{width:250px;padding:16px 19px}.guide-info h2{font-size:21px}.guide-map-hint{left:auto;right:20px;bottom:84px;transform:none;max-width:250px;white-space:normal}}
-/* A floating card must never cover locations on narrower laptop/tablet maps. */
-@media(max-width:1150px){
-  body[data-page="guide"] .world .guide-info{position:relative;inset:auto;width:100%;padding:20px 22px;margin-top:12px;border-radius:13px 22px 15px 20px}
-  body[data-page="guide"] .world .voyage-buttons{position:relative;inset:auto;display:flex;justify-content:space-between;margin:12px 0 0;gap:12px}
-  body[data-page="guide"] .world .voyage-buttons .btn{flex:1;min-height:46px}
-  .guide-map-hint{left:12px;right:12px;bottom:16px;max-width:none;transform:none;text-align:center;white-space:normal}
-}
 @media(max-width:620px){
   body[data-page="guide"] .world>.container{width:calc(100% - 24px)}
-  .guide-explorer{margin-top:8px}
-  body[data-page="guide"] .world .voyage-map{height:clamp(460px,62svh,620px);border-radius:22px}
-  .guide-map-heading{left:12px;top:13px;max-width:calc(100% - 112px);padding:12px 13px;border-radius:9px 17px 12px 16px}
-  .guide-map-heading .room-label{font-size:8px;letter-spacing:1px}
-  body[data-page="guide"] .world .guide-map-heading h1{font-size:20px;letter-spacing:1px;margin:5px 0 2px}
-  .guide-map-heading p{font-size:9px;line-height:1.6}
-  .map-overview{top:14px;right:12px;padding:8px 11px;font-size:10px;gap:5px}
-  .map-overview .icon{width:13px;height:13px}
-  .guide-map-compass{right:26px;top:79px;font-size:8px}.guide-map-compass span{font-size:26px}
-  .island-map-pin{font-size:11px;padding:7px;gap:4px;min-height:44px}.island-map-pin .icon{width:11px;height:11px}
-  .guide-map-hint{left:12px;right:12px;bottom:15px;max-width:none;white-space:normal;text-align:center;font-size:9px}
-  body[data-page="guide"] .world .voyage-buttons .btn{flex:1;min-height:46px;font-size:12px}
-  .guide-info h2{font-size:24px}.guide-info>p{font-size:12px}
-  body[data-page="guide"] .world .scene-decor{height:64px;margin-bottom:14px}
+  .guide-map-heading{gap:10px;padding:10px 2px 16px}.guide-map-heading .room-label{font-size:9px;letter-spacing:1px}
+  body[data-page="guide"] .world .guide-map-heading h1{font-size:24px;letter-spacing:1px}
+  .guide-map-heading p{font-size:10px;max-width:220px}.guide-map-heading .heading-stickers{right:110px}
+  .guide-map-heading .island-sticker:first-child{width:28px;height:28px;top:0}
+  .map-overview{font-size:10px;padding:9px 11px;gap:5px}
+  body[data-page="guide"] .world .voyage-map{border-radius:18px}
+  .guide-map-toolbar{flex-wrap:wrap;gap:10px}.guide-map-hint{width:100%;text-align:center;font-size:10px}
+  body[data-page="guide"] .world .voyage-buttons{width:100%}.voyage-buttons .btn{flex:1}
+  body[data-page="guide"] .world .guide-info{display:block;padding:20px}
+  .guide-info h2{font-size:25px}.guide-destination{margin-top:12px;border-top:1px solid #a6c4d36b;padding-top:8px}
 }
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.guide-map-heading,.map-overview,body[data-page="guide"] .world .guide-info{background:#edf9fff5}}

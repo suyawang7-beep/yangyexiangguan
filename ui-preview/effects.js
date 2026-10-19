@@ -20,13 +20,73 @@
   document.head.append(featureStyles);
   const glassStyles = document.createElement('link');
   glassStyles.rel = 'stylesheet'; glassStyles.id = 'glass-surfaces';
-  glassStyles.href = new URL('glass-surfaces.css?v=20261017-glass5', document.currentScript.src).href;
+  glassStyles.href = new URL('glass-surfaces.css?v=20261019-ambient1', document.currentScript.src).href;
   document.head.append(glassStyles);
   const motionSubscribers = new Set();
   const sync = () => motionSubscribers.forEach((callback) => callback());
   document.addEventListener('buzhi:motion', sync);
   document.addEventListener('visibilitychange', sync);
   const subscribe = (callback) => { motionSubscribers.add(callback); callback(); return () => motionSubscribers.delete(callback); };
+  // One lifecycle for every new ambient effect: reuse on render, pause offscreen,
+  // stop while hidden/reduced/off. No persistent JavaScript animation loop.
+  const ambientItems = new Map();
+  function syncAmbient() {
+    world.dataset.ambientActive = String(enabled());
+    ambientItems.forEach((item, el) => {
+      if (!el.isConnected) {
+        item.animations.forEach(a => a.cancel()); ambientObserver.unobserve(el); ambientItems.delete(el); return;
+      }
+      const allowed = enabled() && (!item.guide || allowedMode('effectGuide'));
+      const running = allowed && item.visible;
+      el.dataset.ambientRunning = String(running);
+      item.animations.forEach(animation => {
+        if (running) { if (animation.playState !== 'running') animation.play(); }
+        else { animation.pause(); if (!allowed) animation.currentTime = 0; }
+      });
+    });
+  }
+  const ambientObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {const item=ambientItems.get(entry.target);if(item)item.visible=entry.isIntersecting;});
+    syncAmbient();
+  }, {threshold:0});
+  subscribe(syncAmbient);
+  function bindAmbient(el, animations, guide = false) {
+    animations.forEach(a => a.pause());
+    ambientItems.set(el,{animations,guide,visible:false});ambientObserver.observe(el);
+  }
+  function installAmbient() {
+    document.querySelectorAll('.island-sticker').forEach((sticker,i) => {
+      if (ambientItems.has(sticker)) return;
+      const art = sticker.querySelector('use'); if (!art) return;
+      const floating = sticker.matches('.sticker-jellyfish,.sticker-cloud,.sticker-bottle,.sticker-lantern');
+      const lift = floating ? -5 : -2.5, turn = i % 2 ? 2 : -2;
+      const animation=art.animate([
+        {transform:'translateY(0px) rotate(0deg)'},
+        {transform:`translateY(${lift}px) rotate(${turn}deg)`},
+        {transform:'translateY(0px) rotate(0deg)'}
+      ],{duration:6800+i%4*1200,iterations:Infinity,easing:'ease-in-out'});
+      animation.currentTime=i*830;bindAmbient(sticker,[animation]);
+    });
+    document.querySelectorAll('.hero-copy,.glass,.floating-note,.birthday-seal,.news-strip,.letter,.sidebar-card,.task-card').forEach((surface,i) => {
+      if (ambientItems.has(surface) || surface.closest('.memory-card,.draw-ritual')) return;
+      if (getComputedStyle(surface).position === 'static') surface.classList.add('ambient-surface');
+      const light=document.createElement('span');light.className='glass-breath-light';light.setAttribute('aria-hidden','true');surface.append(light);
+      const animation=light.animate([
+        {opacity:.18,backgroundPosition:'0% 35%'},
+        {opacity:.42,backgroundPosition:'100% 65%'},
+        {opacity:.18,backgroundPosition:'0% 35%'}
+      ],{duration:12500+i%3*1500,iterations:Infinity,easing:'ease-in-out'});
+      animation.currentTime=i*700;bindAmbient(surface,[animation]);
+    });
+    document.querySelectorAll('.guide-water-motion,.guide-cloud-motion').forEach(el => {
+      if (ambientItems.has(el)) return;
+      const water=el.classList.contains('guide-water-motion');
+      const frames=water?[{strokeDashoffset:0,opacity:.2},{strokeDashoffset:-71,opacity:.55}]:[{transform:'translateX(-12px)',opacity:.12},{transform:'translateX(16px)',opacity:.23}];
+      bindAmbient(el,[el.animate(frames,{duration:water?8500:23000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'})],true);
+    });
+    const hero=document.querySelector('.home-hero');if(hero&&!ambientItems.has(hero))bindAmbient(hero,[]);
+    syncAmbient();
+  }
   const bird = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 33C-1 13 18 2 32 14l8-2-2 9c10 17-17 24-29 12Z" fill="#f5fbff" stroke="#598eaf" stroke-width="2"/><path d="m35 24 9 3-9 3" fill="#e7bf7b"/><circle cx="29" cy="22" r="2" fill="#285777"/><path d="M12 28q8-8 14 0" fill="none" stroke="#aacde3" stroke-width="3"/><path d="m17 41-3 5m12-5 3 5" stroke="#598eaf" stroke-width="2"/></svg>';
 
   function shellLinks() {
@@ -384,28 +444,27 @@
     const voyage = document.querySelector('#voyage'); if (!voyage) return;
     if (voyage.dataset.guideReady === 'true') return;
     const camera = voyage.querySelector('#map-camera'), map = voyage.querySelector('.voyage-map');
+    const stage = voyage.querySelector('.guide-map-stage');
     const entries = Array.from(voyage.querySelector('#voyage-stops').content.querySelectorAll('[data-guide-entry]'));
     const pins = Array.from(voyage.querySelectorAll('[data-map-stop]'));
-    const points = [[600,500,1,0],[550,490,1.12,-1],[600,480,1.15,1],[640,510,1.13,-1],[610,545,1.12,1],[565,525,1.12,0]];
+    const points = [[792,496.5,1],[780,520,1.06],[810,500,1.06],[770,500,1.06],[810,515,1.06],[792,510,1.06]];
     const motion = () => enabled() && allowedMode('effectGuide');
     let active = 0, desired = 0, position = 0, frame = 0;
     function placePins() {
       const matrix = camera.getScreenCTM(); if (!matrix) return;
-      const bounds = map.getBoundingClientRect();
+      const bounds = stage.getBoundingClientRect();
       pins.forEach(pin => {
         const point = new DOMPoint(Number(pin.dataset.mapX), Number(pin.dataset.mapY)).matrixTransform(matrix);
         const half = pin.offsetWidth / 2;
         pin.style.left = `${clamp(point.x - bounds.left, half + 8, bounds.width - half - 8)}px`;
-        pin.style.top = `${clamp(point.y - bounds.top, 112, bounds.height - 54)}px`;
+        pin.style.top = `${clamp(point.y - bounds.top, 30, bounds.height - 30)}px`;
       });
     }
     function paint() {
       if (!voyage.isConnected) return;
-      const viewBox = innerWidth <= 620 ? '140 60 900 880' : '100 60 1000 880';
-      if (camera.ownerSVGElement.getAttribute('viewBox') !== viewBox) camera.ownerSVGElement.setAttribute('viewBox', viewBox);
       const i = Math.min(Math.floor(position), points.length - 2); const f = clamp(position - i, 0, 1);
       const p = points[i].map((value, axis) => value + (points[i + 1][axis] - value) * f);
-      camera.setAttribute('transform', motion() ? `translate(600 500) rotate(${p[3]}) scale(${p[2]}) translate(${-p[0]} ${-p[1]})` : 'translate(0 0)');
+      camera.setAttribute('transform', motion() ? `translate(792 496.5) scale(${p[2]}) translate(${-p[0]} ${-p[1]})` : 'translate(0 0)');
       placePins();
     }
     function tick() {
@@ -428,12 +487,15 @@
       voyage.dataset.stop = active;
       pins.forEach(pin => pin.setAttribute('aria-pressed', String(Number(pin.dataset.mapStop) === active)));
       if (!motion()) { position = desired; paint(); } else if (!frame) frame = requestAnimationFrame(tick);
+      const chosen = pins.find(pin => Number(pin.dataset.mapStop) === active);
+      const x = chosen ? Number(chosen.dataset.mapX) / 1584 * stage.clientWidth : 792 / 1584 * stage.clientWidth;
+      map.scrollTo({left:clamp(x-map.clientWidth/2,0,stage.clientWidth-map.clientWidth),behavior:motion()?'smooth':'instant'});
     }
     voyage.querySelector('#voyage-prev').onclick = () => select(active - 1);
     voyage.querySelector('#voyage-next').onclick = () => select(active + 1);
     voyage.querySelector('#voyage-overview').onclick = () => select(0);
     pins.forEach(pin => { pin.onclick = () => select(Number(pin.dataset.mapStop)); });
-    addEventListener('resize', paint);
+    new ResizeObserver(paint).observe(stage);
     subscribe(() => { cancelAnimationFrame(frame); frame = 0; position = desired; paint(); });
     document.fonts.ready.then(placePins);
     voyage.dataset.guideReady = 'true'; select(0);
@@ -523,6 +585,7 @@
       if (!document.querySelector('.oc-world-intro')) document.querySelector('.oc-mode-bar').insertAdjacentHTML('beforebegin', '<p class="oc-world-intro">菜菜与吱吱曾是雪啾国的青春偶像。后来，她们把所有积蓄换成了一座岛。<br>这里没有完美剧本，只有一点八卦、很多陪伴，和一个留给你的位置。</p>');
       installGallery();
     }
+    installAmbient();
   }
   // Demo pages replace their own content after a successful claim; only bind the new content.
   document.addEventListener('buzhi:render', pageSetup);

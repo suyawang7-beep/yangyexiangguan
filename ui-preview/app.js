@@ -794,14 +794,25 @@
 
   function renderGuide() {
     const stops = [
-      ['全岛总览', '先在岛上，慢慢逛一逛', '从雪啾国出发，穿过一片透亮的海。点点岛上的地名，看看我们为你留下的地方。', 'passport', '领取生日通行证', 0, 0, 'island'],
-      ['庆典码头', '海风把你，带到这里', '菜菜与吱吱把这里变成了家，也为每一位来客留了一个位置。从这座小码头开始，留下你的名字吧。', 'passport', '去领取通行证', 246, 384, 'anchor'],
-      ['岛民事务所', '把小小心意，装进口袋', '完成庆典任务，收下属于你的金币。让参与庆典的每一步，都变成下一份相遇的期待。', 'office', '去看看庆典任务', 587, 461, 'flag'],
-      ['肥啾邮局', '让肥啾，替你寄出期待', '一只肥啾，一封来信。花 50 金币拆开生日回忆卡，把今天的心愿寄给未来的自己。', 'draw', '去抽生日回忆卡', 797, 620, 'mail'],
-      ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 617, 800, 'cards'],
-      ['生日庆典', '今天的主角，正在等你', '10 月 20 日是菜菜的生日。领好生日通行证，在不吱岛一起留下这次赴约的回忆。', 'passport', '带上通行证赴约', 422, 648, 'cake'],
+      ['全岛总览', '一片群岛，一起慢慢逛', '山间的风越过海湾，石桥与栈道连接着有人居住的小岛。主要庆典地点都在主岛；左右滑动地图，也看看远处的海岸。', 'passport', '领取生日通行证', 0, 0, 'island'],
+      ['庆典码头', '海风把你，带到这里', '灯塔为来客引路，客船与渔船在开放的港湾停靠。沿宽阔码头走进庆典广场，菜菜与吱吱为你留好了位置。', 'passport', '去领取通行证', 580, 755, 'anchor'],
+      ['岛民事务所', '把小小心意，装进口袋', '完成庆典任务，收下属于你的金币。让参与庆典的每一步，都变成下一份相遇的期待。', 'office', '去看看庆典任务', 855, 510, 'flag'],
+      ['肥啾邮局', '让肥啾，替你寄出期待', '一只肥啾，一封来信。花 50 金币拆开生日回忆卡，把今天的心愿寄给未来的自己。', 'draw', '去抽生日回忆卡', 500, 568, 'mail'],
+      ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 855, 638, 'cards'],
+      ['生日庆典', '今天的主角，正在等你', '小小的双人石雕在花坛里，生日横幅与气球迎着海风。10 月 20 日，带上通行证来主岛广场一起赴约吧。', 'passport', '带上通行证赴约', 675, 612, 'cake'],
     ];
-    return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图"><div class="voyage-map"><svg class="guide-map-art" viewBox="100 60 1000 880" role="img" aria-label="不吱岛全景地图：庆典码头、岛民事务所、肥啾邮局、回忆收藏室与生日庆典"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/island-map.svg?v=20261019-map1')}" width="1200" height="1000"/></g></svg><header class="guide-map-heading"><span class="room-label">不吱岛 · 岛上散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。</p></header><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button><div class="map-pins" role="group" aria-label="岛上地点">${stops.slice(1).map(([name,,,,,x,y,motif],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div><span class="guide-map-compass" aria-hidden="true">N<span>✧</span>S</span><p class="guide-map-hint">${LIVE ? '点选岛上的地点，开启你的小岛旅程' : '原创地图示意 · 轻点地名，慢慢逛逛'}</p></div><div class="voyage-buttons" aria-label="导览翻页"><button class="btn" id="voyage-prev" type="button" aria-label="上一站" disabled>← 上一站</button><button class="btn" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div><section class="guide-info glass" aria-live="polite" aria-atomic="true" aria-labelledby="voyage-card-title"><div class="guide-info-meta"><span id="voyage-count">01 / 06</span><span id="voyage-location">全岛总览</span></div><h2 id="voyage-card-title">${stops[0][1]}</h2><p id="voyage-card-copy">${stops[0][2]}</p><a class="guide-destination" id="voyage-destination" href="passport.html">${stops[0][4]} ${icon('arrow')}</a></section><template id="voyage-stops">${stops.map(([name,title,text,route,action])=>`<section data-guide-entry data-location="${esc(name)}"><h2>${esc(title)}</h2><p>${esc(text)}</p><a href="${PATHS[route][0]}">${esc(action)} ${icon('arrow')}</a></section>`).join('')}</template></section>`;
+    return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图">
+      <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
+      <div class="voyage-map" tabindex="0" role="region" aria-label="群岛地图，可左右滚动"><div class="guide-map-stage">
+        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/buzhi-archipelago-soft-palette-draft.png')}" width="1584" height="993"/>
+          <g class="guide-water-motion" aria-hidden="true" fill="none" stroke="#e3ffff" stroke-width="2" stroke-linecap="round" stroke-dasharray="12 26 3 30"><path d="M70 820q55 20 110 0m-25 32q50 18 100 0M960 880q60 22 125 0m-140 32q55 17 100 0M1160 365q75 16 150-4M1470 610q45 20 90 0"/></g>
+          <g class="guide-cloud-motion" aria-hidden="true" fill="#fff" opacity=".16"><ellipse cx="965" cy="210" rx="125" ry="18"/><ellipse cx="1060" cy="232" rx="100" ry="12"/><ellipse cx="60" cy="937" rx="150" ry="32"/></g>
+        </g></svg>
+        <div class="map-pins" role="group" aria-label="主岛地点">${stops.slice(1).map(([name,,,,,x,y,motif],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div>
+      </div></div>
+      <div class="guide-map-toolbar"><p class="guide-map-hint">点选主岛地名 · 左右滑动浏览群岛</p><div class="voyage-buttons" aria-label="导览翻页"><button class="btn" id="voyage-prev" type="button" aria-label="上一站" disabled>← 上一站</button><button class="btn" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div></div>
+      <section class="guide-info glass" aria-live="polite" aria-atomic="true" aria-labelledby="voyage-card-title"><div class="guide-info-meta"><span id="voyage-count">01 / 06</span><span id="voyage-location">全岛总览</span></div><h2 id="voyage-card-title">${stops[0][1]}</h2><p id="voyage-card-copy">${stops[0][2]}</p><a class="guide-destination" id="voyage-destination" href="passport.html">${stops[0][4]} ${icon('arrow')}</a></section>
+      <template id="voyage-stops">${stops.map(([name,title,text,route,action])=>`<section data-guide-entry data-location="${esc(name)}"><h2>${esc(title)}</h2><p>${esc(text)}</p><a href="${PATHS[route][0]}">${esc(action)} ${icon('arrow')}</a></section>`).join('')}</template></section>`;
   }
 
   function renderIslanders() {
@@ -836,7 +847,7 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261019-map1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261019-ambient1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
 

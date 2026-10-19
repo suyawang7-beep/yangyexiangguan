@@ -80,3 +80,28 @@ body .world :is(.hero-copy,.ticket,.mailbox-side,.draw-info,.checkin-summary){
 }
 body .world :is(.card-inner,.card-picture,.memory-card,.card-back){backdrop-filter:none}
 @media(max-width:620px){body .world{--glass-blur:12px}}
+
+/* liquid3: more of the sea passes through; refraction stays in the surface,
+   never in text opacity or character artwork. Inputs and dialogs keep backing. */
+body .world{
+  --glass-fill:linear-gradient(130deg,rgba(245,253,255,.14),rgba(214,242,253,.08) 58%,rgba(239,229,255,.12));
+  --glass-line:rgba(255,255,255,.74);
+  --glass-blur:14px;
+}
+body .world :is(.hero-copy,.glass,.floating-note,.birthday-seal,.news-strip,.letter,.sidebar-card,.task-card){
+  background:var(--glass-fill);
+  box-shadow:inset 0 1px 1px #ffffffd9,inset 0 -1px 0 #ffffff40,0 16px 42px #366d8b1a;
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(125%);
+  backdrop-filter:blur(var(--glass-blur)) saturate(125%);
+}
+.ambient-surface{position:relative}
+.glass-breath-light{display:block;position:absolute;inset:1px;border-radius:inherit;pointer-events:none!important;opacity:.18;background:radial-gradient(ellipse at 15% 5%,#fff8,transparent 56%),radial-gradient(ellipse at 90% 95%,#d0faff66,transparent 60%);background-size:180% 160%;background-position:0% 35%;z-index:0}
+.island-sticker use{transform-box:fill-box;transform-origin:center}
+/* Existing home pseudo-elements are paused alongside the new managed effects. */
+.world[data-ambient-active="false"] .home-hero::before,.world[data-ambient-active="false"] .home-hero::after,
+.world .home-hero[data-ambient-running="false"]::before,.world .home-hero[data-ambient-running="false"]::after{animation-play-state:paused!important}
+@media(max-width:620px){body .world{--glass-blur:10px}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  body .world :is(.hero-copy,.glass,.floating-note,.birthday-seal,.news-strip,.letter,.sidebar-card,.task-card){background:#eaf6fff2}
+  .glass-breath-light{display:none}
+}

@@ -213,11 +213,11 @@ body[data-page="home"] .hero-copy{
 /* Liquid glass v2: bright saturated water instead of foggy pastel overlays. */
 body[data-page="home"] .home-hero,
 body[data-page="home"] .home-hero[style]{
-  background:radial-gradient(ellipse 43% 65% at 8% 16%,rgba(228,255,255,.60),transparent 80%),
-    radial-gradient(ellipse 38% 60% at 88% 81%,rgba(130,127,255,.40),transparent 78%),
-    radial-gradient(ellipse 36% 40% at 68% 15%,rgba(37,200,237,.44),transparent 75%),
-    linear-gradient(126deg,#77d5ed 0%,#45b4e1 43%,#84bdf6 73%,#c1abef 100%) !important;
-  background-color:#66c9eb !important;
+  background:radial-gradient(ellipse 43% 65% at 8% 16%,rgba(228,255,255,.24),transparent 80%),
+    radial-gradient(ellipse 38% 60% at 88% 81%,rgba(130,127,255,.14),transparent 78%),
+    radial-gradient(ellipse 36% 40% at 68% 15%,rgba(37,200,237,.16),transparent 75%),
+    linear-gradient(126deg,rgba(119,213,237,.32) 0%,rgba(69,180,225,.22) 43%,rgba(132,189,246,.24) 73%,rgba(193,171,239,.28) 100%) !important;
+  background-color:rgba(102,201,235,.12) !important;
 }
 body[data-page="home"] .home-hero::before{
   opacity:.84 !important;
@@ -233,7 +233,7 @@ body[data-page="home"] .home-hero::after{
     linear-gradient(120deg,rgba(255,255,255,.10),transparent 55%) !important;
 }
 body[data-page="home"] .hero-copy{
-  background:linear-gradient(130deg,rgba(235,254,255,.44),rgba(198,239,255,.28) 62%,rgba(225,210,255,.29)) !important;
+  background:linear-gradient(130deg,rgba(235,254,255,.23),rgba(198,239,255,.12) 62%,rgba(225,210,255,.16)) !important;
   -webkit-backdrop-filter:blur(9px) saturate(170%) !important;
   backdrop-filter:blur(9px) saturate(170%) !important;
   border:1.5px solid rgba(255,255,255,.95) !important;
@@ -246,4 +246,9 @@ body[data-page="home"] .floating-note,body[data-page="home"] .birthday-seal{
 }
 @media(max-width:620px){
   body[data-page="home"] .hero-copy{-webkit-backdrop-filter:blur(6px) saturate(150%) !important;backdrop-filter:blur(6px) saturate(150%) !important}
+}
+/* Keep reading contrast without returning to an opaque white panel. */
+body[data-page="home"] .hero-copy :is(h1,.subtitle,.hero-footnote,.scene-note){text-shadow:0 1px 5px #edffff80}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  body[data-page="home"] .hero-copy{background:#eaf6fff2!important}
 }
