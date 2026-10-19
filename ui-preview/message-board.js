@@ -29,7 +29,7 @@
       const resp=await fetch('/api/messages',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({body:textarea.value,anonymous:anonInput.checked})});
       const result=await resp.json();if(!resp.ok)throw Error(result.error||'提交失败');textarea.value='';status.textContent='投递成功！';await load();
     }catch(error){status.textContent=error.message}finally{send.disabled=false}};
-    async function load(){list.replaceChildren(make('p','','正在读取留言…'));try{const response=await fetch('/api/messages');if(!response.ok)throw Error('暂时无法加载留言');const items=await response.json();list.replaceChildren();if(!items.length)list.append(make('p','','还没有留言，来写第一封吧！'));
+    async function load(){list.replaceChildren(make('p','','正在读取留言…'));try{const response=await fetch('/api/messages');if(!response.ok)throw Error('暂时无法加载留言');const payload=await response.json();const items=Array.isArray(payload)?payload:payload.items;const accepting=Array.isArray(payload)?true:payload.accepting;form.hidden=!accepting;if(!accepting)status.textContent='活动未开放或已结束，留言板目前仅供阅读。';list.replaceChildren();if(!items.length)list.append(make('p','','还没有留言，来写第一封吧！'));
       for(const m of items){const item=make('article','board-entry'),meta=make('div','board-meta',m.author+' · '+new Date(m.createdAt).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})),body=make('p','',m.body);item.append(meta,body);if(m.reply){const reply=make('div','board-reply');reply.append(make('strong','','岛主回复'),make('p','',m.reply));item.append(reply)}list.append(item)}
     }catch(e){list.replaceChildren(make('p','',e.message))}}
     show(new URLSearchParams(location.search).get('tab')==='messages'?'board':'letters');
