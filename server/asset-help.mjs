@@ -3,8 +3,8 @@
 const HELP = {
   'decor/home-background.webp': {
     label: '首页庆典首屏背景', pages: ['庆典码头（首页）'], region: '首页标题、按钮与主视觉所在的首屏区域',
-    description: '铺在首页首屏内容后方，并叠加浅色渐变。只影响这一块庆典首屏，不是全站或整页背景；右侧人物主视觉使用另一份素材。',
-    recommendation: '建议使用横向海岛、天空或庆典场景，文字与按钮所在位置保持简洁。背景会随容器裁切，可调整焦点与缩放。'
+    description: '当前正式首页采用液态玻璃海蓝背景，此上传图片已暂时停用，不会在首页显示。素材会保留以便未来切换回图片模式。右侧人物立绘由共享主视觉素材管理。',
+    recommendation: '当前是预留素材位，无需上传；只有未来重新启用图片背景模式时才会生效。'
   },
   'decor/home-poster.webp': {
     label: '庆典共享主视觉', pages: ['庆典码头（首页）', '生日通行证', '岛民画廊'], region: '首页右侧插画、未领通行证时的右侧邀请插画，以及画廊未配置独立角色图时的占位插画',
@@ -53,12 +53,25 @@ function characterHelp(label) {
 HELP['characters/caicai.webp'] = characterHelp('菜菜');
 HELP['characters/zhizhi.webp'] = characterHelp('吱吱');
 
-const CARD_IDS = ['UR-1', 'SSR-1', 'SSR-2', 'SR-1', 'SR-2', 'SR-3', 'SR-4', 'R-1', 'R-2', 'R-3', 'R-4', 'N-1', 'N-2', 'N-3', 'N-4', 'N-5'];
-for (const [index, id] of CARD_IDS.entries()) {
-  HELP[`cards/${id}.webp`] = {
-    label: `${id} 回忆卡插画`, pages: ['肥啾邮局', '回忆收藏室'], region: '该张回忆卡的中央插画框',
-    description: `替换 ${id} 对应卡片中央的插画。抽中结果、收藏列表、卡片详情及扇形／圆环展示共用同一张图${index < 8 ? '；邮局下方的卡池预览也使用它' : '；邮局下方目前只预览前八张卡，不包含这张卡'}。卡框、编号、稀有度和卡名仍由页面绘制，不需要画进图片；上传图片不会改变抽卡概率或持有记录。`,
-    recommendation: '建议只上传插画，主体居中，四周适当留白。图片默认完整放入卡内插画框，可再调整适配方式、焦点与缩放。卡名、故事和关联角色请在卡片管理中编辑。'
+const CARD_IDS = [
+  'UR-1', ...Array.from({length:2},(_,i)=>'SSR-'+(i+1)),
+  ...Array.from({length:4},(_,i)=>'SR-'+(i+1)),
+  ...Array.from({length:4},(_,i)=>'R-'+(i+1)),
+  ...Array.from({length:5},(_,i)=>'N-'+(i+1)),
+  'UR-2',...Array.from({length:2},(_,i)=>'SSR-'+(i+3)),
+  ...Array.from({length:2},(_,i)=>'SR-'+(i+5)),
+  ...Array.from({length:5},(_,i)=>'R-'+(i+5)),
+  ...Array.from({length:6},(_,i)=>'N-'+(i+6)),
+  ...Array.from({length:18},(_,i)=>'LOCK-'+String(i+33).padStart(2,'0'))
+];
+for(const [index,id] of CARD_IDS.entries()){
+  const unreleased=index>=32;
+  HELP['cards/'+id+'.webp']={
+    label:(unreleased?'待开放 · ':'')+id+' 回忆卡插画',
+    pages:unreleased?['后台卡片管理（暂不公开）']:['肥啾邮局','回忆收藏室'],
+    region:unreleased?'第 '+(index+1)+' 号预留卡位，仅管理员可编辑':'第 '+(index+1)+' 张公开卡片的中央插画框'+(index<8?'，也出现在邮局下方前八张预览中':''),
+    description:unreleased?'第 '+(index+1)+' 号卡位属于50张总容量中尚未开放的18张。现在可以预先上传与填写资料，但不会在公开卡池、抽卡结果或收藏列表展示。未来需另行开放才会显示。':'此图用于该编号卡片的抽卡结果、收藏列表与详情。卡框、编号、稀有度、卡名由网页绘制，不要烘焙进图片。上传不会改变抽卡概率、历史持有数或原账户数据。',
+    recommendation:'上传主体居中、周围留白的插画，优先 WebP；通过下方位置X/Y、缩放和裁切调整显示。卡名、故事和关联人物在「卡片管理」修改。'
   };
 }
 
