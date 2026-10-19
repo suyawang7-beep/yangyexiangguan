@@ -804,6 +804,12 @@
       ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 855, 638, 'cards'],
       ['生日庆典', '今天的主角，正在等你', '小小的双人石雕在花坛里，生日横幅与气球迎着海风。10 月 20 日，带上通行证来主岛广场一起赴约吧。', 'passport', '带上通行证赴约', 675, 612, 'cake'],
     ];
+    const residentialIslands = [
+      ['🌊','潮汐岛','海滩、贝壳与海边市集','tide'],
+      ['🌙','星汐岛','星光码头、观星台与夜空','star'],
+      ['🪼','雾屿','雾中灯塔与安静的图书馆','mist'],
+      ['🌸','花汐岛','花田、温室与创作聚会','bloom']
+    ];
     return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图">
       <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
       <div class="voyage-map" tabindex="0" role="region" aria-label="群岛地图，可左右滚动"><div class="guide-map-stage">
@@ -813,6 +819,7 @@
         </g></svg>
         <div class="map-pins" role="group" aria-label="主岛地点">${stops.slice(1).map(([name,,,,,x,y,motif],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div>
       </div></div>
+      <section class="resident-islands-guide glass" aria-label="四座居住岛屿"><div class="resident-guide-intro"><span class="room-label">RESIDENT ISLANDS · 居民物语</span><h2>选择你的居住岛屿</h2><p>上方是庆典主岛地点地图；下方是居民物语规划的四座居住岛屿。两套地图各有用途，暂不把居住岛位置强行标到未更新的旧地图图片上。</p></div><div class="resident-guide-grid">${residentialIslands.map(([emoji,name,description,id])=>`<a class="resident-guide-island" href="resident.html" aria-label="前往个人中心选择${name}"><span class="resident-island-mark">${emoji}</span><strong>${name}</strong><small>${description}</small><span>去选择居住地 ↗</span></a>`).join('')}</div></section>
       <div class="guide-map-toolbar"><p class="guide-map-hint">点选主岛地名 · 左右滑动浏览群岛</p><div class="voyage-buttons" aria-label="导览翻页"><button class="btn" id="voyage-prev" type="button" aria-label="上一站" disabled>← 上一站</button><button class="btn" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div></div>
       <section class="guide-info glass" aria-live="polite" aria-atomic="true" aria-labelledby="voyage-card-title"><div class="guide-info-meta"><span id="voyage-count">01 / 06</span><span id="voyage-location">全岛总览</span></div><h2 id="voyage-card-title">${stops[0][1]}</h2><p id="voyage-card-copy">${stops[0][2]}</p><a class="guide-destination" id="voyage-destination" href="passport.html">${stops[0][4]} ${icon('arrow')}</a></section>
       <template id="voyage-stops">${stops.map(([name,title,text,route,action])=>`<section data-guide-entry data-location="${esc(name)}"><h2>${esc(title)}</h2><p>${esc(text)}</p><a href="${PATHS[route][0]}">${esc(action)} ${icon('arrow')}</a></section>`).join('')}</template></section>`;
