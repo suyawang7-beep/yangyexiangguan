@@ -78,10 +78,11 @@
   ].map(([rarity, name, motif, characters, story], index) => ({ id: `BZ-${String(index + 1).padStart(2, '0')}`, rarity, name, motif, characters, story }));
   // Keep the original 16 card IDs intact. Add 16 released cards for the 32-card pool.
   CARDS.push(...[
-    ...Array.from({length:2},(_,i)=>['SSR','星海回忆 '+(17+i),'star']),
-    ...Array.from({length:4},(_,i)=>['SR','星海回忆 '+(19+i),'star']),
-    ...Array.from({length:4},(_,i)=>['R','星海回忆 '+(23+i),'star']),
-    ...Array.from({length:6},(_,i)=>['N','星海回忆 '+(27+i),'star'])
+    ...Array.from({length:2},(_,i)=>['UR','星海回忆 '+(17+i),'star']),
+    ...Array.from({length:3},(_,i)=>['SSR','星海回忆 '+(19+i),'star']),
+    ...Array.from({length:5},(_,i)=>['SR','星海回忆 '+(22+i),'star']),
+    ...Array.from({length:2},(_,i)=>['R','星海回忆 '+(27+i),'star']),
+    ...Array.from({length:4},(_,i)=>['N','星海回忆 '+(29+i),'star'])
   ].map(([rarity,name,motif],i)=>({id:'BZ-'+String(i+17).padStart(2,'0'),rarity,name,motif,characters:'不吱岛',story:'新的生日回忆，等待与你相遇。'})));
   let TASKS = [
     { id: 'arrival', title: '向不吱岛报到', text: '领好通行证，留下你今天赴约的足迹。', reward: 0, motif: 'flag' },
@@ -328,8 +329,8 @@
         <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
         <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 32 张'}</span></div>
-        <p class="draw-description" id="draw-pool-description">${first ? '首次抽卡从公开的4张SSR与8张SR中抽取，每张概率为1/12。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，当前公开32张卡片，剩余18张待开放。正常卡池每张概率均为1/32。'}</p>
-        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池32张，各1/32。</p><ul class="probability-list"><li><span>UR · 1 张</span><strong>3.125%</strong></li><li><span>SSR · 4 张</span><strong>12.5%</strong></li><li><span>SR · 8 张</span><strong>25%</strong></li><li><span>R · 8 张</span><strong>25%</strong></li><li><span>N · 11 张</span><strong>34.375%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
+        <p class="draw-description" id="draw-pool-description">${first ? '首次抽卡从公开的5张SSR与9张SR中抽取，每张概率为1/14。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，当前公开32张卡片，剩余18张待开放。正常卡池每张概率均为1/32。'}</p>
+        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池32张，各1/32。</p><ul class="probability-list"><li><span>UR · 3 张</span><strong>9.375%</strong></li><li><span>SSR · 5 张</span><strong>15.625%</strong></li><li><span>SR · 9 张</span><strong>28.125%</strong></li><li><span>R · 6 张</span><strong>18.75%</strong></li><li><span>N · 9 张</span><strong>28.125%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
       </section>
     </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>${LIVE ? '看看有哪些回忆' : '以下为部分示意卡面'}</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
   }
