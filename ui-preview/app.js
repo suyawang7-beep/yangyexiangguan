@@ -847,7 +847,10 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261019-liquid-site1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261020-pencil1', document.currentScript.src).href;
   document.body.append(effectsScript);
+  const pencilScript=document.createElement('script');
+  pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;
+  document.body.append(pencilScript);
 })();
 
