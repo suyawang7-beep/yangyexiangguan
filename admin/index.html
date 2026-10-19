@@ -15,7 +15,7 @@ async function loadVisual(){const config=await req('visual-settings');for(const 
 $('visualForm').onsubmit=async event=>{event.preventDefault();const settings={};for(const control of document.querySelectorAll('#visualForm input[type="checkbox"]'))settings[control.name]=control.checked;try{await req('visual-settings',settings);$('visualStatus').textContent='✓ 已保存：岛民刷新后生效';msg('网页视效设置已保存');await refreshAdminDetails()}catch(e){$('visualStatus').textContent=e.message;msg(e.message,true)}};
 $('reloadVisual').onclick=async()=>{try{await loadVisual()}catch(e){msg(e.message,true)}};
 const refreshWithVisual=refresh;refresh=async()=>{await refreshWithVisual();await loadVisual()};
-const slotNames=['characters/zhizhi.webp','characters/caicai.webp','decor/home-background.webp','decor/home-poster.webp','decor/island-map.webp','decor/office-background.webp','decor/checkin-background.webp','decor/post-office-background.webp','decor/collection-background.webp','decor/mailbox-background.webp',...['UR-1',...Array.from({length:2},(_,i)=>'SSR-'+(i+1)),...Array.from({length:4},(_,i)=>'SR-'+(i+1)),...Array.from({length:4},(_,i)=>'R-'+(i+1)),...Array.from({length:5},(_,i)=>'N-'+(i+1))].map(x=>'cards/'+x+'.webp')];
+const slotNames=['characters/zhizhi.webp','characters/caicai.webp','decor/home-background.webp','decor/home-poster.webp','decor/island-map.webp','decor/office-background.webp','decor/checkin-background.webp','decor/checkin-memorial.webp','decor/post-office-background.webp','decor/collection-background.webp','decor/mailbox-background.webp',...['UR-1',...Array.from({length:2},(_,i)=>'SSR-'+(i+1)),...Array.from({length:4},(_,i)=>'SR-'+(i+1)),...Array.from({length:4},(_,i)=>'R-'+(i+1)),...Array.from({length:5},(_,i)=>'N-'+(i+1))].map(x=>'cards/'+x+'.webp')];
 let preciseAssetHelp={};
 const assetUsage={
 'characters/zhizhi.webp':['庆典码头首页','吱吱人物立绘','人物素材；其他页面复用情况需核对'],
@@ -25,6 +25,7 @@ const assetUsage={
 'decor/island-map.webp':['登岛导览','岛屿地图','其他页面复用情况需核对'],
 'decor/office-background.webp':['岛民事务所','任务页面背景','该页面专用'],
 'decor/checkin-background.webp':['每日签到','签到页面背景','该页面专用'],
+'decor/checkin-memorial.webp':['每日签到','七日纪念卡','右侧纪念角独立卡面，不进入随机卡池'],
 'decor/post-office-background.webp':['肥啾邮局','抽卡页面背景','该页面专用'],
 'decor/collection-background.webp':['回忆收藏室','收藏页面背景','该页面专用'],
 'decor/mailbox-background.webp':['岛主留言处','留言页面背景','该页面专用']

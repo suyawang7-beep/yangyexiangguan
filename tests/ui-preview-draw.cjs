@@ -297,7 +297,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     check(await page.locator('.task-list .task-card').count() === 6, 'Keep the six celebration code tasks');
     check(await page.locator('[data-task="arrival"]').count() === 0, 'Remove the arrival action');
     check(!/报到|报道/.test(await page.locator('.task-list').innerText()), 'No arrival task card remains');
-    check(await page.locator('.bird-journey').getAttribute('aria-valuenow') === '1', 'Bird progress preserves historical arrival records without the removed panel');
+    check(await page.locator('.bird-journey').getAttribute('aria-valuenow') === '0', 'Arrival history is preserved without inflating formal-task progress');
     await page.locator('.office-verification').evaluate(el => { el.open = true; });
     await page.locator('#demo-islander').click();
     await page.locator('[data-task="wish"]').click();
@@ -305,7 +305,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     await page.locator('#task-code-form button[type="submit"]').click();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('buzhi-ui-preview-v3')));
     check(saved.balance === 75 && saved.tasks.includes('arrival') && saved.tasks.includes('wish'), 'Task reward and existing participation records are unchanged');
-    check(await page.locator('.bird-journey').getAttribute('aria-valuenow') === '2', 'Progress updates after completing a remaining task');
+    check(await page.locator('.bird-journey').getAttribute('aria-valuenow') === '1', 'Progress updates after completing one formal task');
     check((await page.locator('.ledger').innerText()).includes('25'), 'Coin ledger remains visible');
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });

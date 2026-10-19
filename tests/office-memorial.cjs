@@ -13,7 +13,7 @@ async function api(path,body,token){const r=await fetch(base+'/api/'+path,{metho
 async function check(name,fn){try{await fn();console.log('PASS '+name)}catch(e){failures.push(name);console.error('FAIL '+name+': '+e.stack)}}
 async function account(name){const r=await api('register',{nickname:name});assert.equal(r.status,200);await require('./helpers/membership.cjs').verifyAccount(base,admin,r.data);return r.data}
 async function userPage(account,width=1440,reducedMotion='no-preference'){
- const context=await browser.newContext({viewport:{width,height:1000},reducedMotion});await context.addInitScript(token=>sessionStorage.setItem('buzhi-online-token',token),account.token);
+ const context=await browser.newContext({viewport:{width,height:1000},reducedMotion});await context.addInitScript(token=>{if(!sessionStorage.getItem('buzhi-online-token'))sessionStorage.setItem('buzhi-online-token',token)},account.token);
  const page=await context.newPage();page.on('pageerror',e=>failures.push('pageerror: '+e.message));return {page,context};
 }
 async function visit(page,path){await page.goto(base+path,{waitUntil:'networkidle'});await page.locator('[data-effects-ready="true"]').waitFor()}

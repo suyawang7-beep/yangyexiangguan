@@ -16,7 +16,7 @@
   const SVG = 'http://www.w3.org/2000/svg';
   const featureStyles = document.createElement('link');
   featureStyles.rel = 'stylesheet';
-  featureStyles.href = new URL('effects.css?v=20261017-glass5', document.currentScript.src).href;
+  featureStyles.href = new URL('effects.css?v=20261020-milestone1', document.currentScript.src).href;
   document.head.append(featureStyles);
   const glassStyles = document.createElement('link');
   glassStyles.rel = 'stylesheet'; glassStyles.id = 'glass-surfaces';
@@ -378,17 +378,34 @@
     addEventListener('hashchange', onHash); onHash();
   }
 
+  const progressByAccount=new Map();
+  let milestoneTimers=[],activeMilestone=null;
+  function clearMilestone(){
+    milestoneTimers.forEach(clearTimeout);milestoneTimers=[];
+    if(activeMilestone){activeMilestone.closest('.bird-journey')?.classList.remove('has-milestone-gift');activeMilestone.remove();activeMilestone=null}
+  }
+  document.addEventListener('buzhi:render',clearMilestone);
+  subscribe(()=>{if(!enabled())clearMilestone()});
+  function revealMilestone(figure,n){
+    if(!figure.isConnected||!enabled()||!allowedMode('effectProgress'))return;
+    const card=document.createElement('div');card.className='milestone-surprise';card.dataset.milestoneCelebration=String(n);card.setAttribute('role','status');
+    card.innerHTML=`<div class="milestone-package ${n===3?'milestone-envelope':'milestone-present'}" aria-hidden="true"><span>✦</span></div><div class="milestone-message"><small>${n} 项任务 · 小岛的惊喜</small><strong>${n===3?'肥啾送来一封星光信':'庆典礼盒送达啦'}</strong><span>阶段奖励 +25 金币已到账</span></div><div class="milestone-sparkles" aria-hidden="true">${Array.from({length:8},(_,i)=>`<i style="--sx:${12+i*11}%;--sy:${i%2?15:80}%;--sd:${i*.07}s">${n===3?'✦':'✧'}</i>`).join('')}</div>`;
+    activeMilestone=card;figure.after(card);
+    const r=figure.querySelector('.flight-bird').getBoundingClientRect();document.dispatchEvent(new CustomEvent('buzhi:burst',{detail:{x:r.x+r.width/2,y:r.y+r.height/2,count:innerWidth<620?12:20}}));
+    milestoneTimers.push(setTimeout(()=>{card.remove();figure.classList.remove('has-milestone-gift');if(activeMilestone===card)activeMilestone=null},2100));
+  }
   function installProgress() {
-    const track = document.querySelector('.progress-track'); if (!track) return;
-    const count = Number(track.dataset.completed || 0);
-    const figure = document.createElement('div'); figure.className = 'bird-journey';
-    figure.setAttribute('role', 'progressbar'); figure.setAttribute('aria-label', '不同任务完成进度'); figure.setAttribute('aria-valuemin', '0'); figure.setAttribute('aria-valuemax', '9'); figure.setAttribute('aria-valuenow', count);
-    const old = Number(sessionStorageSafe('buzhi-progress-last') || count);
-    figure.style.setProperty('--progress', `${clamp(old / 9 * 100, 0, 100)}%`);
-    figure.innerHTML = `<div class="flight-cloud cloud-left"></div><div class="flight-cloud cloud-right"></div><div class="flight-line"></div><div class="flight-bird">${bird}<span class="flight-envelope">✉</span></div><div class="flight-markers"><span>出发</span><span>3</span><span>6</span><span>9</span></div><p>每一次参与，都让肥啾飞得更远。</p>`;
-    track.replaceWith(figure);
-    requestAnimationFrame(() => figure.style.setProperty('--progress', `${clamp(count / 9 * 100, 0, 100)}%`));
-    try { sessionStorage.setItem('buzhi-progress-last', String(count)); } catch { /* Cosmetic progress memory. */ }
+    const track=document.querySelector('.progress-track');if(!track)return;
+    const count=Number(track.dataset.completed||0),account=track.dataset.account||'demo';
+    const fresh=[...new Set((track.dataset.newBonuses||'').split(',').map(Number).filter(n=>n===3||n===6))];
+    const previous=progressByAccount.has(account)?progressByAccount.get(account):count;
+    progressByAccount.set(account,count);
+    const figure=document.createElement('div');figure.className='bird-journey';
+    figure.setAttribute('role','progressbar');figure.setAttribute('aria-label','不同正式任务完成进度');figure.setAttribute('aria-valuemin','0');figure.setAttribute('aria-valuemax','9');figure.setAttribute('aria-valuenow',String(count));
+    figure.style.setProperty('--progress',`${clamp(previous/9*100,0,100)}%`);
+    figure.innerHTML=`<div class="flight-cloud cloud-left"></div><div class="flight-cloud cloud-right"></div><div class="flight-line"></div><div class="flight-bird">${bird}<span class="flight-envelope">✉</span></div><div class="flight-markers"><span>出发</span><span>3</span><span>6</span><span>9 · 待开放</span></div><p>每一次参与，都让肥啾飞得更远。</p>`;
+    track.replaceWith(figure);requestAnimationFrame(()=>figure.style.setProperty('--progress',`${clamp(count/9*100,0,100)}%`));
+    if(enabled()&&allowedMode('effectProgress'))fresh.forEach((n,i)=>milestoneTimers.push(setTimeout(()=>revealMilestone(figure,n),1200+i*2300)));
   }
   function sessionStorageSafe(key) { try { return sessionStorage.getItem(key); } catch { return null; } }
 

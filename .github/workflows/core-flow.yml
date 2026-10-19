@@ -31,6 +31,12 @@ jobs:
             fi
             echo "::endgroup::"
           done
+          if timeout --kill-after=5s 120s node tests/ui-preview-draw.cjs --office-only; then
+            echo "PASS preview office layout and progress"
+          else
+            echo "::error::FAIL preview office layout and progress"
+            status=1
+          fi
           exit "$status"
       - uses: actions/upload-artifact@v4
         if: always()

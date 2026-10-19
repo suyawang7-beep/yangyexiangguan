@@ -93,7 +93,7 @@
     { id: 'islander', title: '和岛民打一个招呼', text: '让今天的小岛，多一点温柔的声音。', reward: 25, motif: 'bird' },
     { id: 'party', title: '收藏一份庆典合照', text: '留住这次相聚，完成后领取任务代码。', reward: 25, motif: 'cards' },
   ];
-  const blank = () => ({ version: 3, passport: null, balance: 0, tasks: [], bonuses: [], checkins: [], collection: {}, history: [], ledger: [], demoIslander: false });
+  const blank = () => ({ version: 3, passport: null, balance: 0, tasks: [], taskProgress: null, pendingMilestones: [], bonuses: [], checkins: [], collection: {}, history: [], ledger: [], demoIslander: false });
   let state = blank();
   let storageError = '';
   if (!LIVE) try {
@@ -195,6 +195,7 @@
       const host=document.querySelector(selected[1]);
       if(host){const photo='url("/assets/'+selected[0]+'?v='+(managedVersions[selected[0]]||assetVersion)+'")';if(PAGE==='home'){host.style.backgroundImage='linear-gradient(130deg,#eaf8ffdb,#cceefa9c 55%,#e8e6ffb8)';host.style.setProperty('--home-sea-photo',photo);host.style.setProperty('--home-sea-position',(managedLayouts[selected[0]]?.x??50)+'% '+(managedLayouts[selected[0]]?.y??50)+'%')}else{host.style.removeProperty('background-image');host.style.setProperty('--liquid-room-photo',photo);const layout=managedLayouts[selected[0]];host.style.setProperty('--liquid-room-position',(layout?.x??50)+'% '+(layout?.y??50)+'%');host.style.setProperty('--liquid-room-size',layout?.fit==='cover'?'cover':(layout?.scale??100)+'% auto')}host.style.backgroundSize='cover';host.style.backgroundPosition='center'}
     }
+    const memorial=document.querySelector('[data-memorial-art]');if(memorial){applyAssetLayout(memorial,'decor/checkin-memorial.webp');memorial.onerror=()=>{memorial.onerror=null;memorial.replaceWith(document.createTextNode('七日纪念'))}}
     const hero=document.querySelector('.hero-art img, .mini-art');
     if(hero&&managedAssets['decor/home-poster.webp']){hero.src=assetUrl('decor/home-poster.webp');applyAssetLayout(hero,'decor/home-poster.webp')}
     const map=document.querySelector('#map-camera image');
@@ -226,8 +227,9 @@
     if(!resp.ok)throw Error(result.error||'操作未完成');
     return result;
   }
-  function takeProfile(profile){
-    state=blank();
+  function takeProfile(profile,{celebrate=false}={}){
+    const fresh=celebrate&&state.passport?.id===profile.id?profile.bonuses.filter(n=>[3,6].includes(n)&&!state.bonuses.includes(n)):[];
+    state=blank();state.pendingMilestones=fresh;state.taskProgress=profile.taskProgress||null;
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
     state.balance=profile.coins;
     state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
@@ -243,7 +245,7 @@
       entry.quantity++;state.collection[id]=entry;
       state.history.push({id:'server-'+index,cardId:id,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
     }
-    renderPage();
+    renderPage();state.pendingMilestones=[];
   }
   async function liveInit(){
     TASKS=LIVE_TASKS;
@@ -289,9 +291,17 @@
       const completed = state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
       return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : '输入完成代码'}</button>`}</div></article>`;
-    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track" data-completed="${state.tasks.length}"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p id="task-dialog-tip" class="small muted">请填写岛主私信发放的一次性完成代码。</p><div id="task-writing-wrap" hidden><label for="task-writing">写下你的心意（不少于15字）</label><textarea id="task-writing" maxlength="2000" rows="6" placeholder="在这里写下想说的话…"></textarea><p id="task-writing-count" class="small muted">0 / 15 字</p></div><div class="form-field" id="task-code-wrap"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
+    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">完成不同正式任务可获得阶段奖励；首次报到不计入，同一种每日任务只算一次。</p><div class="progress-track" data-completed="${formalTaskCount()}" data-account="${esc(state.passport?.id||'demo')}" data-new-bonuses="${(state.pendingMilestones||[]).join(',')}"><span style="width:${Math.min(formalTaskCount() / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p id="task-dialog-tip" class="small muted">请填写岛主私信发放的一次性完成代码。</p><div id="task-writing-wrap" hidden><label for="task-writing">写下你的心意（不少于15字）</label><textarea id="task-writing" maxlength="2000" rows="6" placeholder="在这里写下想说的话…"></textarea><p id="task-writing-count" class="small muted">0 / 15 字</p></div><div class="form-field" id="task-code-wrap"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
   }
 
+  function formalTaskCount(value=state){
+    const count=value.taskProgress?.completed;if(Number.isSafeInteger(count)&&count>=0)return count;
+    return new Set(value.tasks.filter(t=>t!=='arrival'&&t!=='report').map(t=>t==='letter'||t.startsWith('letter:')?'letter':t)).size;
+  }
+  function memorialCard(streak){
+    const name='decor/checkin-memorial.webp',unlocked=streak>=7;
+    return `<div class="hidden-card-teaser checkin-memorial" data-memorial-state="${unlocked?'unlocked':'locked'}"><div class="memorial-art">${LIVE&&managedAssets[name]?`<img src="${esc(assetUrl(name))}" alt="不吱岛七日纪念卡" data-memorial-art>`:`<div class="memorial-default" aria-hidden="true">${icon('bird')}<span>七日纪念</span><small>SEVEN DAYS ON THE ISLAND</small></div>`}</div><span class="memorial-seal">${icon(unlocked?'sparkles':'lock')}${unlocked?'七日纪念已点亮':'连续签到7天点亮'}</span></div>`;
+  }
   function streakCount() {
     if (!state.checkins.length) return 0;
     let count = 0;
@@ -307,7 +317,7 @@
     const today = dateKey();
     const checked = state.checkins.includes(today);
     const streak = streakCount();
-    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>每天一次 · 签到 +10 金币</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3><div class="hidden-card-teaser">${icon(streak >= 7 ? 'sparkles' : 'lock')}</div><p class="small muted">${streak >= 7 ? '隐藏纪念已点亮！七日纪念已解锁，额外卡面尚未开放。' : '连续签到7天，点亮隐藏纪念标记。额外卡面尚未开放，不计入当前公开卡池。'}</p><p class="small muted">错过一天会重新计算连续天数，已经获得的金币不会消失。</p></aside></div><div class="info-note">${LIVE ? '签到日期与金币奖励由服务器记录。' : '签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。'}</div>`;
+    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>每天一次 · 签到 +10 金币</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3>${memorialCard(streak)}<p class="small muted">${streak >= 7 ? '七日纪念已点亮！这张卡只作签到纪念，不计入随机抽卡池。' : '连续签到7天点亮七日纪念卡，只作签到纪念，不计入随机抽卡池。'}</p><p class="small muted">错过一天会重新计算连续天数，已经获得的金币不会消失。</p></aside></div><div class="info-note">${LIVE ? '签到日期与金币奖励由服务器记录。' : '签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。'}</div>`;
   }
 
   function drawBack() {
@@ -468,8 +478,8 @@
       if (state.tasks.includes(task.id)) { toast('这个任务已经领过奖励啦。'); return; }
       if (task.id !== 'arrival' && !state.demoIslander) { toast('请先开启岛民任务演示。'); return; }
       const next = clone(); next.tasks.push(task.id); credit(next, task.reward, task.title);
-      for (const n of [3, 6]) if (next.tasks.length >= n && !next.bonuses.includes(n)) { next.bonuses.push(n); credit(next, 25, `${n}任务阶段奖励`); }
-      commit(next); dialog?.close(); renderPage(); toast(task.reward ? `任务完成，${task.reward}枚金币已入账！` : '报到成功，小岛记住你来过啦。');
+      for (const n of [3, 6]) if (formalTaskCount(next) >= n && !next.bonuses.includes(n)) { next.bonuses.push(n); credit(next, 25, `${n}任务阶段奖励`); }
+      const fresh=next.bonuses.filter(n=>!state.bonuses.includes(n));commit(next);state.pendingMilestones=fresh;dialog?.close();renderPage();state.pendingMilestones=[];toast(task.reward ? `任务完成，${task.reward}枚金币已入账！` : '报到成功，小岛记住你来过啦。');
     }
     document.querySelectorAll('[data-task]').forEach((button) => button.addEventListener('click', () => {
       const task = TASKS.find((item) => item.id === button.dataset.task);
@@ -646,7 +656,7 @@
     writing.addEventListener('input',updateCount);
     document.querySelectorAll('[data-task]').forEach(button=>{button.onclick=()=>{task=TASKS.find(t=>t.id===button.dataset.task);if(!task||task.id==='arrival')return;const isWriting=task.id==='letter'||task.id==='memory';dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.querySelector('#task-writing-wrap').hidden=!isWriting;dialog.querySelector('#task-code-wrap').hidden=isWriting;dialog.querySelector('#task-code').required=!isWriting;dialog.querySelector('#task-code').value='';writing.value='';updateCount();tip.textContent=isWriting?'至少填写15个非空白字符，提交后自动获得25金币。':'请填写岛主私信发放的一次性完成代码。';dialog.showModal()}});
     dialog.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
-    dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory';const content=writing.value.trim();if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}const submit=e.submitter;if(submit)submit.disabled=true;try{const profile=await liveApi(writingTask?'task-writing':'redeem',writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});dialog.close();takeProfile(profile);toast('任务完成，25金币已到账！')}catch(err){toast(err.message);if(submit)submit.disabled=false}});
+    dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory';const content=writing.value.trim();if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}const submit=e.submitter;if(submit)submit.disabled=true;try{const profile=await liveApi(writingTask?'task-writing':'redeem',writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});dialog.close();takeProfile(profile,{celebrate:true});toast('任务完成，25金币已到账！')}catch(err){toast(err.message);if(submit)submit.disabled=false}});
   }
   function bindLiveCheckin(){
     document.querySelector('#checkin-button')?.addEventListener('click',async()=>{try{takeProfile(await liveApi('checkin',{}));toast('今日签到成功，10 金币已保存')}catch(err){toast(err.message)}});
@@ -850,7 +860,7 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261019-liquid-site1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261020-milestone1', document.currentScript.src).href;
   document.body.append(effectsScript);
 })();
 
