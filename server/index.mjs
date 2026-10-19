@@ -67,6 +67,20 @@ function auth(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'
 function admin(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token||!eq(token,ADMIN))throw error(403,'无管理权限')}
 function balance(id){return db.prepare('SELECT COALESCE(SUM(amount),0) AS n FROM ledger WHERE user_id=?').get(id).n}
 function earn(id,amount,reason){db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(id,amount,reason,now())}
+db.exec("CREATE TABLE IF NOT EXISTS admin_coin_grants (request_id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),amount INTEGER NOT NULL,reason TEXT NOT NULL,created_at TEXT NOT NULL)");
+function grantCoins(b){
+ const userId=String(b.userId||'').trim(),amount=b.amount,reason=String(b.reason||'').trim(),requestId=String(b.requestId||'');
+ if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||!Number.isSafeInteger(amount)||amount<1||amount>5000||reason.length<3||reason.length>150||!/^[0-9a-f-]{36}$/i.test(requestId))throw error(400,'请填写完整岛民ID、1至5000枚金币、3至150字的原因');
+ return tx(()=>{
+  const previous=db.prepare('SELECT user_id AS userId,amount,reason FROM admin_coin_grants WHERE request_id=?').get(requestId);
+  if(previous){if(previous.userId!==userId||previous.amount!==amount||previous.reason!==reason)throw error(409,'请求编号已被使用');return {alreadyProcessed:true,...previous,coins:balance(userId)}}
+  const user=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(userId);if(!user)throw error(404,'没有找到对应的岛民ID');
+  const t=now();db.prepare('INSERT INTO admin_coin_grants(request_id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').run(requestId,userId,amount,reason,t);
+  earn(userId,amount,'岛主赠送：'+reason);auditAdmin('coins.grant',{userId,amount,reason,requestId});
+  return {userId,nickname:user.nickname,amount,reason,coins:balance(userId),createdAt:t,alreadyProcessed:false}
+ });
+}
+function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nickname,g.amount,g.reason,g.created_at AS createdAt FROM admin_coin_grants g JOIN users u ON u.id=g.user_id ORDER BY g.created_at DESC LIMIT 100').all()}
 function session(id){const token=rand(36);db.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').run(sha(token),id,Date.now()+43200000);return token}
 function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,status:membership.get(id).status==='verified'?'islander':'visitor',membership:membership.get(id),coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id).filter(x=>!x.startsWith('letter:')||x==='letter:'+day()),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id)}}
 function getActivity(){const row=db.prepare('SELECT starts_at,ends_at FROM activity_settings WHERE id=1').get();const settings={startsAt:row?.starts_at??null,endsAt:row?.ends_at??null};const at=Date.now();return {...settings,timezone:'Asia/Shanghai',phase:activityPhase(settings,at),serverTime:new Date(at).toISOString()}}
@@ -213,6 +227,9 @@ else if(path==='/api/admin/assets/versions'&&req.method==='GET'){admin(req);data
 else if(path==='/api/admin/assets/restore'&&req.method==='POST'){admin(req);data=restoreAsset(b)}
 else if(path==='/api/admin/visual-settings'&&req.method==='GET'){admin(req);data=getVisualSettings()}
 else if(path==='/api/admin/visual-settings'&&req.method==='POST'){admin(req);data=saveVisualSettings(b)}
+else if(path==='/api/admin/coins/preview'&&req.method==='GET'){admin(req);const id=String(new URL(req.url,'http://localhost').searchParams.get('id')||'');if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id))throw error(400,'岛民ID格式不正确');const u=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(id);if(!u)throw error(404,'岛民不存在');data={...u,coins:balance(id)}}
+else if(path==='/api/admin/coins/grant'&&req.method==='POST'){admin(req);data=grantCoins(b)}
+else if(path==='/api/admin/coins/history'&&req.method==='GET'){admin(req);data=coinGrantHistory()}
 else if(path==='/api/admin/user'&&req.method==='GET'){admin(req);data=userDetail(String(new URL(req.url,'http://localhost').searchParams.get('id')||''))}
 else if(path==='/api/admin/code-stats'&&req.method==='GET'){admin(req);data=codeStats()}
 else if(path==='/api/admin/backups'&&req.method==='GET'){admin(req);data=operations.listBackups()}
