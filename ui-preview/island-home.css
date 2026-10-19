@@ -111,3 +111,34 @@ body[data-page="home"] :is(.site-header,.hero-copy,.glass,.news-strip,.section-h
 @media(max-width:620px){
   body[data-page="home"] :is(.hero-copy,.mobile-nav){background:var(--island-glass)}
 }
+
+/* Clean home backdrop: uploaded photograph stays available but becomes a quiet depth layer. */
+body[data-page="home"] .home-hero{
+  isolation:isolate;
+  overflow:hidden;
+  border-radius:24px;
+  background-color:#dff4ff;
+}
+body[data-page="home"] .home-hero::before{
+  content:"";
+  position:absolute;
+  inset:-18px;
+  z-index:-1;
+  background-image:var(--home-sea-photo,none);
+  background-size:cover;
+  background-position:var(--home-sea-position,center);
+  filter:blur(13px) saturate(.68) contrast(.82);
+  opacity:.31;
+  pointer-events:none;
+}
+body[data-page="home"] .home-hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:linear-gradient(118deg,rgba(242,251,255,.45),rgba(208,238,255,.13) 50%,rgba(231,240,255,.18));
+  pointer-events:none;
+}
+@media(max-width:620px){
+  body[data-page="home"] .home-hero::before{filter:blur(9px) saturate(.7);opacity:.24}
+}
