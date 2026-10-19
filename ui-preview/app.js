@@ -198,7 +198,7 @@
     const hero=document.querySelector('.hero-art img, .mini-art');
     if(hero&&managedAssets['decor/home-poster.webp']){hero.src=assetUrl('decor/home-poster.webp');applyAssetLayout(hero,'decor/home-poster.webp')}
     const map=document.querySelector('#map-camera image');
-    if(map&&managedAssets['decor/island-map.webp']){map.setAttribute('href',assetUrl('decor/island-map.webp'));applyAssetLayout(map,'decor/island-map.webp')}
+    // Guide map uses the approved full-archipelago artwork, not the admin decorative override.
     document.querySelectorAll('.memory-card').forEach(card=>{
       const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\d{2}/)?.[0];
       const match=liveCatalog.find(item=>item.previewId===label);
@@ -791,7 +791,7 @@
     if (PAGE === 'passport') installPassportTabs();
     updateWallet();
     document.dispatchEvent(new CustomEvent('buzhi:render'));
-    if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/island-map.svg?v=20261019-map1':'assets/island.svg'}});
+    if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/buzhi-archipelago-soft-palette-draft.png':'assets/island.svg'}});
     if(LIVE){refreshLiveNotices();refreshManagedArtwork()};
   }
 
@@ -813,7 +813,7 @@
     return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图">
       <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
       <div class="voyage-map" tabindex="0" role="region" aria-label="群岛地图，可左右滚动"><div class="guide-map-stage">
-        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/buzhi-archipelago-soft-palette-draft.png')}" width="1584" height="993"/>
+        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><g id="map-camera"><image href="${'assets/buzhi-archipelago-soft-palette-draft.png'}" width="1584" height="993"/>
           <g class="guide-water-motion" aria-hidden="true" fill="none" stroke="#e3ffff" stroke-width="2" stroke-linecap="round" stroke-dasharray="12 26 3 30"><path d="M70 820q55 20 110 0m-25 32q50 18 100 0M960 880q60 22 125 0m-140 32q55 17 100 0M1160 365q75 16 150-4M1470 610q45 20 90 0"/></g>
           <g class="guide-cloud-motion" aria-hidden="true" fill="#fff" opacity=".16"><ellipse cx="965" cy="210" rx="125" ry="18"/><ellipse cx="1060" cy="232" rx="100" ry="12"/><ellipse cx="60" cy="937" rx="150" ry="32"/></g>
         </g></svg>
