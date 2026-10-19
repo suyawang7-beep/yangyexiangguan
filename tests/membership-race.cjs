@@ -1,0 +1,21 @@
+const {chromium}=require('playwright'),{spawn}=require('node:child_process'),{mkdtempSync,rmSync}=require('node:fs'),{tmpdir}=require('node:os'),{join}=require('node:path'),assert=require('node:assert/strict');
+const folder=mkdtempSync(join(tmpdir(),'buzhi-member-race-')),port=58000+Math.floor(Math.random()*500),base='http://127.0.0.1:'+port;
+let browser,logs='',release;
+const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..'),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:join(folder,'test.sqlite'),ADMIN_TOKEN:'isolated-race-admin-token-0000000000'},stdio:['ignore','ignore','pipe']});server.stderr.on('data',c=>logs+=c);
+(async()=>{
+ let ready=false;for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}assert(ready,logs);
+ const account=await fetch(base+'/api/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nickname:'申请并发测试'})}).then(r=>r.json());
+ browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
+ const page=await browser.newPage();await page.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),account.token);
+ await page.goto(base+'/verify.html',{waitUntil:'networkidle'});await page.locator('#membershipApplyForm').waitFor();
+ let captured;const held=new Promise(resolve=>captured=resolve),gate=new Promise(resolve=>release=resolve);
+ await page.route('**/api/membership',async route=>{const response=await route.fetch();captured();await gate;await route.fulfill({response})});
+ await page.getByRole('button',{name:'刷新认证状态'}).click();await held;
+ await page.locator('#douyinId').fill('race_member_2026');await page.locator('#submitMembership').click();
+ await page.locator('#membershipApplicationStatus').getByText(/待审核/).waitFor();
+ release();await page.waitForResponse(r=>new URL(r.url()).pathname==='/api/membership');
+ await page.waitForTimeout(100);
+ assert.match(await page.locator('#membershipApplicationStatus').textContent(),/待审核/,'An older GET must not replace a successful application');
+ assert.match(await page.locator('#membershipVerificationCode').textContent(),/^BZV-/);
+ console.log('PASS delayed membership status response cannot overwrite a newer successful application');
+})().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{release?.();await browser?.close();if(server.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}rmSync(folder,{recursive:true,force:true})});
