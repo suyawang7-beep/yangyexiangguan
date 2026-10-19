@@ -139,7 +139,7 @@ if(req.method==='GET'&&!path.startsWith('/api/')&&pageNames.has(suffix)&&path!==
  return res.end(html);
 }
 if(req.method==='GET'&&path==='/legacy'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}
-if(req.method==='GET'&&!(path.startsWith('/assets/')&&path.endsWith('.webp'))&&/^(?:\/ui-preview\/)?(?:assets\/[a-zA-Z0-9_/-]+\.(?:svg|webp|png|woff2)|[a-zA-Z0-9-]+\.(?:css|js))$/.test(suffix)){
+if(req.method==='GET'&&!(path.startsWith('/assets/')&&path.endsWith('.webp'))&&/^(?:\/ui-preview\/)?(?:assets\/[a-zA-Z0-9_/-]+\.(?:svg|webp|png|woff2|css)|[a-zA-Z0-9-]+\.(?:css|js))$/.test(suffix)){
 const file=resolve(previewRoot,suffix);
 if(!file.startsWith(previewRoot+'/')||!existsSync(file))throw error(404,'预览素材不存在');
 const body=readFileSync(file);const ext=extname(file);res.writeHead(200,{'content-type':{'.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2'}[ext]||'application/octet-stream','cache-control':'public,max-age=120','x-content-type-options':'nosniff'});return res.end(body);
@@ -196,6 +196,7 @@ else if(path==='/api/admin/export'&&req.method==='GET'){admin(req);const out=ope
 else if(path==='/api/admin/audit'&&req.method==='GET'){admin(req);data=adminAudit()}
 else throw error(404,'未找到');
 send(res,200,data)}catch(e){if(res.headersSent||res.destroyed){if(!res.destroyed)res.destroy();return}send(res,e.status||500,{error:e.status?e.message:'内部错误'})}}).listen(PORT,HOST,()=>console.log('Buzhi server listening on '+HOST+':'+PORT));
+
 
 
 
