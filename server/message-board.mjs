@@ -23,7 +23,7 @@ export function createMessageBoard(db, audit, tx) {
     if(recent&&Date.now()-Date.parse(recent.created_at)<60000)throw err(429,'请稍后再留言（每分钟限一条）');
     return tx(()=>{const at=new Date().toISOString();const result=db.prepare('INSERT INTO island_messages(user_id,body,anonymous,created_at) VALUES(?,?,?,?)').run(userId,body,payload.anonymous?1:0,at);return {id:Number(result.lastInsertRowid),createdAt:at}});
   }
-  const adminRows=()=>db.prepare(`SELECT m.id,m.user_id AS userId,u.nickname,m.body,m.anonymous,m.reply,m.created_at AS createdAt,m.replied_at AS repliedAt
+  const adminRows=()=>db.prepare(`SELECT m.id,m.user_id AS userId,u.nickname,m.body,m.anonymous,m.reply,m.created_at AS createdAt,m.replied_at AS repliedAt,m.hidden AS hidden
     FROM island_messages m JOIN users u ON u.id=m.user_id ORDER BY m.id DESC LIMIT 200`).all().map(m=>({...m,anonymous:!!m.anonymous}));
   function reply(payload){
     const id=Number(payload.id),body=typeof payload.reply==='string'?payload.reply.trim():'';
