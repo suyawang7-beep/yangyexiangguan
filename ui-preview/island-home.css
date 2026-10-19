@@ -252,3 +252,130 @@ body[data-page="home"] .hero-copy :is(h1,.subtitle,.hero-footnote,.scene-note){t
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   body[data-page="home"] .hero-copy{background:#eaf6fff2!important}
 }
+
+
+/* Homepage composition sync · 2026-10-19. The illustration remains an
+   admin-managed image; this changes framing, glass depth and responsiveness. */
+body[data-page="home"] .home-hero{
+  gap:clamp(16px,2.5vw,40px);
+  min-height:720px;
+  padding:34px clamp(18px,3vw,48px) 38px;
+  border:1px solid rgba(255,255,255,.82);
+  border-radius:38px;
+  box-shadow:inset 0 1px 0 #fff,0 25px 80px rgba(27,103,156,.16);
+}
+body[data-page="home"] .home-hero::after{
+  background:
+    radial-gradient(ellipse 36% 42% at 83% 35%,rgba(224,255,255,.32),transparent 85%),
+    radial-gradient(ellipse 48% 19% at 29% 88%,rgba(255,255,255,.38),transparent 95%),
+    linear-gradient(117deg,rgba(236,252,255,.12),transparent 64%) !important;
+}
+body[data-page="home"] .hero-copy{
+  position:relative;
+  z-index:2;
+  padding:clamp(28px,3vw,45px);
+  border-radius:32px;
+  background:linear-gradient(140deg,rgba(247,255,255,.29),rgba(201,240,255,.13) 58%,rgba(226,209,255,.19)) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(155%) !important;
+  backdrop-filter:blur(12px) saturate(155%) !important;
+  box-shadow:inset 0 2px 0 #ffffffdc,inset 0 -1px 0 #ffffff8c,0 24px 64px #27679626 !important;
+}
+body[data-page="home"] .hero-copy::before{
+  inset:9px;
+  border-radius:25px;
+  border-color:#ffffff82;
+}
+body[data-page="home"] .hero-copy .eyebrow{
+  display:inline-flex;
+  align-items:center;
+  min-height:31px;
+  padding:7px 14px;
+  border:1px solid #ffffffcf;
+  border-radius:99px;
+  background:linear-gradient(110deg,#d5faff9e,#f8ddff91);
+  box-shadow:inset 0 1px #fff9;
+  color:#21627f;
+  font-size:11px;
+  letter-spacing:1.4px;
+}
+body[data-page="home"] .hero-copy h1{
+  font-size:clamp(37px,3.8vw,56px);
+  line-height:1.35;
+  margin-top:25px;
+  text-shadow:0 2px 0 #ffffff6e,0 10px 25px #377ea622;
+}
+body[data-page="home"] .hero-art{
+  position:relative;
+  z-index:1;
+  min-height:660px;
+  padding-bottom:6px;
+}
+body[data-page="home"] .hero-art::before{
+  content:"";
+  position:absolute;
+  width:90%;
+  aspect-ratio:1;
+  top:9%;
+  left:5%;
+  z-index:-1;
+  border:1px solid rgba(255,255,255,.45);
+  border-radius:50%;
+  background:radial-gradient(circle at 48% 38%,rgba(245,255,255,.5),rgba(174,228,255,.2) 45%,transparent 72%);
+  box-shadow:0 0 0 23px #e5ffff0d,0 0 0 48px #d6edff0a;
+  pointer-events:none;
+}
+body[data-page="home"] .hero-art>img{
+  position:relative;
+  width:110%;
+  max-width:690px;
+  margin:0 -4% -42px 0;
+  object-fit:contain;
+  filter:drop-shadow(0 25px 30px #27739730);
+}
+body[data-page="home"] .hero-letters{
+  top:18px;
+  left:43%;
+  font-size:clamp(70px,8.4vw,130px);
+  color:#e9ffff8a;
+  letter-spacing:-5px;
+}
+body[data-page="home"] .floating-note{
+  right:-10px;
+  top:85px;
+  z-index:3;
+  border-radius:20px;
+  box-shadow:inset 0 1px #fff,0 17px 42px #2f7b9b24;
+}
+body[data-page="home"] .birthday-seal{
+  left:3%;
+  bottom:39px;
+  z-index:3;
+  box-shadow:inset 0 1px #fff,0 14px 34px #3a739824;
+}
+body[data-page="home"] :is(.news-strip,.destination,.island-story,.section-heading){
+  border:1px solid #ffffffc9;
+  box-shadow:inset 0 1px 0 #ffffffcf,0 15px 42px #2875a316;
+  -webkit-backdrop-filter:blur(12px) saturate(150%);
+  backdrop-filter:blur(12px) saturate(150%);
+}
+@media(max-width:1050px){
+ body[data-page="home"] .home-hero{padding:24px 20px 28px;min-height:620px;gap:12px}
+ body[data-page="home"] .hero-art{min-height:550px}
+ body[data-page="home"] .hero-art>img{width:105%;margin-right:0}
+ body[data-page="home"] .hero-copy h1{font-size:clamp(32px,4vw,43px)}
+}
+@media(max-width:620px){
+ body[data-page="home"] .home-hero{padding:16px 12px 25px;border-radius:26px;gap:0;min-height:0}
+ body[data-page="home"] .hero-copy{order:0;padding:27px 21px 24px;border-radius:25px}
+ body[data-page="home"] .hero-copy h1{font-size:clamp(29px,8vw,38px);margin-top:17px}
+ body[data-page="home"] .hero-copy .eyebrow{font-size:9px;letter-spacing:.5px}
+ body[data-page="home"] .hero-art{order:1;min-height:410px;padding-bottom:12px}
+ body[data-page="home"] .hero-art::before{width:84%;top:8%;left:8%}
+ body[data-page="home"] .hero-art>img{width:100%;max-width:490px;margin:0 auto -22px}
+ body[data-page="home"] .hero-letters{left:6%;top:12px;font-size:60px;letter-spacing:-2px}
+ body[data-page="home"] .floating-note{top:55px;right:0;max-width:145px}
+ body[data-page="home"] .birthday-seal{left:2%;bottom:32px}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-page="home"] .hero-art::before{animation:none!important}
+}
