@@ -597,6 +597,16 @@
     login.id = 'returning-islander-panel'; login.className = 'glass panel';
     login.setAttribute('role', 'tabpanel'); login.setAttribute('aria-labelledby', 'passport-returning-tab');
     login.innerHTML = '<h2>找回你的生日通行证</h2><p class="small muted">使用岛民编号与自己设置的密码登录；旧岛民也可先用原恢复密钥登录并设置新密码。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登录密码／原恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入密码，旧岛民也可使用原密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示</button></div><button class="btn primary full" type="submit">登录不吱岛 →</button><p class="small muted">旧恢复密钥仍可用于账户迁移，请勿向他人透露。</p></form>';
+    if (LIVE) {
+      const recovery = document.createElement('div');
+      recovery.className = 'glass panel';
+      recovery.style.marginTop = '16px';
+      recovery.innerHTML = '<h3>忘记密码或恢复密钥？</h3><p class="small muted">使用岛民编号和已认证抖音号申请找回。岛主核验身份后，会通过私密渠道提供一次性重置凭证。</p><form id="identity-recovery-form"><div class="form-field"><label>岛民编号<input name="userId" required placeholder="BZI-..." maxlength="110"></label></div><div class="form-field"><label>已认证抖音号<input name="douyinId" required maxlength="64" autocomplete="off"></label></div><button class="btn" type="submit">提交找回申请</button></form><details style="margin-top:16px"><summary>已经收到岛主发放的重置凭证？</summary><form id="identity-reset-form"><div class="form-field"><label>找回申请编号<input name="requestId" required placeholder="REC-..."></label></div><div class="form-field"><label>一次性重置凭证<input name="token" required autocomplete="off"></label></div><div class="form-field"><label>设置新密码（至少10字符）<input type="password" name="password" required minlength="10" maxlength="128" autocomplete="new-password"></label></div><button class="btn primary" type="submit">设置新密码</button></form></details><p class="small muted" id="identity-recovery-status" role="status"></p>';
+      login.append(recovery);
+      const status = recovery.querySelector('#identity-recovery-status');
+      recovery.querySelector('#identity-recovery-form').onsubmit = async event => {event.preventDefault();const form=event.currentTarget;try{const out=await liveApi('recovery/request',{userId:form.elements.userId.value.trim(),douyinId:form.elements.douyinId.value.trim()});status.textContent=out.message}catch(err){status.textContent=err.message}};
+      recovery.querySelector('#identity-reset-form').onsubmit = async event => {event.preventDefault();const form=event.currentTarget;try{const out=await liveApi('recovery/reset',{requestId:form.elements.requestId.value.trim(),token:form.elements.token.value.trim(),password:form.elements.password.value});status.textContent=out.message;form.reset()}catch(err){status.textContent=err.message}};
+    }
     const newPanel = document.createElement('section'); newPanel.id = 'passport-new-panel';
     newPanel.setAttribute('role', 'tabpanel'); newPanel.setAttribute('aria-labelledby', 'passport-new-tab');
     registration.setAttribute('aria-labelledby', 'passport-new-tab');
