@@ -16,6 +16,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node tests/deployment-artifact.mjs
       - run: node tests/flow.mjs
+      - run: node tests/public-card-pool.cjs
       - run: node tests/online-flow.mjs
       - run: node tests/activity-flow.mjs
       - run: node tests/activity-admin.cjs
