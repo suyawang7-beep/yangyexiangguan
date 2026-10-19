@@ -210,7 +210,7 @@
       if(!img.src.endsWith(target))img.src=target;applyAssetLayout(img,'cards/'+match.id+'.webp');
     });
     document.querySelectorAll('#oc-track .oc-slide').forEach((slide,i)=>{
-      const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':liveOcProfiles[i-2]?.image?.replace('/assets/','');
+      const others=liveOcProfiles.filter(oc=>!['oc-official-caicai','oc-official-zhizhi'].includes(oc.id));const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':others[i-2]?.image?.replace('/assets/','');
       if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img){img.src=assetUrl(file);applyAssetLayout(img,file)}}
     });
   }
@@ -842,13 +842,18 @@
   }
 
   function renderIslanders() {
-    const people = [
-      ['菜菜', '生日主角 / 岛主', '把每一天的小小快乐，都唱成一首歌。', 'pink'],
-      ['吱吱', '庆生搭档 / 共同岛主', '派对的小灯已经挂好，就等你来了。', 'blue'],
-      ...(LIVE ? liveOcProfiles.map((oc,i)=>[oc.name,'岛民 OC',oc.description||'一位新的岛民已经登岛。',['green','purple','pink','blue'][i%4],(managedAssets[oc.image.replace('/assets/','')]?assetUrl(oc.image.replace('/assets/','')):null)]) : [
-        ['岛民 OC · 位置 01', '个人形象待接入', '这里将展示拥有专属形象的岛民与职业设定。', 'green'],
-        ['岛民 OC · 位置 02', '个人形象待接入', '属于岛民的故事，会在这里慢慢展开。', 'purple']
-      ])
+    const official = [
+      ['菜菜','生日主角 / 共同岛主','不吱岛的共同岛主，也是这场生日庆典的主角。与吱吱一起欢迎每一位登岛的朋友。','pink','/assets/characters/caicai.webp','oc-official-caicai'],
+      ['吱吱','共同岛主','不吱岛的共同岛主，与菜菜一起筹备庆典，收藏岛上每一份相遇与故事。','blue','/assets/characters/zhizhi.webp','oc-official-zhizhi']
+    ];
+    const officialIds=new Set(official.map(p=>p[5]));
+    const people = LIVE ? [
+      ...official.map(p=>{const saved=liveOcProfiles.find(oc=>oc.id===p[5]);return saved ? [saved.name,p[1],saved.description||p[2],p[3],p[4]]:[...p]}),
+      ...liveOcProfiles.filter(oc=>!officialIds.has(oc.id)).map((oc,i)=>[oc.name,'岛民 OC',oc.description||'一位新的岛民已经登岛。',['green','purple','pink','blue'][i%4],oc.image])
+    ] : [
+      ...official,
+      ['岛民 OC · 位置 01','个人形象待接入','这里将展示拥有专属形象的岛民与职业设定。','green'],
+      ['岛民 OC · 位置 02','个人形象待接入','属于岛民的故事，会在这里慢慢展开。','purple']
     ];
     return heading('08', 'Every islander has a story', LIVE ? '岛民画廊' : '岛民画廊 · 布局预览', '左右拖动、点击卡片或使用箭头，欣赏岛上的角色。' + (LIVE ? '部分岛民的资料仍在筹备，敬请期待。' : '这里暂未接入正式 OC 资料。')) + `<div class="oc-mode-bar"><div class="filter-tabs" aria-label="角色展示方式"><button type="button" data-oc-mode="slider" aria-pressed="true">横向画廊</button></div><span class="pill">${LIVE ? '岛上的相遇' : '角色图为示意'}</span></div><section class="glass oc-gallery" id="oc-gallery" data-mode="slider" aria-label="角色欣赏画廊"><div class="oc-count"><span id="oc-step">01</span><small>/ ${String(people.length).padStart(2,'0')}</small></div><div class="oc-track" id="oc-track">${people.map(([name, role, text, tone, image], index) => `<button type="button" class="oc-slide oc-${tone}" data-oc="${index}" aria-label="查看${esc(name)}"><span class="oc-art"><img src="${image||activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="${esc(name)}的角色插画" draggable="false"></span><span class="oc-caption"><small>${esc(role)}</small><strong>${esc(name)}</strong><span>${esc(text)}</span></span></button>`).join('')}</div><div class="oc-slider-controls"><button class="btn" id="oc-prev" type="button" aria-label="上一个角色">←</button><span id="oc-help">拖动欣赏 · 松手后轻轻停靠</span><button class="btn" id="oc-next" type="button" aria-label="下一个角色">→</button></div></section><div class="info-note">${LIVE ? '岛民 OC 人物资料由岛主后台管理，隐藏人物不会在此展示。' : '菜菜与吱吱之外的岛民位置均为布局占位，不代表已经创建了新的 OC。个人角色故事与资料页将陆续开放。'}</div>`;
   }
