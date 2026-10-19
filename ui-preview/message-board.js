@@ -15,7 +15,7 @@
     const boardArea=make('section','board-area');boardArea.id='islandBoard';boardArea.hidden=true;
     const layout=main.querySelector('.mailbox-layout');if(!layout)return;
     layout.before(tabs,boardArea);
-    const show=which=>{const on=which==='board';layout.hidden=on;boardArea.hidden=!on;letters.setAttribute('aria-selected',String(!on));board.setAttribute('aria-selected',String(on));if(on)load()};
+    const show=which=>{const on=which==='board';layout.hidden=on;boardArea.hidden=!on;layout.style.display=on?'none':'';boardArea.style.display=on?'':'none';letters.setAttribute('aria-selected',String(!on));board.setAttribute('aria-selected',String(on));if(on)load()};
     letters.onclick=()=>show('letters');board.onclick=()=>show('board');
     const form=make('form','board-form');const title=make('h2','','写给岛上的一封信'),note=make('p','','留下你的祝福和心情。实名会显示通行证昵称；匿名只显示“匿名岛民”。');
     const textarea=make('textarea');textarea.required=true;textarea.maxLength=500;textarea.placeholder='想对菜菜、吱吱和大家说些什么？（最多500字）';
