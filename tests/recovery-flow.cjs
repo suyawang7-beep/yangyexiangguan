@@ -42,9 +42,6 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  console.log('PASS: reset hashing, persistence, old-key/session rejection, authorization and data preservation');
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
  const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']});
- // Existing static-file routes assume POSIX paths. On Windows only, serve the same
- // unmodified public source files through Playwright; all APIs still use the real server.
- if(process.platform==='win32')await context.route(base+'/**',async route=>{const p=new URL(route.request().url()).pathname;if(p==='/passport.html'){let html=readFileSync(join(root,'ui-preview/passport.html'),'utf8').replace('<head>','<head><script>window.__BUZHI_PRODUCTION__=true</script>').replace('</head>','<script src="/membership-client.js" defer></script></head>');return route.fulfill({contentType:'text/html',body:html})}if(/^\/[\w-]+\.(js|css)$/.test(p)&&p!=='/membership-client.js')return route.fulfill({path:join(root,'ui-preview',p.slice(1))});return route.continue()});
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
  await page.goto(base+'/admin/recovery');await page.locator('#token').fill(admin);await page.locator('#enter').click();await page.locator('#islanderSearchText').waitFor({state:'visible'});
  await page.locator('#islanderSearchText').fill(a.id);await page.locator('#islanderSearchButton').click();await page.getByRole('button',{name:'账户找回',exact:true}).click();
@@ -56,7 +53,7 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  assert(!rendered.includes('\\n'),'Admin credential output must not contain literal backslash-n around the key');
  const delivered=await page.locator('#islanderRecoveryKey').inputValue();assert.equal(delivered,out.recoveryKey,'Selectable field contains only the key');
  await page.locator('#islanderRecoveryCopy').click();assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),delivered,'Copy button excludes labels and warnings');
- await page.locator('#logout').click();
+ await page.locator('#adminRouteLogout').click();
  assert.equal(await page.locator('#islanderRecoveryKey').count(),0,'Logging out removes the plaintext recovery credential from the DOM');
  await page.locator('#token').fill(admin);await page.locator('#enter').click();
  assert.equal(await page.locator('#islanderRecoveryResult').textContent(),'','A new admin login cannot reveal the previous recovery key');

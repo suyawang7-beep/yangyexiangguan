@@ -30,7 +30,7 @@ try{
  assert.equal((await api('admin/activity',{startsAt:null,endsAt:null})).status,403);
  const account=await api('register',{nickname:'隔离活动测试'});assert.equal(account.status,200);assert.equal(account.data.profile.coins,50);
  const {id,token,recoveryKey}=account.data;await verifyAccount(base,admin,account.data);
- const generated=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(generated.status,200);
+ const generated=await api('admin/codes',{taskId:'quiz',count:1},admin);assert.equal(generated.status,200);
  const code=generated.data.codes[0];
  const before=snapshot();
  for(const [settings,phase] of [
@@ -39,7 +39,7 @@ try{
  ]){
   const saved=await api('admin/activity',settings,admin);assert.equal(saved.status,200);assert.equal(saved.data.phase,phase);
   assert.equal((await api('activity')).data.phase,phase);
-  for(const [path,body,auth] of [['register',{nickname:'不应创建'},undefined],['redeem',{taskId:'letter',code},token],['checkin',{},token],['draw',{},token]]){
+  for(const [path,body,auth] of [['register',{nickname:'不应创建'},undefined],['redeem',{taskId:'quiz',code},token],['checkin',{},token],['draw',{},token],['task-writing',{taskId:'letter',content:'这是未开放期间不应被写入数据库的生日来信'},token]]){
    const denied=await api(path,body,auth);assert.equal(denied.status,403,path+' must be blocked when '+phase);
   }
   assert.deepEqual(snapshot(),before,'Rejected operations must not change participant data or consume a code');
@@ -54,9 +54,18 @@ try{
  assert.equal((await api('admin/activity',undefined,admin)).data.endsAt,saved.endsAt,'Invalid writes cannot clear the prior schedule');
  await stop();await start();assert.equal((await api('activity')).data.phase,'ended','Schedule must survive restart');
  assert.equal((await api('admin/activity',{startsAt:null,endsAt:null},admin)).status,200);
- assert.equal((await api('redeem',{taskId:'letter',code},token)).data.coins,75);
+ assert.equal((await api('redeem',{taskId:'quiz',code},token)).data.coins,75);
  assert.equal((await api('checkin',{},token)).data.coins,85);
  const drawn=await api('draw',{},token);assert.equal(drawn.status,200);assert.equal(drawn.data.profile.coins,35);assert(['SSR','SR'].includes(drawn.data.card.rarity));
+ const untouched=snapshot();
+ for(const content of ['', '字'.repeat(14), ' '.repeat(30), '😀'.repeat(2001)])assert.equal((await api('task-writing',{taskId:'letter',content},token)).status,400);
+ assert.deepEqual(snapshot(),untouched,'Invalid writing cannot award coins or alter tasks');
+ assert.equal((await api('redeem',{taskId:'letter',code},token)).status,400,'Writing tasks cannot be claimed with redemption codes');
+ assert.equal((await api('task-writing',{taskId:'letter',content:'😀'.repeat(15)},token)).data.coins,60,'Fifteen Unicode characters qualify');
+ assert.equal((await api('task-writing',{taskId:'letter',content:'😀'.repeat(15)},token)).status,409,'A daily letter cannot be rewarded twice');
+ assert.equal((await api('task-writing',{taskId:'memory',content:'这是仅用于隔离数据库的十五字以上岛屿回忆'},token)).data.coins,110,'Third distinct task awards the single 25-coin milestone');
+ assert.equal((await api('task-writing',{taskId:'memory',content:'这是仅用于隔离数据库的另一段十五字以上回忆'},token)).status,409);
+ assert.equal((await api('me',undefined,token)).data.coins,110,'Rejected duplicate writes do not award coins');
  const audit=(await api('admin/audit',undefined,admin)).data;assert(audit.some(x=>x.action==='activity.update'));assert(!JSON.stringify(audit).includes(recoveryKey));
  const {activityPhase}=await import('../server/activity.mjs');
  const schedule={startsAt:'2026-10-19T16:00:00.000Z',endsAt:'2026-10-20T16:00:00.000Z'};

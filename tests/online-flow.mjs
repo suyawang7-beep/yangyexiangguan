@@ -4,11 +4,12 @@ import {DatabaseSync} from 'node:sqlite';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {strict as assert} from 'node:assert';
 import {chromium} from 'playwright';
 const dir=mkdtempSync(join(tmpdir(),'buzhi-api-'));
 const PORT=44000+Math.floor(Math.random()*1000),root='http://127.0.0.1:'+PORT;
-const processServer=spawn(process.execPath,['server/index.mjs'],{cwd:new URL('..',import.meta.url).pathname,env:{...process.env,PORT:String(PORT),ADMIN_TOKEN:'test-only-secret-not-for-production-0000',DB_PATH:join(dir,'test.sqlite')},stdio:['ignore','pipe','pipe']});
+const processServer=spawn(process.execPath,['server/index.mjs'],{cwd:fileURLToPath(new URL('..',import.meta.url)),env:{...process.env,PORT:String(PORT),ADMIN_TOKEN:'test-only-secret-not-for-production-0000',DB_PATH:join(dir,'test.sqlite')},stdio:['ignore','pipe','pipe']});
 let logs='';processServer.stderr.on('data',d=>logs+=d);
 async function api(path,body,token){const res=await fetch(root+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});return {status:res.status,data:await res.json()}}
 let browser;
@@ -16,8 +17,8 @@ try{
 let ready=false;for(let i=0;i<50;i++){try{const res=await fetch(root+'/health');if(res.ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}
 assert(ready,'server did not start: '+logs);
 const admin='test-only-secret-not-for-production-0000';
-const catalog=await fetch(root+'/api/catalog').then(r=>r.json());assert.equal(catalog.cards.length,16);assert.equal(catalog.cards[0].previewId,'BZ-01');assert.equal(catalog.cards[0].id,'UR-1');assert.equal(catalog.cards[15].id,'N-5');assert.equal(catalog.timezone,'Asia/Shanghai');
-const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,26);
+const catalog=await fetch(root+'/api/catalog').then(r=>r.json());assert.equal(catalog.cards.length,32);assert.equal(catalog.cards[0].previewId,'BZ-01');assert.equal(catalog.cards[0].id,'UR-1');assert.equal(catalog.cards[15].id,'N-5');assert.equal(catalog.timezone,'Asia/Shanghai');
+const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,60);
 const mockWebp=Buffer.concat([Buffer.from('RIFF'),Buffer.from([16,0,0,0]),Buffer.from('WEBPVP8 '),Buffer.alloc(8)]).toString('base64');
 const rejectAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp});assert.equal(rejectAsset.status,403);
 const badAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:Buffer.from('not an image').toString('base64')},admin);assert.equal(badAsset.status,400);
@@ -34,7 +35,7 @@ const restore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:
 assert.equal(restore.status,200);
 const badRestore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:'../../secret'},admin);
 assert.equal(badRestore.status,400);
-const publicManifest=await fetch(root+'/api/assets-manifest').then(r=>r.json());assert.equal(Object.keys(publicManifest.assets).length,26);assert.equal(publicManifest.assets['cards/SSR-1.webp'],true);assert.equal(publicManifest.assets['decor/home-poster.webp'],false);
+const publicManifest=await fetch(root+'/api/assets-manifest').then(r=>r.json());assert.equal(Object.keys(publicManifest.assets).length,60);assert.equal(publicManifest.assets['cards/SSR-1.webp'],true);assert.equal(publicManifest.assets['decor/home-poster.webp'],false);
 const layoutInput={scale:125,x:40,y:60,opacity:75,fit:'cover',layer:2};
 const layoutWrite=await api('admin/assets/layout',{name:'cards/SSR-1.webp',settings:layoutInput},admin);assert.equal(layoutWrite.status,200);
 const layoutPublic=await fetch(root+'/api/assets-manifest').then(r=>r.json());assert.equal(layoutPublic.layouts['cards/SSR-1.webp'].scale,125);
@@ -44,11 +45,11 @@ const assetAfter=await api('admin/assets',undefined,admin);assert(assetAfter.dat
 const initialCleanup=await api('admin/test-cleanup',undefined,admin);assert.equal(initialCleanup.status,200);assert.equal(initialCleanup.data.count,0);
 const deniedCleanup=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:[]});assert.equal(deniedCleanup.status,403);
 const wrongCleanup=await api('admin/test-cleanup',{confirm:'wrong',ids:[]},admin);assert.equal(wrongCleanup.status,409);
-let c=await api('admin/codes',{taskId:'letter',count:1},admin);assert.equal(c.status,200);
+let c=await api('admin/codes',{taskId:'quiz',count:1},admin);assert.equal(c.status,200);
 let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);await verifyAccount(root,admin,reg.data);
-let bad=await api('redeem',{taskId:'letter',code:'wrong'},token);assert.equal(bad.status,400);
-let red=await api('redeem',{taskId:'letter',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,75);
-let again=await api('redeem',{taskId:'letter',code:c.data.codes[0]},token);assert.notEqual(again.status,200);
+let bad=await api('redeem',{taskId:'quiz',code:'wrong'},token);assert.equal(bad.status,400);
+let red=await api('redeem',{taskId:'quiz',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,75);
+let again=await api('redeem',{taskId:'quiz',code:c.data.codes[0]},token);assert.notEqual(again.status,200);
 let sign=await api('checkin',{},token);assert.equal(sign.data.coins,85);
 let duplicate=await api('checkin',{},token);assert.equal(duplicate.status,409);
 let firstRealDraw=await api('draw',{},token);assert.equal(firstRealDraw.status,200);assert.equal(firstRealDraw.data.profile.coins,35);assert(['SSR','SR'].includes(firstRealDraw.data.card.rarity));
@@ -74,9 +75,9 @@ const badVisual=await api('admin/visual-settings',{...changedVisual,collectionFa
 assert.equal(badVisual.status,400);
 let detail=await api('admin/user?id='+encodeURIComponent(id),undefined,admin);assert.equal(detail.status,200);
 assert.equal(detail.data.user.id,id);assert.equal(detail.data.ledger.reduce((n,x)=>n+x.amount,0),35);
-assert(detail.data.tasks.some(t=>t.task_id==='letter'));assert(detail.data.checkins.length===1);
+assert(detail.data.tasks.some(t=>t.task_id==='quiz'));assert(detail.data.checkins.length===1);
 let forbiddenDetail=await api('admin/user?id='+encodeURIComponent(id));assert.equal(forbiddenDetail.status,403);
-let codeStats=await api('admin/code-stats',undefined,admin);assert.equal(codeStats.status,200);assert(codeStats.data.some(x=>x.task_id==='letter'&&x.redeemed>=1));
+let codeStats=await api('admin/code-stats',undefined,admin);assert.equal(codeStats.status,200);assert(codeStats.data.some(x=>x.task_id==='quiz'&&x.redeemed>=1));
 let audit=await api('admin/audit',undefined,admin);assert.equal(audit.status,200);
 assert(audit.data.some(x=>x.action==='codes.generate'));assert(audit.data.some(x=>x.action==='announcement.save'));
 assert(!JSON.stringify(audit.data).includes(recoveryKey));
