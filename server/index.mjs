@@ -42,11 +42,11 @@ const schema=[
 for(const statement of schema)db.exec(statement);
 const TASKS=new Set(['letter','memory','quiz','creative','support','commission']);
 const CARDS=[...Array.from({length:1},(_,i)=>({id:'UR-'+(i+1),rarity:'UR'})),...Array.from({length:2},(_,i)=>({id:'SSR-'+(i+1),rarity:'SSR'})),...Array.from({length:4},(_,i)=>({id:'SR-'+(i+1),rarity:'SR'})),...Array.from({length:4},(_,i)=>({id:'R-'+(i+1),rarity:'R'})),...Array.from({length:5},(_,i)=>({id:'N-'+(i+1),rarity:'N'})),
-  ...Array.from({length:2},(_,i)=>({id:'UR-'+(i+2),rarity:'UR'})),
-  ...Array.from({length:3},(_,i)=>({id:'SSR-'+(i+3),rarity:'SSR'})),
-  ...Array.from({length:5},(_,i)=>({id:'SR-'+(i+5),rarity:'SR'})),
-  ...Array.from({length:2},(_,i)=>({id:'R-'+(i+5),rarity:'R'})),
-  ...Array.from({length:4},(_,i)=>({id:'N-'+(i+6),rarity:'N'})),
+  ...Array.from({length:1},(_,i)=>({id:'UR-'+(i+2),rarity:'UR'})),
+  ...Array.from({length:2},(_,i)=>({id:'SSR-'+(i+3),rarity:'SSR'})),
+  ...Array.from({length:2},(_,i)=>({id:'SR-'+(i+5),rarity:'SR'})),
+  ...Array.from({length:5},(_,i)=>({id:'R-'+(i+5),rarity:'R'})),
+  ...Array.from({length:6},(_,i)=>({id:'N-'+(i+6),rarity:'N'})),
   ...Array.from({length:18},(_,i)=>({id:'LOCK-'+String(i+33).padStart(2,'0'),rarity:'N',unreleased:true}))];
 const CARD_TITLES=['岛屿与永恒','许愿的瞬间','与你共赴星海','海风来信','今日晴朗','雪啾旧梦','岛上的花','贝壳耳语','停靠的心愿','漂流的旋律','一片新绿','浪花一朵','小岛邮戳','口袋星光','来客留名','晚安小啾'];
 function listOc(publicOnly=false){const rows=db.prepare('SELECT id,name,description,sort_order AS sortOrder,hidden,updated_at AS updatedAt FROM oc_profiles '+(publicOnly?'WHERE hidden=0 ':'')+'ORDER BY sort_order ASC,id ASC').all();return rows.map(r=>({...r,hidden:!!r.hidden,image:'/assets/oc/'+r.id+'.webp'}))}
