@@ -155,3 +155,57 @@ body[data-page="home"] .home-hero[style]{
 }
 body[data-page="home"] .home-hero::before{content:none !important;background-image:none !important}
 body[data-page="home"] .home-hero::after{background:linear-gradient(125deg,rgba(255,255,255,.12),transparent 55%);opacity:.55}
+
+/* Liquid-glass ocean: pure CSS flowing caustics, refractive highlights, no noisy photograph. */
+body[data-page="home"] .home-hero,
+body[data-page="home"] .home-hero[style]{
+  background:
+    radial-gradient(ellipse 44% 45% at 15% 18%,rgba(255,255,255,.72),transparent 85%),
+    radial-gradient(ellipse 48% 66% at 85% 70%,rgba(154,199,255,.38),transparent 92%),
+    linear-gradient(132deg,#dbf8ff 0%,#afe4f5 36%,#c6e5ff 69%,#e9dcff 100%) !important;
+  box-shadow:inset 0 2px 0 #fff9,inset 0 -18px 42px #65add61c,0 20px 65px #6298bd17;
+}
+body[data-page="home"] .home-hero::before{
+  content:"" !important;
+  inset:-25% !important;
+  z-index:-1 !important;
+  opacity:.72 !important;
+  background-image:
+    radial-gradient(ellipse 27% 16% at 17% 35%,rgba(255,255,255,.78),transparent 100%),
+    radial-gradient(ellipse 30% 12% at 72% 24%,rgba(255,255,255,.7),transparent 100%),
+    radial-gradient(ellipse 34% 13% at 63% 83%,rgba(149,225,247,.64),transparent 100%),
+    repeating-conic-gradient(from 22deg at 55% 50%,rgba(255,255,255,.11) 0 8deg,transparent 12deg 39deg) !important;
+  background-size:100% 100% !important;
+  filter:blur(20px) saturate(115%) !important;
+  animation:buzhi-liquid-drift 17s ease-in-out infinite alternate;
+}
+body[data-page="home"] .home-hero::after{
+  background:
+    radial-gradient(ellipse 50% 10% at 62% 15%,rgba(255,255,255,.40),transparent 100%),
+    radial-gradient(ellipse 48% 9% at 18% 77%,rgba(255,255,255,.3),transparent 100%),
+    linear-gradient(120deg,rgba(255,255,255,.20),transparent 65%) !important;
+  opacity:1 !important;
+  animation:buzhi-liquid-shimmer 12s ease-in-out infinite alternate;
+}
+body[data-page="home"] .hero-copy{
+  background:linear-gradient(128deg,rgba(255,255,255,.47),rgba(217,247,255,.23) 58%,rgba(236,224,255,.26)) !important;
+  border:1px solid rgba(255,255,255,.88) !important;
+  box-shadow:inset 0 2px 1px #fff9,inset 0 -1px 0 #fff6,0 16px 40px #4c89ba1b,0 36px 85px #4c89ba0c !important;
+  -webkit-backdrop-filter:blur(23px) saturate(155%);
+  backdrop-filter:blur(23px) saturate(155%);
+}
+@keyframes buzhi-liquid-drift{
+  from{transform:translate3d(-3%,1%,0) rotate(-4deg) scale(1)}
+  to{transform:translate3d(3%,-2%,0) rotate(4deg) scale(1.13)}
+}
+@keyframes buzhi-liquid-shimmer{
+  from{transform:translate3d(-1%,0,0);opacity:.65}
+  to{transform:translate3d(1%,1%,0);opacity:1}
+}
+@media(max-width:620px){
+  body[data-page="home"] .home-hero::before{animation-duration:25s;filter:blur(24px) !important}
+  body[data-page="home"] .hero-copy{-webkit-backdrop-filter:blur(14px) saturate(145%);backdrop-filter:blur(14px) saturate(145%)}
+}
+@media(prefers-reduced-motion:reduce){
+  body[data-page="home"] .home-hero::before,body[data-page="home"] .home-hero::after{animation:none}
+}
