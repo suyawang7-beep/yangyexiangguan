@@ -862,5 +862,8 @@
   const effectsScript = document.createElement('script');
   effectsScript.src = new URL('effects.js?v=20261020-milestone1', document.currentScript.src).href;
   document.body.append(effectsScript);
+  const pencilScript=document.createElement('script');
+  pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;
+  document.body.append(pencilScript);
 })();
 

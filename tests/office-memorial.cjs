@@ -57,6 +57,15 @@ function records(){return Object.fromEntries(['users','ledger','tasks','task_wri
   await page.reload({waitUntil:'networkidle'});assert.equal(await page.locator('[data-milestone-celebration]').count(),0);
   await context.close();
  });
+ await check('normal motion account switching cancels a pending reward',async()=>{
+  const a=await account('等待惊喜时换号');for(const task of ['quiz','creative'])db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(a.id,task,new Date().toISOString());
+  const {page,context}=await userPage(a,390);await visit(page,'/office.html');await write(page,'memory');
+  const b=await account('换号后没有奖励');await page.evaluate(t=>sessionStorage.setItem('buzhi-online-token',t),b.token);await visit(page,'/office.html');await page.waitForTimeout(1700);assert.equal(await page.locator('.bird-journey').getAttribute('aria-valuenow'),'0');assert.equal(await page.locator('[data-milestone-celebration]').count(),0);await context.close();
+ });
+ await check('historical progress above nine remains accessible without replay',async()=>{
+  const a=await account('十一项历史进度');for(const task of ['letter','memory','quiz','creative','support','commission','wish','live','song','islander','party'])db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(a.id,task,new Date().toISOString());
+  const {page,context}=await userPage(a);await visit(page,'/office.html');assert.equal(await page.locator('.bird-journey').getAttribute('aria-valuenow'),'9');assert.match(await page.locator('.bird-journey').getAttribute('aria-valuetext'),/11/);await page.waitForTimeout(1700);assert.equal(await page.locator('[data-milestone-celebration]').count(),0);await context.close();
+ });
  await check('reduced motion and account switching cannot replay another islander reward',async()=>{
   const a=await account('减少动态测试');for(const task of ['quiz','creative'])db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(a.id,task,new Date().toISOString());
   const {page,context}=await userPage(a,390,'reduce');await visit(page,'/office.html');const profile=await write(page,'memory');assert(profile.bonuses.includes(3));assert.equal(await page.locator('[data-milestone-celebration]').count(),0);

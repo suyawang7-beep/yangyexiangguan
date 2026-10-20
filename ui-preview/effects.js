@@ -31,7 +31,7 @@
   // stop while hidden/reduced/off. No persistent JavaScript animation loop.
   const ambientItems = new Map();
   const liquidSurfaces = '.glass,.hero-copy,.birthday-seal,.day,.oc-slide,.info-note,.privacy-note,.map-status,.ticket,.pass-preview,.news-strip,.sidebar-card,.task-card,.collection-summary,.filter-bar,.mailbox-side,.letter,.draw-info,.checkin-summary,.floating-note,.section-heading,.site-header,.site-footer,.mobile-nav,.passport-entry-tabs,.calendar-date,.office-sign,.board-wallet,.ticket-tools,.postal-collection,.board-form,.board-entry,.passport-preview-note,.ticket-gift,.filter-tabs';
-  const liquidRooms = '.home-hero,.passport-grid,.office-layout,.checkin-layout,.postal-experience,.collection-summary,.oc-gallery,.mailbox-layout,#voyage,.effects-intro,.effects-index,.board-area,.empty-state';
+  const liquidRooms = '.home-hero,.passport-grid,.office-layout,.checkin-layout,.postal-experience,.collection-summary,.oc-gallery,.mailbox-layout,#voyage,.effects-intro,.effects-index,.board-area,.empty-state,#membershipApplication';
   let ambientMutationObserver, ambientQueued = false;
   function syncAmbient() {
     const restingForDraw = world.dataset.drawNight === 'true';
@@ -44,8 +44,8 @@
       const running = allowed && item.visible && !restingForDraw;
       el.dataset.ambientRunning = String(running);
       item.animations.forEach(animation => {
-        if (running) { if (animation.playState !== 'running') animation.play(); }
-        else { animation.pause(); if (!allowed) animation.currentTime = 0; }
+        if (running) { if (animation.playState !== 'running' && animation.playState !== 'finished') animation.play(); }
+        else { animation.pause(); if (!allowed) animation.currentTime = el.dataset.pencilAmbient==='stamp' ? animation.effect.getTiming().duration : 0; }
       });
     });
   }
@@ -94,6 +94,14 @@
         {transform:'translateY(0px) rotate(0deg)'}
       ],{duration:6800+i%4*1200,iterations:Infinity,easing:'ease-in-out'});
       animation.currentTime=i*830;bindAmbient(sticker,[animation]);
+    });
+    document.querySelectorAll('[data-pencil-ambient]').forEach((art,i)=>{
+      if(ambientItems.has(art))return;
+      const stamp=art.dataset.pencilAmbient==='stamp';
+      const frames=stamp?[{transform:'rotate(-7deg) scale(1.08)',opacity:.4},{transform:'rotate(0deg) scale(1)',opacity:1}]:[
+        {transform:'translateY(0) rotate(-2deg)'},{transform:'translateY(-4px) rotate(2deg)'},{transform:'translateY(0) rotate(-2deg)'}
+      ];
+      bindAmbient(art,[art.animate(frames,{duration:stamp?460:7200+i%3*1100,iterations:stamp?1:Infinity,easing:stamp?'ease-out':'ease-in-out'})]);
     });
     document.querySelectorAll(liquidSurfaces+',[data-liquid-room]').forEach((surface,i) => {
       if (surface.matches('.souvenir-ticket') || surface.closest('.memory-card,.draw-ritual,dialog')) return;
@@ -322,7 +330,13 @@
     function layout() {
       const n = cards.length;
       exhibit.dataset.layout = mode;
-      if (!n) { holder.innerHTML = '<p class="exhibit-empty">没有找到这份回忆，换个筛选条件试试。</p>'; exhibit.querySelector('[data-exhibit-count]').textContent = '00 / 00'; return; }
+      if (!n) {
+        if(!holder.querySelector('.exhibit-empty')){
+          const empty=document.createElement('div');empty.className='exhibit-empty';
+          empty.textContent=grid.querySelector('.collection-empty')?.textContent||'没有找到这份回忆，换个筛选条件试试。';holder.replaceChildren(empty);
+        }
+        exhibit.querySelector('[data-exhibit-count]').textContent = '00 / 00'; return;
+      }
       selected = wrap(selected, n);
       const width = exhibit.clientWidth; const small = width < 600;
       const radius = Math.min(width * .34, small ? 135 : 210);
@@ -401,7 +415,7 @@
     const previous=progressByAccount.has(account)?progressByAccount.get(account):count;
     progressByAccount.set(account,count);
     const figure=document.createElement('div');figure.className='bird-journey';
-    figure.setAttribute('role','progressbar');figure.setAttribute('aria-label','不同正式任务完成进度');figure.setAttribute('aria-valuemin','0');figure.setAttribute('aria-valuemax','9');figure.setAttribute('aria-valuenow',String(count));
+    figure.setAttribute('role','progressbar');figure.setAttribute('aria-label','不同正式任务完成进度');figure.setAttribute('aria-valuemin','0');figure.setAttribute('aria-valuemax','9');figure.setAttribute('aria-valuenow',String(Math.min(9,count)));figure.setAttribute('aria-valuetext',`已完成 ${count} 种不同正式任务`);
     figure.style.setProperty('--progress',`${clamp(previous/9*100,0,100)}%`);
     figure.innerHTML=`<div class="flight-cloud cloud-left"></div><div class="flight-cloud cloud-right"></div><div class="flight-line"></div><div class="flight-bird">${bird}<span class="flight-envelope">✉</span></div><div class="flight-markers"><span>出发</span><span>3</span><span>6</span><span>9 · 待开放</span></div><p>每一次参与，都让肥啾飞得更远。</p>`;
     track.replaceWith(figure);requestAnimationFrame(()=>figure.style.setProperty('--progress',`${clamp(count/9*100,0,100)}%`));

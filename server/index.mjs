@@ -17,6 +17,7 @@ const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcemen
 const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
+const BUILD_REVISION=/^[a-f0-9]{7,40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA||'')?process.env.RAILWAY_GIT_COMMIT_SHA:'unknown';
 if(ADMIN.length<32)throw Error('Set a random ADMIN_TOKEN of at least 32 characters');
 mkdirSync(dirname(DB_PATH),{recursive:true});
 const ASSET_DIR=resolve(process.env.ASSET_DIR||resolve(dirname(DB_PATH),'assets'));
@@ -161,7 +162,7 @@ function restoreAsset(b){const name=String(b.name||''),version=String(b.version|
 
 function readBody(req,maxSize=8192){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>maxSize){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
 function send(res,code,data){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))}
-http.createServer(async(req,res)=>{try{const path=new URL(req.url||'/', 'http://localhost').pathname;
+http.createServer(async(req,res)=>{try{res.setHeader('x-buzhi-revision',BUILD_REVISION);const path=new URL(req.url||'/', 'http://localhost').pathname;
 if(path==='/api/admin/site-maintenance'&&req.method==='GET'){admin(req);return send(res,200,maintenanceState())}
 if(path==='/api/admin/site-maintenance'&&req.method==='POST'){admin(req);if(!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');return send(res,200,saveSiteMaintenance(await readBody(req,8192)))}
 if(path==='/api/site-maintenance'&&req.method==='GET')return send(res,200,maintenanceState());
@@ -180,10 +181,22 @@ if(req.method==='GET'&&!path.startsWith('/api/')&&pageNames.has(suffix)&&path!==
  return res.end(html);
 }
 if(req.method==='GET'&&path==='/legacy'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}
-if(req.method==='GET'&&!(path.startsWith('/assets/')&&path.endsWith('.webp'))&&/^(?:\/ui-preview\/)?(?:assets\/[a-zA-Z0-9_/-]+\.(?:svg|webp|png|woff2|css)|[a-zA-Z0-9-]+\.(?:css|js))$/.test(suffix)){
+if(req.method==='GET'&&!(path.startsWith('/assets/')&&path.endsWith('.webp'))&&/^(?:\/ui-preview\/)?(?:assets\/[a-zA-Z0-9_/-]+\.(?:svg|webp|png|woff2|css|mp4|txt)|[a-zA-Z0-9-]+\.(?:css|js))$/.test(suffix)){
 const file=resolve(previewRoot,suffix);
 if(!file.startsWith(previewRoot+sep)||!existsSync(file))throw error(404,'预览素材不存在');
-const body=readFileSync(file);const ext=extname(file);res.writeHead(200,{'content-type':{'.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2'}[ext]||'application/octet-stream','cache-control':'public,max-age=120','x-content-type-options':'nosniff'});return res.end(body);
+const body=readFileSync(file);const ext=extname(file);
+const headers={'content-type':{'.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2','.mp4':'video/mp4','.txt':'text/plain; charset=utf-8'}[ext]||'application/octet-stream','cache-control':'public,max-age=120','x-content-type-options':'nosniff'};
+if(ext==='.mp4'){
+ headers['accept-ranges']='bytes';
+ if(req.headers.range){
+  const range=/^bytes=(\d*)-(\d*)$/.exec(req.headers.range);
+  const start=range?.[1]?Number(range[1]):Math.max(0,body.length-Number(range?.[2]));
+  const end=range?.[1]&&range[2]?Math.min(Number(range[2]),body.length-1):body.length-1;
+  if(!range||(!range[1]&&!range[2])||!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start>=body.length||end<start){res.writeHead(416,{...headers,'content-range':'bytes */'+body.length});return res.end();}
+  res.writeHead(206,{...headers,'content-range':`bytes ${start}-${end}/${body.length}`,'content-length':end-start+1});return res.end(body.subarray(start,end+1));
+ }
+}
+res.writeHead(200,headers);return res.end(body);
 }
 if(req.method==='GET'&&/^\/assets\/(characters|cards|decor|oc)\/[a-zA-Z0-9_-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);try{assetPath(name)}catch{throw error(404,'素材不存在')}const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(fileURLToPath(new URL('..',import.meta.url)),'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');const body=readFileSync(file);res.writeHead(200,{'content-type':'image/webp','cache-control':'no-store, max-age=0','x-content-type-options':'nosniff'});return res.end(body)}if(req.method==='GET'&&path.startsWith('/admin/')&&ADMIN_SCRIPTS.has(path.slice(7))){const body=readFileSync(new URL('../admin/'+path.slice(7),import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}if((path==='/admin'||(path.startsWith('/admin/')&&ADMIN_PAGES.has(path.slice(7))))&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path.startsWith('/api/admin/'))admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:8192):{};let data;
 if(path==='/api/register'&&req.method==='POST')data=register(b);

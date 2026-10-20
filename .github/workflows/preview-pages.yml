@@ -32,6 +32,7 @@ jobs:
           mkdir -p "$preview_site"
           cp -R ui-preview "$preview_site/ui-preview"
           cp .github/pages/index.html "$preview_site/index.html"
+          PREVIEW_BUILD_DIR="$preview_site" node -e 'require("fs").writeFileSync(process.env.PREVIEW_BUILD_DIR+"/ui-preview/build-revision.txt",process.env.GITHUB_SHA+"\n")'
           test -s "$preview_site/ui-preview/index.html"
           test -s "$preview_site/ui-preview/app.js"
           test -s "$preview_site/ui-preview/effects.js"
