@@ -32,6 +32,6 @@ const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..
  }
  // Hide every OC: preserve an understandable empty state instead of invalid gallery math.
  const people=await fetch(base+'/api/admin/oc',{headers:{authorization:'Bearer '+admin}}).then(r=>r.json());for(const p of people)await fetch(base+'/api/admin/oc',{method:'POST',headers:{authorization:'Bearer '+admin,'content-type':'application/json'},body:JSON.stringify({id:p.id,name:p.name,description:p.description,sortOrder:p.sortOrder,hidden:true})});
- const empty=await browser.newPage();await empty.goto(base+'/islanders.html',{waitUntil:'networkidle'});assert.equal(await empty.locator('.oc-slide').count(),0,'Hiding all managed profiles also hides the official hosts');assert(!((await empty.locator('body').textContent()).includes('NaN')));await empty.close();
+ const empty=await browser.newPage();await empty.goto(base+'/islanders.html',{waitUntil:'networkidle'});assert.equal(await empty.locator('.oc-slide').count(),2,'Only the original hosts remain when all custom OCs are hidden');assert(!((await empty.locator('body').textContent()).includes('NaN')));await empty.close();
  console.log('PASS OC/card admin editing at mobile/desktop, actual public updates, precise asset help, stored-text XSS protection and all-hidden gallery');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{await browser?.close();if(server.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done;}rmSync(folder,{recursive:true,force:true})});
