@@ -21,7 +21,7 @@ jobs:
         run: |
           export CHROMIUM_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")
           status=0
-          for test in tests/office-memorial.cjs tests/recovery-flow.cjs tests/maintenance-relations.mjs tests/deployment-artifact.mjs tests/flow.mjs tests/online-flow.mjs tests/activity-flow.mjs tests/activity-admin.cjs tests/operations-flow.mjs tests/backup-disconnect.mjs tests/operations-admin.cjs tests/content-flow.mjs tests/content-admin.cjs tests/admin-pages.cjs tests/membership-flow.mjs tests/membership-admin.cjs tests/membership-race.cjs tests/message-board-flow.mjs tests/maintenance-flow.mjs tests/maintenance-admin.cjs tests/site-acceptance.cjs tests/production-layout.cjs; do
+          for test in tests/loading-flow.cjs tests/loading-browser.cjs tests/office-memorial.cjs tests/recovery-flow.cjs tests/maintenance-relations.mjs tests/deployment-artifact.mjs tests/flow.mjs tests/online-flow.mjs tests/activity-flow.mjs tests/activity-admin.cjs tests/operations-flow.mjs tests/backup-disconnect.mjs tests/operations-admin.cjs tests/content-flow.mjs tests/content-admin.cjs tests/admin-pages.cjs tests/membership-flow.mjs tests/membership-admin.cjs tests/membership-race.cjs tests/message-board-flow.mjs tests/maintenance-flow.mjs tests/maintenance-admin.cjs tests/site-acceptance.cjs tests/production-layout.cjs; do
             echo "::group::$test"
             if timeout --kill-after=5s 120s node "$test"; then
               echo "PASS $test"
@@ -82,5 +82,7 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install chromium
+      - run: node tests/loading-flow.cjs
+      - run: node tests/loading-browser.cjs
       - run: node tests/deployment-artifact.mjs
       - run: node tests/recovery-flow.cjs
