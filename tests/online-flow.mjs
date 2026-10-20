@@ -18,7 +18,7 @@ let ready=false;for(let i=0;i<50;i++){try{const res=await fetch(root+'/health');
 assert(ready,'server did not start: '+logs);
 const admin='test-only-secret-not-for-production-0000';
 const catalog=await fetch(root+'/api/catalog').then(r=>r.json());assert.equal(catalog.cards.length,32);assert.equal(catalog.cards[0].previewId,'BZ-01');assert.equal(catalog.cards[0].id,'UR-1');assert.equal(catalog.cards[15].id,'N-5');assert.equal(catalog.timezone,'Asia/Shanghai');
-const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,61);
+const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,63);
 const mockWebp=Buffer.concat([Buffer.from('RIFF'),Buffer.from([16,0,0,0]),Buffer.from('WEBPVP8 '),Buffer.alloc(8)]).toString('base64');
 const rejectAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp});assert.equal(rejectAsset.status,403);
 const badAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:Buffer.from('not an image').toString('base64')},admin);assert.equal(badAsset.status,400);
@@ -35,7 +35,7 @@ const restore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:
 assert.equal(restore.status,200);
 const badRestore=await api('admin/assets/restore',{name:'cards/SSR-1.webp',version:'../../secret'},admin);
 assert.equal(badRestore.status,400);
-const publicManifest=await fetch(root+'/api/assets-manifest').then(r=>r.json());assert.equal(Object.keys(publicManifest.assets).length,61);assert.equal(publicManifest.assets['cards/SSR-1.webp'],true);assert.equal(publicManifest.assets['decor/home-poster.webp'],false);
+const publicManifest=await fetch(root+'/api/assets-manifest').then(r=>r.json());assert.equal(Object.keys(publicManifest.assets).length,63);assert.equal(publicManifest.assets['cards/SSR-1.webp'],true);assert.equal(publicManifest.assets['decor/home-poster.webp'],false);
 const layoutInput={scale:125,x:40,y:60,opacity:75,fit:'cover',layer:2};
 const layoutWrite=await api('admin/assets/layout',{name:'cards/SSR-1.webp',settings:layoutInput},admin);assert.equal(layoutWrite.status,200);
 const layoutPublic=await fetch(root+'/api/assets-manifest').then(r=>r.json());assert.equal(layoutPublic.layouts['cards/SSR-1.webp'].scale,125);

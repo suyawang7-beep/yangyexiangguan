@@ -14,7 +14,7 @@ async function stop(){if(server?.exitCode===null){const done=new Promise(r=>serv
 async function api(path,body,token){const r=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});return {status:r.status,data:await r.json()}}
 function snapshot(){return Object.fromEntries(['users','sessions','ledger','tasks','draws','checkins','codes','bonuses'].map(t=>[t,db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all()]))}
 try{
- await start();const initial=await api('admin/oc',undefined,admin);assert.equal(initial.status,200,'OC editing API');assert.equal(initial.data.length,0);
+ await start();const initial=await api('admin/oc',undefined,admin);assert.equal(initial.status,200,'OC editing API');assert.deepEqual(initial.data.map(p=>p.id).sort(),['oc-official-caicai','oc-official-zhizhi']);
  const account=(await api('register',{password:'Isolated-test-password-2026!',nickname:'内容保留测试'})).data;await verifyAccount(base,admin,account);await api('draw',{},account.token);db=new DatabaseSync(dbPath);const before=snapshot();
  const form={name:'测试 OC <角色>',description:'故事 & 简介',sortOrder:0,hidden:false};
  for(const path of ['admin/oc','admin/cards']){assert.equal((await api(path)).status,403);assert.equal((await api(path,form,account.token)).status,403)}
