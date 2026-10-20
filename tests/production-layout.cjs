@@ -105,7 +105,7 @@ server.stderr.on('data', chunk => { logs += chunk; });
   assert.equal(await page.locator('[data-balance]').first().textContent(), '10');
   await page.goto(base + '/office.html', { waitUntil: 'networkidle' });
   await page.locator('.office-layout .task-card').first().waitFor();
-  assert.equal(await page.locator('.office-layout .task-card').count(), 6);
+  assert.equal(await page.locator('.office-layout .task-card').count(), 5);
   assert.equal(await page.locator('.welcome-strip, [data-task="arrival"]').count(), 0);
   assert.match(await page.locator('.ledger').textContent(), /50/);
   // Exercise an actual upload only on this temporary server's asset directory.

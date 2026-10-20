@@ -44,6 +44,29 @@ jobs:
           name: office-memorial-preview
           path: test-results/*.png
           if-no-files-found: ignore
+  visual-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Verify hand-drawn interactions and actual per-page glass
+        shell: bash
+        run: |
+          export CHROMIUM_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")
+          node tests/pencil-assets.mjs
+          node tests/pencil-case.cjs --features-only
+          LIQUID_EVIDENCE_DIR=test-results/site-pages node tests/liquid-page-evidence.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-site-visual-evidence
+          path: test-results/site-pages
+          if-no-files-found: ignore
   windows-routes:
     runs-on: windows-latest
     timeout-minutes: 10
