@@ -4,7 +4,7 @@ let browser,logs='',release;
 const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..'),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:join(folder,'test.sqlite'),ADMIN_TOKEN:'isolated-race-admin-token-0000000000'},stdio:['ignore','ignore','pipe']});server.stderr.on('data',c=>logs+=c);
 (async()=>{
  let ready=false;for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}assert(ready,logs);
- const account=await fetch(base+'/api/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nickname:'申请并发测试'})}).then(r=>r.json());
+ const account=await fetch(base+'/api/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:'Isolated-test-password-2026!',nickname:'申请并发测试'})}).then(r=>r.json());
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
  const page=await browser.newPage();await page.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),account.token);
  await page.goto(base+'/verify.html',{waitUntil:'networkidle'});await page.locator('#membershipApplyForm').waitFor();

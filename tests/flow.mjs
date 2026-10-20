@@ -17,6 +17,7 @@ try{
   await page.goto(url);
   await page.getByRole('button',{name:/生日通行证/}).first().click();
   await page.locator('#nickname').fill('验收岛民');
+  if(await page.locator('#passport-form input[name=password]').count())await page.locator('#passport-form input[name=password]').fill('Isolated-test-password-2026!');
   await page.locator('#bzAvatarPicker [data-avatar="2"]').click();
   await page.locator('#makePassport').click();
   const id=await page.locator('#bzIdText').textContent();

@@ -11,7 +11,7 @@ const port=51000+Math.floor(Math.random()*500),base='http://127.0.0.1:'+port,adm
 const slot='decor/checkin-memorial.webp',failures=[];let server,db,browser,logs='';
 async function api(path,body,token){const r=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});return {status:r.status,data:await r.json()}}
 async function check(name,fn){try{await fn();console.log('PASS '+name)}catch(e){failures.push(name);console.error('FAIL '+name+': '+e.stack)}}
-async function account(name){const r=await api('register',{nickname:name});assert.equal(r.status,200);await require('./helpers/membership.cjs').verifyAccount(base,admin,r.data);return r.data}
+async function account(name){const r=await api('register',{password:'Isolated-test-password-2026!',nickname:name});assert.equal(r.status,200);await require('./helpers/membership.cjs').verifyAccount(base,admin,r.data);return r.data}
 async function userPage(account,width=1440,reducedMotion='no-preference'){
  const context=await browser.newContext({viewport:{width,height:1000},reducedMotion});await context.addInitScript(token=>{if(!sessionStorage.getItem('buzhi-online-token'))sessionStorage.setItem('buzhi-online-token',token)},account.token);
  const page=await context.newPage();page.on('pageerror',e=>failures.push('pageerror: '+e.message));return {page,context};

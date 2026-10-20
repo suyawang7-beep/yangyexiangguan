@@ -15,7 +15,7 @@ async function api(path,body,token){const r=await fetch(base+'/api/'+path,{metho
 try{
  server=spawn(process.execPath,['server/index.mjs'],{cwd:fileURLToPath(new URL('..',import.meta.url)),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:dbPath,ADMIN_TOKEN:admin},stdio:['ignore','ignore','pipe']});server.stderr.on('data',d=>logs+=d);
  let ready=false;for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}assert(ready,logs);
- const a=(await api('register',{nickname:'关联数据删除测试'})).data,b=(await api('register',{nickname:'关联数据保留测试'})).data;
+ const a=(await api('register',{password:'Isolated-test-password-2026!',nickname:'关联数据删除测试'})).data,b=(await api('register',{password:'Isolated-test-password-2026!',nickname:'关联数据保留测试'})).data;
  for(const account of [a,b]){
   await verifyAccount(base,admin,account);
   assert.equal((await api('task-writing',{taskId:'memory',content:'这是一段仅写入隔离测试数据库的回忆文字内容'},account.token)).status,200);

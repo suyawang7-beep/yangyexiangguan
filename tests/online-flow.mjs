@@ -46,7 +46,7 @@ const initialCleanup=await api('admin/test-cleanup',undefined,admin);assert.equa
 const deniedCleanup=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:[]});assert.equal(deniedCleanup.status,403);
 const wrongCleanup=await api('admin/test-cleanup',{confirm:'wrong',ids:[]},admin);assert.equal(wrongCleanup.status,409);
 let c=await api('admin/codes',{taskId:'quiz',count:1},admin);assert.equal(c.status,200);
-let reg=await api('register',{nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);await verifyAccount(root,admin,reg.data);
+let reg=await api('register',{password:'Isolated-test-password-2026!',nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);await verifyAccount(root,admin,reg.data);
 let bad=await api('redeem',{taskId:'quiz',code:'wrong'},token);assert.equal(bad.status,400);
 let red=await api('redeem',{taskId:'quiz',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,75);
 let again=await api('redeem',{taskId:'quiz',code:c.data.codes[0]},token);assert.notEqual(again.status,200);
@@ -128,6 +128,7 @@ assert.equal(await publicPage.locator('a[href="effects.html"]').count(),0);
 await publicPage.goto(root+'/passport.html');
 await publicPage.locator('#passport-form').waitFor();
 await publicPage.locator('#nickname').fill('新版页面测试');
+  if(await publicPage.locator('#passport-form input[name=password]').count())await publicPage.locator('#passport-form input[name=password]').fill('Isolated-test-password-2026!');
 await publicPage.locator('#claim-pass').click();
 await publicPage.locator('#public-id').waitFor();
 assert.match(await publicPage.locator('#public-id').inputValue(),/^BZI-/);
@@ -147,8 +148,8 @@ await publicPage.goto(root+'/checkin.html');
 await publicPage.locator('#checkin-button').click();
 await publicPage.waitForFunction(()=>document.querySelector('#checkin-button')?.disabled);
 // Exercise actual deletion only on an isolated disposable test database.
-const disposable=await api('register',{nickname:'自动化测试待清理'});assert.equal(disposable.status,200);
-const protectedAccount=await api('register',{nickname:'自动化测试保留'});assert.equal(protectedAccount.status,200);
+const disposable=await api('register',{password:'Isolated-test-password-2026!',nickname:'自动化测试待清理'});assert.equal(disposable.status,200);
+const protectedAccount=await api('register',{password:'Isolated-test-password-2026!',nickname:'自动化测试保留'});assert.equal(protectedAccount.status,200);
 await verifyAccount(root,admin,protectedAccount.data);await api('checkin',{},protectedAccount.data.token);
 const isolated=new DatabaseSync(join(dir,'test.sqlite'));
 isolated.prepare('UPDATE users SET created_at=? WHERE id IN (?,?)').run('2026-01-01T00:00:00.000Z',disposable.data.id,protectedAccount.data.id);

@@ -15,7 +15,7 @@ async function api(path,body,token){const r=await fetch(base+'/api/'+path,{metho
 function snapshot(){return Object.fromEntries(['users','sessions','ledger','tasks','draws','checkins','codes','bonuses'].map(t=>[t,db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all()]))}
 try{
  await start();const initial=await api('admin/oc',undefined,admin);assert.equal(initial.status,200,'OC editing API');assert.equal(initial.data.length,0);
- const account=(await api('register',{nickname:'内容保留测试'})).data;await verifyAccount(base,admin,account);await api('draw',{},account.token);db=new DatabaseSync(dbPath);const before=snapshot();
+ const account=(await api('register',{password:'Isolated-test-password-2026!',nickname:'内容保留测试'})).data;await verifyAccount(base,admin,account);await api('draw',{},account.token);db=new DatabaseSync(dbPath);const before=snapshot();
  const form={name:'测试 OC <角色>',description:'故事 & 简介',sortOrder:0,hidden:false};
  for(const path of ['admin/oc','admin/cards']){assert.equal((await api(path)).status,403);assert.equal((await api(path,form,account.token)).status,403)}
  const added=await api('admin/oc',form,admin);assert.equal(added.status,200);const oc=added.data;oc.imageAsset='oc/'+oc.id+'.webp';assert.match(oc.id,/^oc-[A-Za-z0-9_-]{8,30}$/);

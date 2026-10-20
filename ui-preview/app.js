@@ -199,7 +199,7 @@
     const hero=document.querySelector('.hero-art img, .mini-art');
     if(hero&&managedAssets['decor/home-poster.webp']){hero.src=assetUrl('decor/home-poster.webp');applyAssetLayout(hero,'decor/home-poster.webp')}
     const map=document.querySelector('#map-camera image');
-    if(map&&managedAssets['decor/island-map.webp']){map.setAttribute('href',assetUrl('decor/island-map.webp'));applyAssetLayout(map,'decor/island-map.webp')}
+    // Guide map uses the approved full-archipelago artwork, not the admin decorative override.
     document.querySelectorAll('.memory-card').forEach(card=>{
       const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\d{2}/)?.[0];
       const match=liveCatalog.find(item=>item.previewId===label);
@@ -211,7 +211,7 @@
       if(!img.src.endsWith(target))img.src=target;applyAssetLayout(img,'cards/'+match.id+'.webp');
     });
     document.querySelectorAll('#oc-track .oc-slide').forEach((slide,i)=>{
-      const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':liveOcProfiles[i-2]?.image?.replace('/assets/','');
+      const others=liveOcProfiles.filter(oc=>!['oc-official-caicai','oc-official-zhizhi'].includes(oc.id));const file=i===0?'characters/caicai.webp':i===1?'characters/zhizhi.webp':others[i-2]?.image?.replace('/assets/','');
       if(file&&managedAssets[file]){const img=slide.querySelector('.oc-art img');if(img){img.src=assetUrl(file);applyAssetLayout(img,file)}}
     });
   }
@@ -262,7 +262,7 @@
     document.title = `${PATHS[PAGE][1]} · 不吱岛生日庆典`;
     const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: '抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
     document.querySelector('#app').innerHTML = `<div class="world" data-motion="on"><div class="ocean" aria-hidden="true"></div><div class="ambient" aria-hidden="true"></div><i class="bubble b1" aria-hidden="true"></i><i class="bubble b2" aria-hidden="true"></i><i class="bubble b3" aria-hidden="true"></i>
-      <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark"><img src="assets/island-mark.svg" alt="" aria-hidden="true" width="44" height="44"></span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection', 'islanders', 'guide', 'mailbox', 'checkin'].map((key) => navItem(key)).join('')}</nav><div class="header-actions"><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
+      <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark"><img src="assets/island-mark.svg" alt="" aria-hidden="true" width="44" height="44"></span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection', 'islanders', 'guide', 'mailbox', 'checkin'].map((key) => navItem(key)).join('')}</nav><nav class="mobile-secondary-nav" aria-label="更多岛上地点"><a href="islanders.html">岛民回廊</a><a href="mailbox.html">岛主信箱</a><a href="guide.html">登岛导览</a><a href="passport.html#membershipApplication">岛民认证</a></nav><div class="header-actions"><a href="resident.html" style="font-size:13px;padding:9px 13px;border:1px solid #b4d8ef;border-radius:30px;background:#ffffff99;color:#497ba0;text-decoration:none">🏝️ 个人中心</a><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
       <div class="container"><div class="demo-line"><span><i class="status-dot"></i>${LIVE ? '庆典正式活动 · 账户数据安全保存' : '本地演示 · 数据仅保存在此浏览器'}</span><span>${EVENT.name} / 2026.10.18 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div>${LIVE ? '生日回忆 · 与你相遇' : '插画与卡面为示意 · 庆典账户数据由服务器保存'}</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
     if(!LIVE)showStorageError();
     setupMotion();
@@ -271,7 +271,7 @@
   function renderHome() {
     let primary = link('passport', '领取生日通行证', 'btn primary');
     if (state.passport) primary = state.history.length ? link('collection', '查看我的回忆', 'btn primary') : link('draw', '去抽第一张卡', 'btn primary');
-    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">✧ 菜菜生日特别企划 · 2026 ✧</div><h1>雾岛吱&菜Gina🐟<span>の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.18 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}</div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="菜菜与吱吱的生日庆典主视觉" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div>${LIVE ? "" : `<span class="art-caption">双人主视觉示意 · 待替换正式立绘</span>`}</div></section>
+    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">✧ 菜菜生日特别企划 · 2026 ✧</div><h1>雾岛吱&菜Gina🐟<span>の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.18 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}<a class="btn" href="resident.html">🏝️ 我的岛屿生活</a></div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="菜菜与吱吱的生日庆典主视觉" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div>${LIVE ? "" : `<span class="art-caption">双人主视觉示意 · 待替换正式立绘</span>`}</div></section>
       <aside class="news-strip glass"><strong>✦ 岛上来信</strong><p>海风已经把邀请送达。10月18—25日，来不吱岛收藏一段生日回忆吧。</p><a href="mailbox.html">查看岛主信箱 ${icon('arrow')}</a></aside>`;
   }
 
@@ -287,7 +287,7 @@
   function renderOffice() {
     const title = heading('02', 'Little tasks, little happiness', '岛民事务所', '庆典由每一位岛民一起完成。做一点小事，领取金币，也留下一份参与的证明。');
     if (!state.passport) return title + needPassport();
-    return title + `<div class="office-layout"><div>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>${LIVE ? '已登录不等于已核验岛民。请完成对应活动后，填写岛主私信发放的代码，奖励以服务器记录为准。' : `若想体验任务界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button>`}</div>` : ''}<div class="task-list">${TASKS.filter(task => task.id !== 'arrival').map((task) => {
+    return title + `<div class="office-layout"><div>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>${LIVE ? '已登录不等于已核验岛民。请完成对应活动后，填写岛主私信发放的代码，奖励以服务器记录为准。' : `若想体验任务界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button>`}</div>` : ''}<div class="info-note" style="margin-bottom:14px">🎨 创作展投稿已迁往 <a href="resident.html"><strong>岛民个人中心 · 创作工坊 ↗</strong></a>。历史完成记录及已领金币不受影响；新作品暂进入待审流程。</div><div class="task-list">${TASKS.filter(task => task.id !== 'arrival' && task.id !== 'creative').map((task) => {
       const completed = state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
       return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : '输入完成代码'}</button>`}</div></article>`;
@@ -591,7 +591,7 @@
     document.querySelector('#copy-id')?.addEventListener('click',()=>navigator.clipboard.writeText(state.passport.id).then(()=>toast('编号已复制，请妥善保存恢复密钥')));
     const form=document.querySelector('#passport-form');
     form?.addEventListener('submit',async e=>{e.preventDefault();const nickname=form.elements.nickname.value.trim();if(!nickname||[...nickname].length>20){toast('昵称请填写 1–20 个字符');return}
-      try{const result=await liveApi('register',{nickname});liveToken=result.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(result.profile);showRecoveryOnce(result.id,result.recoveryKey)}catch(err){toast(err.message)}
+      try{const password=form.elements.password?.value||'';if(password.length<10){toast('密码至少10个字符');return}const result=await liveApi('register',{nickname,password});liveToken=result.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(result.profile);showRecoveryOnce(result.id,result.recoveryKey)}catch(err){toast(err.message)}
     });
   }
 
@@ -606,10 +606,27 @@
     const login = document.createElement('section');
     login.id = 'returning-islander-panel'; login.className = 'glass panel';
     login.setAttribute('role', 'tabpanel'); login.setAttribute('aria-labelledby', 'passport-returning-tab');
-    login.innerHTML = '<h2>找回你的生日通行证</h2><p class="small muted">使用首次登岛保存的编号与恢复密钥，接着收藏原来的金币、任务和生日回忆。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登岛恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入首次登记时保存的密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示密钥</button></div><button class="btn primary full" type="submit">找回我的岛民身份 →</button><p class="small muted">恢复密钥请妥善保密。只有昵称或编号无法安全找回账户。</p></form>';
+    login.innerHTML = '<h2>找回你的生日通行证</h2><p class="small muted">使用岛民编号与自己设置的密码登录；旧岛民也可先用原恢复密钥登录并设置新密码。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登录密码／原恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入密码，旧岛民也可使用原密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示</button></div><button class="btn primary full" type="submit">登录不吱岛 →</button><p class="small muted">旧恢复密钥仍可用于账户迁移，请勿向他人透露。</p></form>';
+    if (LIVE) {
+      const recovery = document.createElement('div');
+      recovery.className = 'glass panel';
+      recovery.hidden = true;
+      recovery.style.marginTop = '16px';
+      recovery.innerHTML = '<h3>忘记密码或恢复密钥？</h3><p class="small muted">使用岛民编号和已认证抖音号申请找回。岛主核验身份后，会通过私密渠道提供一次性重置凭证。</p><form id="identity-recovery-form"><div class="form-field"><label>岛民编号<input name="userId" required placeholder="BZI-..." maxlength="110"></label></div><div class="form-field"><label>已认证抖音号<input name="douyinId" required maxlength="64" autocomplete="off"></label></div><button class="btn" type="submit">提交找回申请</button></form><details style="margin-top:16px"><summary>已经收到岛主发放的重置凭证？</summary><form id="identity-reset-form"><div class="form-field"><label>找回申请编号<input name="requestId" required placeholder="REC-..."></label></div><div class="form-field"><label>一次性重置凭证<input name="token" required autocomplete="off"></label></div><div class="form-field"><label>设置新密码（至少10字符）<input type="password" name="password" required minlength="10" maxlength="128" autocomplete="new-password"></label></div><button class="btn primary" type="submit">设置新密码</button></form></details><p class="small muted" id="identity-recovery-status" role="status"></p>';
+      const reveal = document.createElement('button');
+      reveal.type='button'; reveal.className='btn text'; reveal.setAttribute('aria-expanded','false');
+      reveal.setAttribute('aria-controls','account-recovery-panel'); reveal.textContent='忘记密码或密钥？点击申请找回 ▾';
+      recovery.id='account-recovery-panel';
+      reveal.onclick=()=>{const open=recovery.hidden;recovery.hidden=!open;reveal.setAttribute('aria-expanded',String(open));reveal.textContent=open?'收起账户找回 ▴':'忘记密码或密钥？点击申请找回 ▾'};
+      login.append(reveal,recovery);
+      const status = recovery.querySelector('#identity-recovery-status');
+      recovery.querySelector('#identity-recovery-form').onsubmit = async event => {event.preventDefault();const form=event.currentTarget;try{const out=await liveApi('recovery/request',{userId:form.elements.userId.value.trim(),douyinId:form.elements.douyinId.value.trim()});status.textContent=out.message}catch(err){status.textContent=err.message}};
+      recovery.querySelector('#identity-reset-form').onsubmit = async event => {event.preventDefault();const form=event.currentTarget;try{const out=await liveApi('recovery/reset',{requestId:form.elements.requestId.value.trim(),token:form.elements.token.value.trim(),password:form.elements.password.value});status.textContent=out.message;form.reset()}catch(err){status.textContent=err.message}};
+    }
     const newPanel = document.createElement('section'); newPanel.id = 'passport-new-panel';
     newPanel.setAttribute('role', 'tabpanel'); newPanel.setAttribute('aria-labelledby', 'passport-new-tab');
     registration.setAttribute('aria-labelledby', 'passport-new-tab');
+    if(LIVE){const passwordLabel=document.createElement('label');passwordLabel.className='form-field';passwordLabel.innerHTML='<span>设置登录密码（至少10个字符）</span><input name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="自己设置一个安全密码">';registration.querySelector('button[type="submit"]')?.before(passwordLabel)}
     newPanel.append(registration); entry.append(tabs, newPanel, login);
     const switches = Array.from(tabs.querySelectorAll('[role="tab"]'));
     const keyField = login.querySelector('#returning-key');
@@ -622,7 +639,7 @@
       newPanel.hidden = index !== 0; login.hidden = index !== 1;
       document.querySelector('.ticket-gift').hidden = index !== 0;
       heading.textContent = index === 0 ? originalTitle : '欢迎回岛，老岛民';
-      subtitle.textContent = index === 0 ? originalSubtitle : '用保存的编号和密钥，回到熟悉的小岛。';
+      subtitle.textContent = index === 0 ? originalSubtitle : '使用编号和密码，回到熟悉的小岛。';
       keyField.type = 'password'; keyToggle.textContent = '显示密钥'; keyToggle.setAttribute('aria-pressed', 'false');
       if (focus) switches[index].focus();
     }
@@ -644,7 +661,7 @@
     login.querySelector('form').onsubmit = async event => {
       event.preventDefault(); if (!LIVE) return;
       const form = event.currentTarget;
-      try { const data = await liveApi('login', { id: form.elements.id.value.trim(), recoveryKey: form.elements.key.value.trim() }); liveToken = data.token; sessionStorage.setItem('buzhi-online-token', liveToken); takeProfile(data.profile); }
+      try { const data = await liveApi('login', { id: form.elements.id.value.trim(), password: form.elements.key.value, recoveryKey: form.elements.key.value.trim() }); liveToken = data.token; sessionStorage.setItem('buzhi-online-token', liveToken); takeProfile(data.profile); }
       catch (err) { toast(err.message); }
     };
     select(0);
@@ -801,7 +818,7 @@
     if (PAGE === 'passport') installPassportTabs();
     updateWallet();
     document.dispatchEvent(new CustomEvent('buzhi:render'));
-    if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/island-map.svg?v=20261019-map1':'assets/island.svg'}});
+    if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/buzhi-archipelago-soft-palette-draft.png':'assets/island.svg'}});
     if(LIVE){refreshLiveNotices();refreshManagedArtwork()};
   }
 
@@ -814,10 +831,16 @@
       ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 855, 638, 'cards'],
       ['生日庆典', '今天的主角，正在等你', '小小的双人石雕在花坛里，生日横幅与气球迎着海风。10 月 20 日，带上通行证来主岛广场一起赴约吧。', 'passport', '带上通行证赴约', 675, 612, 'cake'],
     ];
+    const residentialIslands = [
+      ['🌊','潮汐岛','海滩、贝壳与海边市集','tide'],
+      ['🌙','星汐岛','星光码头、观星台与夜空','star'],
+      ['🪼','雾屿','雾中灯塔与安静的图书馆','mist'],
+      ['🌸','花汐岛','花田、温室与创作聚会','bloom']
+    ];
     return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图">
       <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
       <div class="voyage-map" tabindex="0" role="region" aria-label="群岛地图，可左右滚动"><div class="guide-map-stage">
-        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><g id="map-camera"><image href="${activeAsset('decor/island-map.webp','assets/buzhi-archipelago-soft-palette-draft.png')}" width="1584" height="993"/>
+        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><g id="map-camera"><image href="${'assets/buzhi-archipelago-soft-palette-draft.png'}" width="1584" height="993"/>
           <g class="guide-water-motion" aria-hidden="true" fill="none" stroke="#e3ffff" stroke-width="2" stroke-linecap="round" stroke-dasharray="12 26 3 30"><path d="M70 820q55 20 110 0m-25 32q50 18 100 0M960 880q60 22 125 0m-140 32q55 17 100 0M1160 365q75 16 150-4M1470 610q45 20 90 0"/></g>
           <g class="guide-cloud-motion" aria-hidden="true" fill="#fff" opacity=".16"><ellipse cx="965" cy="210" rx="125" ry="18"/><ellipse cx="1060" cy="232" rx="100" ry="12"/><ellipse cx="60" cy="937" rx="150" ry="32"/></g>
         </g></svg>
@@ -829,13 +852,18 @@
   }
 
   function renderIslanders() {
-    const people = [
-      ['菜菜', '生日主角 / 岛主', '把每一天的小小快乐，都唱成一首歌。', 'pink'],
-      ['吱吱', '庆生搭档 / 共同岛主', '派对的小灯已经挂好，就等你来了。', 'blue'],
-      ...(LIVE ? liveOcProfiles.map((oc,i)=>[oc.name,'岛民 OC',oc.description||'一位新的岛民已经登岛。',['green','purple','pink','blue'][i%4],(managedAssets[oc.image.replace('/assets/','')]?assetUrl(oc.image.replace('/assets/','')):null)]) : [
-        ['岛民 OC · 位置 01', '个人形象待接入', '这里将展示拥有专属形象的岛民与职业设定。', 'green'],
-        ['岛民 OC · 位置 02', '个人形象待接入', '属于岛民的故事，会在这里慢慢展开。', 'purple']
-      ])
+    const official = [
+      ['菜菜','生日主角 / 共同岛主','不吱岛的共同岛主，也是这场生日庆典的主角。与吱吱一起欢迎每一位登岛的朋友。','pink','/assets/characters/caicai.webp','oc-official-caicai'],
+      ['吱吱','共同岛主','不吱岛的共同岛主，与菜菜一起筹备庆典，收藏岛上每一份相遇与故事。','blue','/assets/characters/zhizhi.webp','oc-official-zhizhi']
+    ];
+    const officialIds=new Set(official.map(p=>p[5]));
+    const people = LIVE ? [
+      ...official.map(p=>{const saved=liveOcProfiles.find(oc=>oc.id===p[5]);return saved ? [saved.name,p[1],saved.description||p[2],p[3],p[4]]:[...p]}),
+      ...liveOcProfiles.filter(oc=>!officialIds.has(oc.id)).map((oc,i)=>[oc.name,'岛民 OC',oc.description||'一位新的岛民已经登岛。',['green','purple','pink','blue'][i%4],oc.image])
+    ] : [
+      ...official,
+      ['岛民 OC · 位置 01','个人形象待接入','这里将展示拥有专属形象的岛民与职业设定。','green'],
+      ['岛民 OC · 位置 02','个人形象待接入','属于岛民的故事，会在这里慢慢展开。','purple']
     ];
     return heading('08', 'Every islander has a story', LIVE ? '岛民画廊' : '岛民画廊 · 布局预览', '左右拖动、点击卡片或使用箭头，欣赏岛上的角色。' + (LIVE ? '部分岛民的资料仍在筹备，敬请期待。' : '这里暂未接入正式 OC 资料。')) + `<div class="oc-mode-bar"><div class="filter-tabs" aria-label="角色展示方式"><button type="button" data-oc-mode="slider" aria-pressed="true">横向画廊</button></div><span class="pill">${LIVE ? '岛上的相遇' : '角色图为示意'}</span></div><section class="glass oc-gallery" id="oc-gallery" data-mode="slider" aria-label="角色欣赏画廊"><div class="oc-count"><span id="oc-step">01</span><small>/ ${String(people.length).padStart(2,'0')}</small></div><div class="oc-track" id="oc-track">${people.map(([name, role, text, tone, image], index) => `<button type="button" class="oc-slide oc-${tone}" data-oc="${index}" aria-label="查看${esc(name)}"><span class="oc-art"><img src="${image||activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="${esc(name)}的角色插画" draggable="false"></span><span class="oc-caption"><small>${esc(role)}</small><strong>${esc(name)}</strong><span>${esc(text)}</span></span></button>`).join('')}</div><div class="oc-slider-controls"><button class="btn" id="oc-prev" type="button" aria-label="上一个角色">←</button><span id="oc-help">拖动欣赏 · 松手后轻轻停靠</span><button class="btn" id="oc-next" type="button" aria-label="下一个角色">→</button></div></section><div class="info-note">${LIVE ? '岛民 OC 人物资料由岛主后台管理，隐藏人物不会在此展示。' : '菜菜与吱吱之外的岛民位置均为布局占位，不代表已经创建了新的 OC。个人角色故事与资料页将陆续开放。'}</div>`;
   }

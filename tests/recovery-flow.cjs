@@ -17,7 +17,7 @@ async function start(){server=spawn(process.execPath,['server/index.mjs'],{cwd:r
 async function stop(){if(server&&server.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}}
 (async()=>{try{
  await start();db=new DatabaseSync(dbPath);
- const a=(await api('register',{nickname:'找回测试岛民'})).data,b=(await api('register',{nickname:'另一位岛民'})).data;
+ const a=(await api('register',{password:'Isolated-test-password-2026!',nickname:'找回测试岛民'})).data,b=(await api('register',{password:'Isolated-test-password-2026!',nickname:'另一位岛民'})).data;
  const {verifyAccount}=require('./helpers/membership.cjs');await verifyAccount(base,admin,a);
  assert.equal((await api('task-writing',{taskId:'memory',content:'这是重置密钥前必须保留的隔离测试回忆文字'},a.token)).status,200);
  assert.equal((await api('checkin',{},a.token)).status,200);assert.equal((await api('draw',{},a.token)).status,200);
@@ -60,7 +60,7 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  assert.equal(await page.locator('#islanderRecoveryResult').textContent(),'','A new admin login cannot reveal the previous recovery key');
  await page.goto(base+'/passport.html');await page.locator('#passport-returning-tab').click();await page.locator('#returning-id').fill(a.id);await page.locator('#returning-key').fill(delivered);
  const request=page.waitForRequest(r=>r.url().endsWith('/api/login')&&r.method()==='POST');const loginResponse=page.waitForResponse(r=>r.url().endsWith('/api/login'));
- await page.locator('#live-login button[type=submit]').click();assert.deepEqual((await request).postDataJSON(),{id:a.id,recoveryKey:delivered});const logged=await loginResponse;assert.equal(logged.status(),200);assert.deepEqual((await logged.json()).profile,profile);
+ await page.locator('#live-login button[type=submit]').click();assert.deepEqual((await request).postDataJSON(),{id:a.id,password:delivered,recoveryKey:delivered});const logged=await loginResponse;assert.equal(logged.status(),200);assert.deepEqual((await logged.json()).profile,profile);
  // A completed server reset may arrive after the administrator has logged out.
  const late=await context.newPage();await late.goto(base+'/admin/recovery');await late.locator('#token').fill(admin);await late.locator('#enter').click();
  await late.locator('#islanderSearchText').fill(a.id);await late.locator('#islanderSearchButton').click();await late.getByRole('button',{name:'账户找回',exact:true}).click();

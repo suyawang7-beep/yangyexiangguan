@@ -28,7 +28,7 @@ try{
  assert.equal(initial.data.phase,'active');assert.equal(initial.data.startsAt,null);assert.equal(initial.data.endsAt,null);assert.equal(initial.data.timezone,'Asia/Shanghai');
  assert.equal((await api('admin/activity')).status,403);
  assert.equal((await api('admin/activity',{startsAt:null,endsAt:null})).status,403);
- const account=await api('register',{nickname:'隔离活动测试'});assert.equal(account.status,200);assert.equal(account.data.profile.coins,50);
+ const account=await api('register',{password:'Isolated-test-password-2026!',nickname:'隔离活动测试'});assert.equal(account.status,200);assert.equal(account.data.profile.coins,50);
  const {id,token,recoveryKey}=account.data;await verifyAccount(base,admin,account.data);
  const generated=await api('admin/codes',{taskId:'quiz',count:1},admin);assert.equal(generated.status,200);
  const code=generated.data.codes[0];
@@ -39,7 +39,7 @@ try{
  ]){
   const saved=await api('admin/activity',settings,admin);assert.equal(saved.status,200);assert.equal(saved.data.phase,phase);
   assert.equal((await api('activity')).data.phase,phase);
-  for(const [path,body,auth] of [['register',{nickname:'不应创建'},undefined],['redeem',{taskId:'quiz',code},token],['checkin',{},token],['draw',{},token],['task-writing',{taskId:'letter',content:'这是未开放期间不应被写入数据库的生日来信'},token]]){
+  for(const [path,body,auth] of [['register',{password:'Isolated-test-password-2026!',nickname:'不应创建'},undefined],['redeem',{taskId:'quiz',code},token],['checkin',{},token],['draw',{},token],['task-writing',{taskId:'letter',content:'这是未开放期间不应被写入数据库的生日来信'},token]]){
    const denied=await api(path,body,auth);assert.equal(denied.status,403,path+' must be blocked when '+phase);
   }
   assert.deepEqual(snapshot(),before,'Rejected operations must not change participant data or consume a code');
