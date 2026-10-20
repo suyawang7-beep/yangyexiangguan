@@ -1,0 +1,29 @@
+name: Production read-only loading diagnostics
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - tests/live-loading-readonly.cjs
+      - .github/workflows/live-loading-readonly.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-loading:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Anonymous GET-only loading measurements
+        run: node tests/live-loading-readonly.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-readonly-loading
+          path: test-results/live-loading
+          if-no-files-found: warn
