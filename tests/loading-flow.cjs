@@ -19,11 +19,11 @@ async function initProbe(blocked,errorStatus,switchAccount){
 async function apiProbe(kind){
  let clock,cleared=false,signal,posts=0;
  class Controller{constructor(){this.signal={aborted:false,addEventListener:(name,fn)=>{this.onabort=fn}}}abort(){this.signal.aborted=true;this.onabort?.()}}
- const fetch=async(url,options)=>{posts++;signal=options.signal;if(kind==='status')return {ok:false,status:401,json:async()=>({error:'expired'})};if(kind==='body')return {ok:true,json:()=>new Promise(()=>{})};return new Promise((resolve,reject)=>options.signal?.addEventListener('abort',()=>reject(Error('aborted'))))};
- const run=new Function('fetch','AbortController','setTimeout','clearTimeout','let liveToken="test";'+apiSource+';return liveApi("login",{});');
- const pending=run(fetch,Controller,fn=>{clock=fn;return 1},()=>{cleared=true}).then(value=>({value}),error=>({error}));
+ const fetch=async(url,options)=>{posts++;signal=options.signal;if(kind==='status'||kind==='draw-status')return {ok:false,status:kind==='draw-status'?503:401,json:async()=>({error:'expired'})};if(kind==='body')return {ok:true,json:()=>new Promise(()=>{})};return new Promise((resolve,reject)=>options.signal?.addEventListener('abort',()=>reject(Error('aborted'))))};
+ const run=new Function('fetch','AbortController','setTimeout','clearTimeout','callPath','let liveToken="test";'+apiSource+';return liveApi(callPath,{});');
+ const pending=run(fetch,Controller,fn=>{clock=fn;return 1},()=>{cleared=true},kind==='draw-status'?'draw':'login').then(value=>({value}),error=>({error}));
  for(let i=0;i<12;i++)await Promise.resolve();
- if(kind==='status')return {result:await pending,posts,cleared};
+ if(kind==='status'||kind==='draw-status')return {result:await pending,posts,cleared};
  check(typeof clock==='function','request must have a finite timeout');clock();
  for(let i=0;i<12;i++)await Promise.resolve();
  const result=await Promise.race([pending,Promise.resolve({stillPending:true})]);
@@ -52,6 +52,7 @@ async function run(){
  ['401 clears expired session',async()=>check((await initProbe(null,401)).calls.includes('logout'),'401 did not clear session')],
  ['old profile response cannot replace new login',async()=>{const r=await initProbe('me',null,true);check(!r.calls.includes('profile'),'old profile replaced new login')}],
  ['old 401 cannot clear new login',async()=>{const r=await initProbe('me',401,true);check(!r.calls.includes('logout'),'old 401 cleared new login')}],
+ ['draw proxy failure remains uncertain',async()=>check((await apiProbe('draw-status')).result.error?.uncertain===true,'proxy failure must not invite another purchase')],
  ['API retains HTTP status',async()=>check((await apiProbe('status')).result.error?.status===401,'HTTP status lost')],
  ['timeout aborts once without retry',async()=>{const r=await apiProbe('network');check(r.result.error&&r.signal.aborted&&r.posts===1&&r.cleared,'timeout must abort, clean timer, and never retry')}],
  ['timeout covers stalled JSON body',async()=>check(!!(await apiProbe('body')).result.error,'stalled body needs timeout')]
