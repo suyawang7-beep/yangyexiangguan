@@ -294,7 +294,7 @@ const check = (condition, message) => { assert.ok(condition, message); checks++;
     });
     await visit('office');
     check(await page.locator('.welcome-strip').count() === 0, 'Remove the entire today-to-do panel, not only its heading');
-    check(await page.locator('.task-list .task-card').count() === 5, 'Creative submission moved to the resident workshop; keep the remaining five tasks');
+    check(await page.locator('.task-list .task-card').count() === 6, 'Keep the six local demonstration tasks');
     check(await page.locator('[data-task="arrival"]').count() === 0, 'Remove the arrival action');
     check(!/报到|报道/.test(await page.locator('.task-list').innerText()), 'No arrival task card remains');
     check(await page.locator('.bird-journey').getAttribute('aria-valuenow') === '0', 'Arrival history is preserved without inflating formal-task progress');

@@ -88,7 +88,7 @@ function check(value,label){assert.ok(value,label);checks++;}
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.locator('.pencil-reveal').scrollIntoViewIfNeeded();
   await page.locator('.pencil-replay').click();
-  const playback=await page.waitForFunction(()=>{const v=document.querySelector('.pencil-reveal video');return v.currentTime>.15&&!v.paused;});
+  let playback;try{playback=await page.waitForFunction(()=>{const v=document.querySelector('.pencil-reveal video');return v.currentTime>.15&&!v.paused;},{},{timeout:10000});}catch(error){console.error('VIDEO_DIAGNOSTIC',await video.evaluate(v=>({time:v.currentTime,duration:v.duration,paused:v.paused,ready:v.readyState,error:v.error?.message,src:v.currentSrc,codec:v.canPlayType('video/mp4; codecs="avc1.42E01E"'),motion:document.querySelector('.world').dataset.motion,hidden:document.hidden,rect:v.getBoundingClientRect().toJSON()})));throw error;}
   check(await playback.jsonValue(),'Drawing process is a real playable sequence');await playback.dispose();
   await page.locator('#motion-toggle').click();
   check(await video.evaluate(v=>v.paused),'Global switch pauses drawing playback');
