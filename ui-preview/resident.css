@@ -1,0 +1,93 @@
+/* Personal-center room: quiet handwritten headings, readable rounded controls. */
+@font-face{font-family:'Resident Rounded';src:url('assets/fonts/buzhi-rounded.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:'Resident Hand';src:url('assets/fonts/buzhi-hand.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap}
+
+body[data-page="resident"]{
+  margin:0;min-height:100vh;position:relative;isolation:isolate;
+  font-family:'Resident Rounded','PingFang SC','Microsoft YaHei',sans-serif;
+  font-size:16px;line-height:1.8;color:#365875;
+  background:radial-gradient(ellipse at 85% 12%,#d9d0ff65,transparent 42%),radial-gradient(ellipse at 5% 62%,#a5eafb70,transparent 50%),linear-gradient(145deg,#e6f8ff,#d6ebf7 56%,#edf0ff);
+}
+body[data-page="resident"]::before{
+  content:'';position:fixed;inset:-40px 0;pointer-events:none;z-index:-1;
+  background:repeating-radial-gradient(ellipse at 0 100%,transparent 0 70px,#ffffff50 73px 75px,transparent 79px 140px);
+  animation:resident-sea 22s ease-in-out infinite alternate;animation-play-state:paused;
+}
+body[data-page="resident"][data-motion="on"][data-resident-visible="true"]::before{animation-play-state:running}
+.resident-wrap{max-width:1120px;position:relative;margin:auto;padding:24px 24px 80px}
+body[data-page="resident"] main{animation:none}
+.resident-nav{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding:14px 18px;border:1px solid #ffffffdc;background:#ffffff6c;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:20px;box-shadow:0 12px 32px #5b9cc41b}
+.resident-nav a{display:inline-flex;align-items:center;min-height:44px;color:#41759d;text-decoration:none;font-size:14px}
+.resident-nav>a{letter-spacing:.06em}
+.resident-nav .links{display:flex;gap:18px;flex-wrap:wrap}
+.resident-nav .motion-toggle{font:inherit;font-size:12px;letter-spacing:.03em;min-width:108px;min-height:44px;padding:9px 14px;border:1px solid #fff;color:#416c89;background:#ffffff85;flex-shrink:0}
+.resident-hero{position:relative;margin:28px 0 24px;padding:38px 280px 34px 42px;min-height:290px;border:1px solid #fff;border-radius:30px;background:linear-gradient(115deg,#ffffffa0,#e8f5ff4d 70%,#dce9fc60);box-shadow:0 20px 55px #629fb51e;overflow:hidden}
+.resident-hero>:not(svg,.resident-note){position:relative;z-index:1}
+.resident-hero h1{font-family:'Resident Hand','Resident Rounded',sans-serif;font-weight:400;font-size:clamp(34px,4vw,48px);letter-spacing:.09em;line-height:1.45;color:#37698d;margin:14px 0 10px;text-wrap:balance}
+.resident-hero p{font-size:15px;line-height:1.95;color:#55758d;margin:18px 0 0}
+.resident-chip{display:inline-flex;padding:5px 12px;border-radius:999px;background:#e5f5ff;color:#496f8a;font-size:12px;line-height:1.8;max-width:100%;overflow-wrap:anywhere}
+.resident-hero>.resident-chip{background:#ffffffae;border:1px solid #fff;font-size:10px;letter-spacing:.17em}
+.resident-seal{display:inline-block;background:#e4f5ff87;border:1px dashed #92b6cc;border-radius:12px 17px 14px 18px;padding:6px 13px;transform:rotate(-2deg);font-size:12px;letter-spacing:.07em;color:#45728b}
+.resident-note{position:absolute;right:23px;bottom:26px;font-family:'Resident Hand','Resident Rounded',sans-serif;font-size:16px;transform:rotate(-5deg);color:#5c8198;pointer-events:none}
+.resident-sticker{position:absolute;width:126px;height:auto;filter:drop-shadow(0 7px 6px #638db229);pointer-events:none;transform-origin:center;will-change:auto}
+.resident-sticker.shell{right:39px;top:55px;transform:rotate(10deg)}
+.resident-sticker.wave{right:141px;bottom:55px;width:84px}
+.resident-sticker.star{right:182px;top:31px;width:52px;transform:rotate(-9deg)}
+.resident-card{border:1px solid #fff;background:linear-gradient(135deg,#ffffffa0,#ebf7ff65 65%,#edf0ff65);backdrop-filter:blur(20px) saturate(125%);-webkit-backdrop-filter:blur(20px) saturate(125%);border-radius:24px;padding:28px 30px;box-shadow:inset 0 1px #fff,0 15px 42px #639bbc20;margin-bottom:20px;min-width:0}
+.resident-card h2,.resident-card h3{font-family:'Resident Hand','Resident Rounded',sans-serif;font-weight:400;line-height:1.55;color:#416b88;letter-spacing:.065em;margin:0 0 12px}
+.resident-card h2{font-size:clamp(26px,3vw,32px)}
+.resident-card h3{font-size:24px;margin-top:28px}
+.resident-card p{line-height:1.85}
+.resident-muted{color:#55738a;font-size:14px;line-height:1.85}
+.resident-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.resident-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px;padding:7px;background:#ffffff78;border:1px solid #fff;border-radius:20px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);width:max-content;max-width:100%}
+.resident-tabs button,.resident-btn{font:inherit;font-size:15px;line-height:1.5;min-height:46px;max-width:100%;padding:11px 18px;border:1px solid #9ec5d9;background:#fff9;color:#355e7a;border-radius:13px;cursor:pointer;transition:background .2s,box-shadow .2s,transform .2s}
+.resident-btn{display:inline-flex;align-items:center;justify-content:center;margin-bottom:5px}
+.resident-tabs button.active,.resident-btn.primary{background:linear-gradient(135deg,#568aad,#537ba8);color:#fff;border-color:#709dbb;box-shadow:0 5px 15px #7eaec535}
+.resident-btn:disabled{opacity:.5;cursor:default}
+.resident-field{display:grid;gap:8px;margin:18px 0;font-size:15px;line-height:1.7;letter-spacing:.02em}
+.resident-field input,.resident-field select,.resident-field textarea{font:inherit;font-family:'Resident Rounded','PingFang SC','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.7;min-height:48px;border-radius:13px;border:1px solid #adcddd;background:#ffffffbd;padding:12px 14px;color:#375570;width:100%;min-width:0;box-shadow:inset 0 2px 8px #bfd9ed17;transition:border-color .2s,box-shadow .2s}
+.resident-field textarea{min-height:150px;resize:vertical;letter-spacing:.025em}
+.resident-field input::placeholder,.resident-field textarea::placeholder{color:#668299;opacity:1}
+.resident-field :is(input,textarea,select):focus{outline:2px solid #679bbc;outline-offset:3px;background:#fff}
+.resident-work{border-radius:19px;border:1px solid #fff;background:#ffffffa0;box-shadow:0 8px 25px #7aabd31d;padding:18px;margin:12px 0;overflow-wrap:anywhere}
+.resident-work>b{font-weight:400;font-size:18px;color:#385e7a}
+.resident-work>.resident-chip{margin-left:8px;vertical-align:middle}
+.resident-hidden{display:none!important}
+#notice{min-height:1.8em;font-size:14px;line-height:1.8;margin:12px 4px}
+.resident-nav :is(a,button):focus-visible,.resident-tabs button:focus-visible,.resident-btn:focus-visible{outline:3px solid #467b9b;outline-offset:4px}
+@keyframes resident-sea{from{transform:translateY(0)}to{transform:translateY(-28px)}}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  body[data-motion="on"] .resident-tabs button:hover,body[data-motion="on"] .resident-btn:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 18px #7394af30}
+}
+@media(max-width:860px){
+  .resident-nav .links{order:3;width:100%;gap:12px 20px;border-top:1px solid #ffffff90;padding-top:5px}
+  .resident-hero{padding-left:28px;padding-right:245px}
+  .resident-sticker.shell{right:26px;width:112px}
+  .resident-sticker.star{right:165px;width:47px}
+  .resident-sticker.wave{right:136px;width:76px}
+}
+@media(max-width:680px){
+  .resident-wrap{padding:16px 14px 60px}
+  .resident-nav{padding:10px 12px;gap:8px}
+  .resident-nav a{font-size:13px}
+  .resident-nav .links{gap:7px 17px}
+  .resident-nav .motion-toggle{font-size:12px;min-width:96px;width:auto;padding:8px 10px}
+  .resident-hero{padding:27px 20px 150px;min-height:0;margin:22px 0;border-radius:25px}
+  .resident-hero h1{max-width:none;font-size:34px;letter-spacing:.04em}
+  .resident-hero p{max-width:none;font-size:15px}
+  .resident-sticker.shell{top:auto;right:28px;bottom:28px;width:88px}
+  .resident-sticker.wave{top:auto;right:136px;bottom:23px;width:68px}
+  .resident-sticker.star{top:auto;right:165px;bottom:93px;width:38px}
+  .resident-note{display:none}
+  .resident-card{padding:22px 20px}
+  .resident-card h2{font-size:28px}
+  .resident-tabs{width:100%;gap:6px}
+  .resident-tabs button{flex:1;padding:11px 9px;font-size:14px}
+  .resident-grid{grid-template-columns:1fr}
+  .resident-field{margin:16px 0}
+}
+@media(prefers-reduced-motion:reduce){
+  body[data-page="resident"]::before{animation:none}
+  .resident-btn,.resident-tabs button,.resident-field :is(input,select,textarea){transition:none}
+}

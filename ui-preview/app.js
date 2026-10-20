@@ -815,11 +815,12 @@
   function renderGuide() {
     const stops = [
       ['全岛总览', '一片群岛，一起慢慢逛', '山间的风越过海湾，石桥与栈道连接着有人居住的小岛。主要庆典地点都在主岛；左右滑动地图，也看看远处的海岸。', 'passport', '领取生日通行证', 0, 0, 'island'],
-      ['庆典码头', '海风把你，带到这里', '灯塔为来客引路，客船与渔船在开放的港湾停靠。沿宽阔码头走进庆典广场，菜菜与吱吱为你留好了位置。', 'passport', '去领取通行证', 580, 755, 'anchor'],
-      ['岛民事务所', '把小小心意，装进口袋', '完成庆典任务，收下属于你的金币。让参与庆典的每一步，都变成下一份相遇的期待。', 'office', '去看看庆典任务', 855, 510, 'flag'],
-      ['肥啾邮局', '让肥啾，替你寄出期待', '一只肥啾，一封来信。花 50 金币拆开生日回忆卡，把今天的心愿寄给未来的自己。', 'draw', '去抽生日回忆卡', 500, 568, 'mail'],
-      ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 855, 638, 'cards'],
-      ['生日庆典', '今天的主角，正在等你', '小小的双人石雕在花坛里，生日横幅与气球迎着海风。10 月 20 日，带上通行证来主岛广场一起赴约吧。', 'passport', '带上通行证赴约', 675, 612, 'cake'],
+      // Actual ground anchors and separate label positions, in the approved image's viewBox.
+      ['庆典码头', '海风把你，带到这里', '灯塔为来客引路，客船与渔船在开放的港湾停靠。沿宽阔码头走进庆典广场，菜菜与吱吱为你留好了位置。', 'passport', '去领取通行证', 582, 690, 'anchor', 540, 642],
+      ['岛民事务所', '把小小心意，装进口袋', '完成庆典任务，收下属于你的金币。让参与庆典的每一步，都变成下一份相遇的期待。', 'office', '去看看庆典任务', 861, 552, 'flag', 934, 480],
+      ['肥啾邮局', '让肥啾，替你寄出期待', '一只肥啾，一封来信。花 50 金币拆开生日回忆卡，把今天的心愿寄给未来的自己。', 'draw', '去抽生日回忆卡', 510, 592, 'mail', 440, 515],
+      ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 865, 660, 'cards', 850, 704],
+      ['生日庆典', '今天的主角，正在等你', '小小的双人石雕在花坛里，生日横幅与气球迎着海风。10 月 20 日，带上通行证来主岛广场一起赴约吧。', 'passport', '带上通行证赴约', 673, 568, 'cake', 691, 611],
     ];
     const residentialIslands = [
       ['🌊','潮汐岛','海滩、贝壳与海边市集','tide'],
@@ -830,11 +831,17 @@
     return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图">
       <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
       <div class="voyage-map" tabindex="0" role="region" aria-label="群岛地图，可左右滚动"><div class="guide-map-stage">
-        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><g id="map-camera"><image href="${'assets/buzhi-archipelago-soft-palette-draft.png'}" width="1584" height="993"/>
-          <g class="guide-water-motion" aria-hidden="true" fill="none" stroke="#e3ffff" stroke-width="2" stroke-linecap="round" stroke-dasharray="12 26 3 30"><path d="M70 820q55 20 110 0m-25 32q50 18 100 0M960 880q60 22 125 0m-140 32q55 17 100 0M1160 365q75 16 150-4M1470 610q45 20 90 0"/></g>
-          <g class="guide-cloud-motion" aria-hidden="true" fill="#fff" opacity=".16"><ellipse cx="965" cy="210" rx="125" ry="18"/><ellipse cx="1060" cy="232" rx="100" ry="12"/><ellipse cx="60" cy="937" rx="150" ry="32"/></g>
+        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><defs>
+          <clipPath id="guide-harbor-water" clipPathUnits="userSpaceOnUse"><path d="M450 820h140v60H450Z M590 850h130v55H590Z M915 820h120v60H915Z"/></clipPath>
+          <clipPath id="guide-channel-water" clipPathUnits="userSpaceOnUse"><path d="M205 280h105v45H205Z M995 150h95v50H995Z M1130 575h105v50H1130Z M1435 600h120v50H1435Z"/></clipPath>
+          <clipPath id="guide-mountain-mist" clipPathUnits="userSpaceOnUse"><path d="M786 184 900 194 1030 256 1076 286 1046 315 946 281 864 258 808 241Z"/></clipPath>
+        </defs><g id="map-camera"><image href="${'assets/buzhi-archipelago-soft-palette-draft.png'}" width="1584" height="993"/>
+          <g class="guide-water-motion" data-guide-feature="harbor" clip-path="url(#guide-harbor-water)" aria-hidden="true"><g class="guide-motion-ink"><path d="M475 847q48 12 90 0M605 875q45 8 85-4M928 844q50 9 85-7"/></g></g>
+          <g class="guide-water-motion" data-guide-feature="channels" clip-path="url(#guide-channel-water)" aria-hidden="true"><g class="guide-motion-ink"><path d="M230 295q30 8 65-3M1005 176q35 8 70-3M1150 598q33 9 65-4M1450 625q38 8 78-3"/></g></g>
+          <g class="guide-cloud-motion" data-guide-feature="mountain-mist" clip-path="url(#guide-mountain-mist)" aria-hidden="true"><g class="guide-motion-ink"><path d="M803 213c19-15 39-13 52-2 19-7 43 7 50 21 21-1 30 9 51 15l-24 16c-24-10-41-12-53-24-26 3-49-8-63-4Z M951 264c15-9 30-6 41 3 18-2 39 8 54 20l-17 12c-24-11-50-16-70-19Z"/></g></g>
+          <g class="guide-landmarks pencil-map-callouts" aria-hidden="true">${stops.slice(1).map(([,,,,,x,y,,labelX,labelY],i)=>`<line data-guide-leader="${i+1}" x1="${labelX}" y1="${labelY}" x2="${x}" y2="${y}"/><circle data-guide-anchor="${i+1}" cx="${x}" cy="${y}" r="5"/>`).join('')}</g>
         </g></svg>
-        <div class="map-pins" role="group" aria-label="主岛地点">${stops.slice(1).map(([name,,,,,x,y,motif],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div>
+        <div class="map-pins" role="group" aria-label="主岛地点">${stops.slice(1).map(([name,,,,,x,y,motif,labelX,labelY],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" data-label-x="${labelX}" data-label-y="${labelY}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div>
       </div></div>
       <div class="guide-map-toolbar"><p class="guide-map-hint">点选主岛地名 · 左右滑动浏览群岛</p><div class="voyage-buttons" aria-label="导览翻页"><button class="btn" id="voyage-prev" type="button" aria-label="上一站" disabled>← 上一站</button><button class="btn" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div></div>
       <section class="guide-info glass" aria-live="polite" aria-atomic="true" aria-labelledby="voyage-card-title"><div class="guide-info-meta"><span id="voyage-count">01 / 06</span><span id="voyage-location">全岛总览</span></div><h2 id="voyage-card-title">${stops[0][1]}</h2><p id="voyage-card-copy">${stops[0][2]}</p><a class="guide-destination" id="voyage-destination" href="passport.html">${stops[0][4]} ${icon('arrow')}</a></section>
@@ -878,7 +885,7 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261020-pencil1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261020-guide-align2', document.currentScript.src).href;
   document.body.append(effectsScript);
   const pencilScript=document.createElement('script');
   pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;

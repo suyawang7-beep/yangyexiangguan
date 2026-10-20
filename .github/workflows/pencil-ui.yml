@@ -7,6 +7,9 @@ on:
       - 'server/index.mjs'
       - 'tests/pencil-*'
       - 'tests/liquid-page-evidence.cjs'
+      - 'tests/resident-appearance.cjs'
+      - 'tests/resident-production.cjs'
+      - 'tests/guide-alignment.cjs'
       - '.github/workflows/pencil-ui.yml'
   workflow_dispatch:
 jobs:
@@ -25,6 +28,9 @@ jobs:
       # assertions merely because an unbranded test browser lacks that codec.
       - run: if [ ! -x /usr/bin/google-chrome ]; then npx playwright install --with-deps chrome; fi
       - run: node tests/pencil-assets.mjs
+      - run: RESIDENT_EVIDENCE_DIR="$RUNNER_TEMP/resident-evidence" node tests/resident-appearance.cjs
+      - run: node tests/resident-production.cjs
+      - run: GUIDE_EVIDENCE_DIR="$RUNNER_TEMP/guide-evidence" node tests/guide-alignment.cjs
       - run: node tests/pencil-case.cjs
       - run: LIQUID_EVIDENCE_DIR="$RUNNER_TEMP/liquid-evidence" node tests/liquid-page-evidence.cjs
       - uses: actions/upload-artifact@v4
@@ -32,3 +38,13 @@ jobs:
         with:
           name: computed-liquid-page-evidence
           path: ${{ runner.temp }}/liquid-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resident-appearance-evidence
+          path: ${{ runner.temp }}/resident-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guide-alignment-evidence
+          path: ${{ runner.temp }}/guide-evidence
