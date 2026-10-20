@@ -18,7 +18,7 @@ const failures = [], errors = [];
 function check(value, label) {checks++;if (!value) failures.push(label);}
 (async () => {
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
-  browser = await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
+  browser = await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
   const context = await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});
   const base = `http://127.0.0.1:${server.address().port}`;
   await context.route('**/*', r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());

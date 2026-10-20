@@ -93,7 +93,7 @@
     { id: 'islander', title: '和岛民打一个招呼', text: '让今天的小岛，多一点温柔的声音。', reward: 25, motif: 'bird' },
     { id: 'party', title: '收藏一份庆典合照', text: '留住这次相聚，完成后领取任务代码。', reward: 25, motif: 'cards' },
   ];
-  const blank = () => ({ version: 3, passport: null, balance: 0, tasks: [], bonuses: [], checkins: [], collection: {}, history: [], ledger: [], demoIslander: false });
+  const blank = () => ({ version: 3, passport: null, balance: 0, tasks: [], taskProgress: null, pendingMilestones: [], bonuses: [], checkins: [], collection: {}, history: [], ledger: [], demoIslander: false });
   let state = blank();
   let storageError = '';
   if (!LIVE) try {
@@ -174,6 +174,8 @@
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
+  let liveCatalogReady=false,liveCatalogFailed=false;
+  let latestLiveProfile=null,latestLiveProfileToken='',profileRevision=0;
   let liveOcProfiles=[];
   let managedAssets={};
   let managedVersions={};
@@ -195,6 +197,7 @@
       const host=document.querySelector(selected[1]);
       if(host){const photo='url("/assets/'+selected[0]+'?v='+(managedVersions[selected[0]]||assetVersion)+'")';if(PAGE==='home'){host.style.backgroundImage='linear-gradient(130deg,#eaf8ffdb,#cceefa9c 55%,#e8e6ffb8)';host.style.setProperty('--home-sea-photo',photo);host.style.setProperty('--home-sea-position',(managedLayouts[selected[0]]?.x??50)+'% '+(managedLayouts[selected[0]]?.y??50)+'%')}else{host.style.removeProperty('background-image');host.style.setProperty('--liquid-room-photo',photo);const layout=managedLayouts[selected[0]];host.style.setProperty('--liquid-room-position',(layout?.x??50)+'% '+(layout?.y??50)+'%');host.style.setProperty('--liquid-room-size',layout?.fit==='cover'?'cover':(layout?.scale??100)+'% auto')}host.style.backgroundSize='cover';host.style.backgroundPosition='center'}
     }
+    const memorial=document.querySelector('[data-memorial-art]');if(memorial){applyAssetLayout(memorial,'decor/checkin-memorial.webp');memorial.onerror=()=>{memorial.onerror=null;memorial.replaceWith(document.createTextNode('七日纪念'))}}
     const hero=document.querySelector('.hero-art img, .mini-art');
     if(hero&&managedAssets['decor/home-poster.webp']){hero.src=assetUrl('decor/home-poster.webp');applyAssetLayout(hero,'decor/home-poster.webp')}
     const map=document.querySelector('#map-camera image');
@@ -221,13 +224,26 @@
   }
 
   async function liveApi(path,body){
-    const resp=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{...(liveToken?{'Authorization':'Bearer '+liveToken}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
-    let result;try{result=await resp.json()}catch{throw Error('账户服务器暂时不可用')}
-    if(!resp.ok)throw Error(result.error||'操作未完成');
-    return result;
+    const timed=body===undefined||path==='login'||path==='draw';
+    const controller=timed?new AbortController():null;let timer;
+    const timeoutError=()=>Object.assign(Error(path==='draw'?'抽卡结果尚未确认，请先查看收藏和抽卡记录，勿重复抽取。':'网络响应较慢，请稍后重试。'),{code:'NETWORK_TIMEOUT',uncertain:path==='draw'});
+    const request=(async()=>{
+      const resp=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{...(liveToken?{'Authorization':'Bearer '+liveToken}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},...(controller?{signal:controller.signal}:{}),...(body===undefined?{}:{body:JSON.stringify(body)})});
+      let result;try{result=await resp.json()}catch{throw Object.assign(Error('账户服务器暂时不可用'),{status:resp.status,uncertain:path==='draw'&&resp.ok})}
+      if(!resp.ok)throw Object.assign(Error(result.error||'操作未完成'),{status:resp.status});
+      return result;
+    })();
+    try{
+      if(!timed)return await request;
+      return await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>{reject(timeoutError());controller.abort()},15000)})]);
+    }catch(err){
+      if(path==='draw'&&(!err.status||err.status>=500)){err.uncertain=true;err.message='抽卡结果尚未确认，请先查看收藏和抽卡记录，勿重复抽取。'}
+      throw err;
+    }finally{if(timer!==undefined)clearTimeout(timer)}
   }
-  function takeProfile(profile){
-    state=blank();
+  function takeProfile(profile,{celebrate=false}={}){
+    const fresh=celebrate&&state.passport?.id===profile.id?profile.bonuses.filter(n=>[3,6].includes(n)&&!state.bonuses.includes(n)):[];
+    state=blank();state.pendingMilestones=fresh;state.taskProgress=profile.taskProgress||null;
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
     state.balance=profile.coins;
     state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
@@ -243,14 +259,32 @@
       entry.quantity++;state.collection[id]=entry;
       state.history.push({id:'server-'+index,cardId:id,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
     }
-    renderPage();
+    renderPage();state.pendingMilestones=[];
   }
   async function liveInit(){
     TASKS=LIVE_TASKS;
-    await loadManagedArtwork();
-    try{const [catalog,oc]=await Promise.all([liveApi('catalog'),liveApi('oc')]);liveCatalog=catalog.cards;for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters};liveOcProfiles=oc}catch(e){toast(e.message)}
-    if(liveToken){try{takeProfile(await liveApi('me'))}catch{liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}}
-    else renderPage();
+    const tokenAtStart=liveToken,revisionAtStart=profileRevision;
+    renderPage();
+    const artworkTask=loadManagedArtwork();
+    const catalogTask=(async()=>{
+      try{
+        const catalog=await liveApi('catalog');liveCatalog=catalog.cards;
+        for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}
+        liveCatalogReady=true;
+        if(latestLiveProfile&&liveToken&&latestLiveProfileToken===liveToken)takeProfile(latestLiveProfile);
+        else if(PAGE!=='passport')renderPage();
+      }catch(e){liveCatalogFailed=true;if(PAGE==='collection'||PAGE==='draw')renderPage();toast(e.message)}
+    })();
+    const ocTask=liveApi('oc').then(oc=>{liveOcProfiles=oc;if(PAGE==='islanders')renderPage()}).catch(e=>toast(e.message));
+    const profileTask=tokenAtStart?(async()=>{
+      try{const profile=await liveApi('me');if(liveToken===tokenAtStart&&profileRevision===revisionAtStart)takeProfile(profile)}
+      catch(e){
+        if(liveToken!==tokenAtStart||profileRevision!==revisionAtStart)return;
+        if(e.status===401){liveToken='';latestLiveProfile=null;sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}
+        else toast('暂时无法读取账户，登录状态已保留，请刷新重试。');
+      }
+    })():Promise.resolve();
+    await Promise.allSettled([artworkTask,catalogTask,ocTask,profileTask]);
   }
   function activeAsset(name,fallback){
     if(!LIVE)return fallback;
@@ -289,9 +323,17 @@
       const completed = state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
       return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : '输入完成代码'}</button>`}</div></article>`;
-    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">不同任务完成到指定数量，额外奖励一次金币。</p><div class="progress-track" data-completed="${state.tasks.length}"><span style="width:${Math.min(state.tasks.length / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p id="task-dialog-tip" class="small muted">请填写岛主私信发放的一次性完成代码。</p><div id="task-writing-wrap" hidden><label for="task-writing">写下你的心意（不少于15字）</label><textarea id="task-writing" maxlength="2000" rows="6" placeholder="在这里写下想说的话…"></textarea><p id="task-writing-count" class="small muted">0 / 15 字</p></div><div class="form-field" id="task-code-wrap"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
+    }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">完成不同正式任务可获得阶段奖励；首次报到不计入，同一种每日任务只算一次。</p><div class="progress-track" data-completed="${formalTaskCount()}" data-account="${esc(state.passport?.id||'demo')}" data-new-bonuses="${(state.pendingMilestones||[]).join(',')}"><span style="width:${Math.min(formalTaskCount() / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p id="task-dialog-tip" class="small muted">请填写岛主私信发放的一次性完成代码。</p><div id="task-writing-wrap" hidden><label for="task-writing">写下你的心意（不少于15字）</label><textarea id="task-writing" maxlength="2000" rows="6" placeholder="在这里写下想说的话…"></textarea><p id="task-writing-count" class="small muted">0 / 15 字</p></div><div class="form-field" id="task-code-wrap"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
   }
 
+  function formalTaskCount(value=state){
+    const count=value.taskProgress?.completed;if(Number.isSafeInteger(count)&&count>=0)return count;
+    return new Set(value.tasks.filter(t=>t!=='arrival'&&t!=='report').map(t=>t==='letter'||t.startsWith('letter:')?'letter':t)).size;
+  }
+  function memorialCard(streak){
+    const name='decor/checkin-memorial.webp',unlocked=streak>=7;
+    return `<div class="hidden-card-teaser checkin-memorial" data-memorial-state="${unlocked?'unlocked':'locked'}"><div class="memorial-art">${LIVE&&managedAssets[name]?`<img src="${esc(assetUrl(name))}" alt="不吱岛七日纪念卡" data-memorial-art>`:`<div class="memorial-default" aria-hidden="true">${icon('bird')}<span>七日纪念</span><small>SEVEN DAYS ON THE ISLAND</small></div>`}</div><span class="memorial-seal">${icon(unlocked?'sparkles':'lock')}${unlocked?'七日纪念已点亮':'连续签到7天点亮'}</span></div>`;
+  }
   function streakCount() {
     if (!state.checkins.length) return 0;
     let count = 0;
@@ -307,7 +349,7 @@
     const today = dateKey();
     const checked = state.checkins.includes(today);
     const streak = streakCount();
-    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>每天一次 · 签到 +10 金币</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3><div class="hidden-card-teaser">${icon(streak >= 7 ? 'sparkles' : 'lock')}</div><p class="small muted">${streak >= 7 ? '隐藏纪念已点亮！七日纪念已解锁，额外卡面尚未开放。' : '连续签到7天，点亮隐藏纪念标记。额外卡面尚未开放，不计入当前公开卡池。'}</p><p class="small muted">错过一天会重新计算连续天数，已经获得的金币不会消失。</p></aside></div><div class="info-note">${LIVE ? '签到日期与金币奖励由服务器记录。' : '签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。'}</div>`;
+    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>每天一次 · 签到 +10 金币</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3>${memorialCard(streak)}<p class="small muted">${streak >= 7 ? '七日纪念已点亮！这张卡只作签到纪念，不计入随机抽卡池。' : '连续签到7天点亮七日纪念卡，只作签到纪念，不计入随机抽卡池。'}</p><p class="small muted">错过一天会重新计算连续天数，已经获得的金币不会消失。</p></aside></div><div class="info-note">${LIVE ? '签到日期与金币奖励由服务器记录。' : '签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。'}</div>`;
   }
 
   function drawBack() {
@@ -325,7 +367,7 @@
       </div>
       <section class="glass draw-info" aria-label="抽取生日回忆">
         <div class="draw-cost"><span>每次单抽 <strong>50</strong> 金币</span><i aria-hidden="true"></i><span>我的金币 <strong data-balance>${state.balance}</strong> 枚</span></div>
-        ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
+        ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 || (LIVE&&!liveCatalogReady) ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
         <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
         <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 32 张'}</span></div>
@@ -340,7 +382,7 @@
     const title = heading('05', 'Keep the moments that matter', '回忆收藏室', '不是每一个瞬间都会重来，但我们可以把它好好收起来。');
     const owned = Object.values(state.collection).filter((entry) => entry.quantity > 0).length;
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
-    return title + `<section class="glass collection-summary"><div><strong>${owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
+    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
       return card ? `<div class="history-row"><span class="rarity">${card.rarity}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
@@ -348,6 +390,7 @@
 
   function fillCollection() {
     const grid = document.querySelector('#collection-grid');
+    if(LIVE&&!liveCatalogReady){grid.innerHTML='<p class="info-note" role="status">'+(liveCatalogFailed?'暂时无法读取收藏目录，请刷新重试。已有卡片仍安全保存。':'正在读取收藏目录，已有卡片仍安全保存。')+'</p>';return}
     const cards = CARDS.filter((card) => {
       const quantity = state.collection[card.id]?.quantity || 0;
       return (filters.ownership === 'all' || (filters.ownership === 'owned' ? quantity > 0 : quantity === 0))
@@ -468,8 +511,8 @@
       if (state.tasks.includes(task.id)) { toast('这个任务已经领过奖励啦。'); return; }
       if (task.id !== 'arrival' && !state.demoIslander) { toast('请先开启岛民任务演示。'); return; }
       const next = clone(); next.tasks.push(task.id); credit(next, task.reward, task.title);
-      for (const n of [3, 6]) if (next.tasks.length >= n && !next.bonuses.includes(n)) { next.bonuses.push(n); credit(next, 25, `${n}任务阶段奖励`); }
-      commit(next); dialog?.close(); renderPage(); toast(task.reward ? `任务完成，${task.reward}枚金币已入账！` : '报到成功，小岛记住你来过啦。');
+      for (const n of [3, 6]) if (formalTaskCount(next) >= n && !next.bonuses.includes(n)) { next.bonuses.push(n); credit(next, 25, `${n}任务阶段奖励`); }
+      const fresh=next.bonuses.filter(n=>!state.bonuses.includes(n));commit(next);state.pendingMilestones=fresh;dialog?.close();renderPage();state.pendingMilestones=[];toast(task.reward ? `任务完成，${task.reward}枚金币已入账！` : '报到成功，小岛记住你来过啦。');
     }
     document.querySelectorAll('[data-task]').forEach((button) => button.addEventListener('click', () => {
       const task = TASKS.find((item) => item.id === button.dataset.task);
@@ -663,14 +706,15 @@
     writing.addEventListener('input',updateCount);
     document.querySelectorAll('[data-task]').forEach(button=>{button.onclick=()=>{task=TASKS.find(t=>t.id===button.dataset.task);if(!task||task.id==='arrival')return;const isWriting=task.id==='letter'||task.id==='memory';dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.querySelector('#task-writing-wrap').hidden=!isWriting;dialog.querySelector('#task-code-wrap').hidden=isWriting;dialog.querySelector('#task-code').required=!isWriting;dialog.querySelector('#task-code').value='';writing.value='';updateCount();tip.textContent=isWriting?'至少填写15个非空白字符，提交后自动获得25金币。':'请填写岛主私信发放的一次性完成代码。';dialog.showModal()}});
     dialog.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
-    dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory';const content=writing.value.trim();if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}const submit=e.submitter;if(submit)submit.disabled=true;try{const profile=await liveApi(writingTask?'task-writing':'redeem',writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});dialog.close();takeProfile(profile);toast('任务完成，25金币已到账！')}catch(err){toast(err.message);if(submit)submit.disabled=false}});
+    dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory';const content=writing.value.trim();if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}const submit=e.submitter;if(submit)submit.disabled=true;try{const profile=await liveApi(writingTask?'task-writing':'redeem',writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});dialog.close();takeProfile(profile,{celebrate:true});toast('任务完成，25金币已到账！')}catch(err){toast(err.message);if(submit)submit.disabled=false}});
   }
   function bindLiveCheckin(){
     document.querySelector('#checkin-button')?.addEventListener('click',async()=>{try{takeProfile(await liveApi('checkin',{}));toast('今日签到成功，10 金币已保存')}catch(err){toast(err.message)}});
   }
   function bindLiveDraw(){
     document.querySelector('#draw-button')?.addEventListener('click',async()=>{
-      if(drawing||!state.passport||state.balance<50)return;drawing=true;
+      if(drawing||!state.passport||state.balance<50)return;
+      if(!liveCatalogReady){toast('卡片目录正在加载，请稍后再试。');return}drawing=true;
       const button=document.querySelector('#draw-button');button.disabled=true;
       try{const result=await liveApi('draw',{});const cardInfo=liveCatalog.find(c=>c.id===result.card.id);if(!cardInfo)throw Error('卡片目录缺少映射，请联系岛主');
         const card=CARDS.find(c=>c.id===cardInfo.previewId);
@@ -679,11 +723,11 @@
         stage.classList.remove('is-revealed');stage.classList.add('is-drawing');stage.setAttribute('aria-busy','true');
         document.querySelector('#stage-card').innerHTML=drawBack();
         document.querySelector('#draw-status').textContent='服务器已扣币并保存收藏，肥啾正在送达…';
-        const show=()=>{if(!drawing)return;drawing=false;stage.classList.remove('is-drawing');stage.classList.add('is-revealed');stage.setAttribute('aria-busy','false');document.querySelector('#stage-card').innerHTML=cardMarkup(card);document.querySelector('#draw-result-label').textContent=card.rarity+' · '+card.name;document.querySelector('#draw-status').textContent='已存入收藏 · '+card.name;button.disabled=state.balance<50;button.textContent='再寄出一份期待 ↗';};
+        const show=()=>{if(!drawing)return;drawing=false;stage.classList.remove('is-drawing');stage.classList.add('is-revealed');stage.setAttribute('aria-busy','false');document.querySelector('#stage-card').innerHTML=cardMarkup(card);document.querySelector('#draw-result-label').textContent=card.rarity+' · '+card.name;document.querySelector('#draw-status').textContent='已存入收藏 · '+card.name;const activeButton=document.querySelector('#draw-button');activeButton.disabled=state.balance<50;activeButton.textContent='再寄出一份期待 ↗';};
         setTimeout(show,document.querySelector('.world').dataset.motion==='off'||document.hidden?0:3000);
         document.addEventListener('buzhi:motion',()=>{if(drawing&&document.querySelector('.world').dataset.motion==='off')show()},{once:true});
         document.addEventListener('visibilitychange',()=>{if(document.hidden)show()},{once:true});
-      }catch(err){drawing=false;button.disabled=false;toast(err.message)}
+      }catch(err){drawing=false;const activeButton=document.querySelector('#draw-button');if(activeButton){activeButton.disabled=!!err.uncertain;if(err.uncertain)activeButton.textContent='请先到收藏室核对抽卡结果'}toast(err.message)}
     });
   }
   function bindCollection() {
@@ -815,11 +859,12 @@
   function renderGuide() {
     const stops = [
       ['全岛总览', '一片群岛，一起慢慢逛', '山间的风越过海湾，石桥与栈道连接着有人居住的小岛。主要庆典地点都在主岛；左右滑动地图，也看看远处的海岸。', 'passport', '领取生日通行证', 0, 0, 'island'],
-      ['庆典码头', '海风把你，带到这里', '灯塔为来客引路，客船与渔船在开放的港湾停靠。沿宽阔码头走进庆典广场，菜菜与吱吱为你留好了位置。', 'passport', '去领取通行证', 580, 755, 'anchor'],
-      ['岛民事务所', '把小小心意，装进口袋', '完成庆典任务，收下属于你的金币。让参与庆典的每一步，都变成下一份相遇的期待。', 'office', '去看看庆典任务', 855, 510, 'flag'],
-      ['肥啾邮局', '让肥啾，替你寄出期待', '一只肥啾，一封来信。花 50 金币拆开生日回忆卡，把今天的心愿寄给未来的自己。', 'draw', '去抽生日回忆卡', 500, 568, 'mail'],
-      ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 855, 638, 'cards'],
-      ['生日庆典', '今天的主角，正在等你', '小小的双人石雕在花坛里，生日横幅与气球迎着海风。10 月 20 日，带上通行证来主岛广场一起赴约吧。', 'passport', '带上通行证赴约', 675, 612, 'cake'],
+      // Actual ground anchors and separate label positions, in the approved image's viewBox.
+      ['庆典码头', '海风把你，带到这里', '灯塔为来客引路，客船与渔船在开放的港湾停靠。沿宽阔码头走进庆典广场，菜菜与吱吱为你留好了位置。', 'passport', '去领取通行证', 582, 690, 'anchor', 540, 642],
+      ['岛民事务所', '把小小心意，装进口袋', '完成庆典任务，收下属于你的金币。让参与庆典的每一步，都变成下一份相遇的期待。', 'office', '去看看庆典任务', 861, 552, 'flag', 934, 480],
+      ['肥啾邮局', '让肥啾，替你寄出期待', '一只肥啾，一封来信。花 50 金币拆开生日回忆卡，把今天的心愿寄给未来的自己。', 'draw', '去抽生日回忆卡', 510, 592, 'mail', 440, 515],
+      ['回忆收藏室', '相遇的瞬间，都有位置', '在这里翻翻已经收好的回忆。那些抽中的卡、喜欢的故事，会陪你一起留在小岛。', 'collection', '打开我的收藏室', 865, 660, 'cards', 850, 704],
+      ['生日庆典', '今天的主角，正在等你', '小小的双人石雕在花坛里，生日横幅与气球迎着海风。10 月 20 日，带上通行证来主岛广场一起赴约吧。', 'passport', '带上通行证赴约', 673, 568, 'cake', 691, 611],
     ];
     const residentialIslands = [
       ['🌊','潮汐岛','海滩、贝壳与海边市集','tide'],
@@ -830,11 +875,17 @@
     return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图">
       <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
       <div class="voyage-map" tabindex="0" role="region" aria-label="群岛地图，可左右滚动"><div class="guide-map-stage">
-        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><g id="map-camera"><image href="${'assets/buzhi-archipelago-soft-palette-draft.png'}" width="1584" height="993"/>
-          <g class="guide-water-motion" aria-hidden="true" fill="none" stroke="#e3ffff" stroke-width="2" stroke-linecap="round" stroke-dasharray="12 26 3 30"><path d="M70 820q55 20 110 0m-25 32q50 18 100 0M960 880q60 22 125 0m-140 32q55 17 100 0M1160 365q75 16 150-4M1470 610q45 20 90 0"/></g>
-          <g class="guide-cloud-motion" aria-hidden="true" fill="#fff" opacity=".16"><ellipse cx="965" cy="210" rx="125" ry="18"/><ellipse cx="1060" cy="232" rx="100" ry="12"/><ellipse cx="60" cy="937" rx="150" ry="32"/></g>
+        <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><defs>
+          <clipPath id="guide-harbor-water" clipPathUnits="userSpaceOnUse"><path d="M450 820h140v60H450Z M590 850h130v55H590Z M915 820h120v60H915Z"/></clipPath>
+          <clipPath id="guide-channel-water" clipPathUnits="userSpaceOnUse"><path d="M205 280h105v45H205Z M995 150h95v50H995Z M1130 575h105v50H1130Z M1435 600h120v50H1435Z"/></clipPath>
+          <clipPath id="guide-mountain-mist" clipPathUnits="userSpaceOnUse"><path d="M786 184 900 194 1030 256 1076 286 1046 315 946 281 864 258 808 241Z"/></clipPath>
+        </defs><g id="map-camera"><image href="${'assets/buzhi-archipelago-soft-palette-draft.png'}" width="1584" height="993"/>
+          <g class="guide-water-motion" data-guide-feature="harbor" clip-path="url(#guide-harbor-water)" aria-hidden="true"><g class="guide-motion-ink"><path d="M475 847q48 12 90 0M605 875q45 8 85-4M928 844q50 9 85-7"/></g></g>
+          <g class="guide-water-motion" data-guide-feature="channels" clip-path="url(#guide-channel-water)" aria-hidden="true"><g class="guide-motion-ink"><path d="M230 295q30 8 65-3M1005 176q35 8 70-3M1150 598q33 9 65-4M1450 625q38 8 78-3"/></g></g>
+          <g class="guide-cloud-motion" data-guide-feature="mountain-mist" clip-path="url(#guide-mountain-mist)" aria-hidden="true"><g class="guide-motion-ink"><path d="M803 213c19-15 39-13 52-2 19-7 43 7 50 21 21-1 30 9 51 15l-24 16c-24-10-41-12-53-24-26 3-49-8-63-4Z M951 264c15-9 30-6 41 3 18-2 39 8 54 20l-17 12c-24-11-50-16-70-19Z"/></g></g>
+          <g class="guide-landmarks pencil-map-callouts" aria-hidden="true">${stops.slice(1).map(([,,,,,x,y,,labelX,labelY],i)=>`<line data-guide-leader="${i+1}" x1="${labelX}" y1="${labelY}" x2="${x}" y2="${y}"/><circle data-guide-anchor="${i+1}" cx="${x}" cy="${y}" r="5"/>`).join('')}</g>
         </g></svg>
-        <div class="map-pins" role="group" aria-label="主岛地点">${stops.slice(1).map(([name,,,,,x,y,motif],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div>
+        <div class="map-pins" role="group" aria-label="主岛地点">${stops.slice(1).map(([name,,,,,x,y,motif,labelX,labelY],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" data-label-x="${labelX}" data-label-y="${labelY}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div>
       </div></div>
       <div class="guide-map-toolbar"><p class="guide-map-hint">点选主岛地名 · 左右滑动浏览群岛</p><div class="voyage-buttons" aria-label="导览翻页"><button class="btn" id="voyage-prev" type="button" aria-label="上一站" disabled>← 上一站</button><button class="btn" id="voyage-next" type="button" aria-label="下一站">下一站 →</button></div></div>
       <section class="guide-info glass" aria-live="polite" aria-atomic="true" aria-labelledby="voyage-card-title"><div class="guide-info-meta"><span id="voyage-count">01 / 06</span><span id="voyage-location">全岛总览</span></div><h2 id="voyage-card-title">${stops[0][1]}</h2><p id="voyage-card-copy">${stops[0][2]}</p><a class="guide-destination" id="voyage-destination" href="passport.html">${stops[0][4]} ${icon('arrow')}</a></section>
@@ -878,7 +929,7 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261020-pencil1', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261020-guide-milestone2', document.currentScript.src).href;
   document.body.append(effectsScript);
   const pencilScript=document.createElement('script');
   pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;

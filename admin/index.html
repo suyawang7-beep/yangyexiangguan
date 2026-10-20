@@ -15,7 +15,7 @@ async function loadVisual(){const config=await req('visual-settings');for(const 
 $('visualForm').onsubmit=async event=>{event.preventDefault();const settings={};for(const control of document.querySelectorAll('#visualForm input[type="checkbox"]'))settings[control.name]=control.checked;try{await req('visual-settings',settings);$('visualStatus').textContent='✓ 已保存：岛民刷新后生效';msg('网页视效设置已保存');await refreshAdminDetails()}catch(e){$('visualStatus').textContent=e.message;msg(e.message,true)}};
 $('reloadVisual').onclick=async()=>{try{await loadVisual()}catch(e){msg(e.message,true)}};
 const refreshWithVisual=refresh;refresh=async()=>{await refreshWithVisual();await loadVisual()};
-const slotNames=['characters/zhizhi.webp','characters/caicai.webp','decor/home-background.webp','decor/home-poster.webp','decor/island-map.webp','decor/office-background.webp','decor/checkin-background.webp','decor/post-office-background.webp','decor/collection-background.webp','decor/mailbox-background.webp',...['UR-1','UR-2',...Array.from({length:4},(_,i)=>'SSR-'+(i+1)),...Array.from({length:6},(_,i)=>'SR-'+(i+1)),...Array.from({length:9},(_,i)=>'R-'+(i+1)),...Array.from({length:11},(_,i)=>'N-'+(i+1)),...Array.from({length:18},(_,i)=>'LOCK-'+String(i+33).padStart(2,'0'))].map(x=>'cards/'+x+'.webp')];
+const slotNames=['characters/zhizhi.webp','characters/caicai.webp','decor/home-background.webp','decor/home-poster.webp','decor/island-map.webp','decor/office-background.webp','decor/checkin-background.webp','decor/checkin-memorial.webp','decor/post-office-background.webp','decor/collection-background.webp','decor/mailbox-background.webp',...['UR-1','UR-2',...Array.from({length:4},(_,i)=>'SSR-'+(i+1)),...Array.from({length:6},(_,i)=>'SR-'+(i+1)),...Array.from({length:9},(_,i)=>'R-'+(i+1)),...Array.from({length:11},(_,i)=>'N-'+(i+1)),...Array.from({length:18},(_,i)=>'LOCK-'+String(i+33).padStart(2,'0'))].map(x=>'cards/'+x+'.webp')];
 let preciseAssetHelp={};
 const assetUsage={
 'characters/zhizhi.webp':['庆典码头首页','吱吱人物立绘','人物素材；其他页面复用情况需核对'],
@@ -25,6 +25,7 @@ const assetUsage={
 'decor/island-map.webp':['登岛导览','岛屿地图','其他页面复用情况需核对'],
 'decor/office-background.webp':['岛民事务所','任务页面背景','该页面专用'],
 'decor/checkin-background.webp':['每日签到','签到页面背景','该页面专用'],
+'decor/checkin-memorial.webp':['每日签到','七日纪念卡','右侧纪念角独立卡面，不进入随机卡池'],
 'decor/post-office-background.webp':['肥啾邮局','抽卡页面背景','该页面专用'],
 'decor/collection-background.webp':['回忆收藏室','收藏页面背景','该页面专用'],
 'decor/mailbox-background.webp':['岛主留言处','留言页面背景','该页面专用']
@@ -48,7 +49,14 @@ $('assetVersions').onclick=async()=>{try{const name=$('assetSlot').value;const r
 $('uploadBatch').onclick=async()=>{const files=[...$('assetBatch').files];if(!files.length)return msg('先选择批量图片',true);const button=$('uploadBatch');button.disabled=true;let done=0;const failures=[];for(const file of files){const base=file.name.replace(/\.(png|jpg|jpeg|webp)$/i,'').toLowerCase();const name=slotNames.find(x=>x.split('/').pop().replace(/\.webp$/,'').toLowerCase()===base);if(!name){failures.push(file.name+'：未匹配素材位');continue}try{await uploadOne(file,name);done++}catch(e){failures.push(file.name+'：'+e.message)}$('batchStatus').textContent='批量上传 '+done+'/'+files.length+' 完成'}button.disabled=false;await reloadAssets();$('batchStatus').textContent='成功 '+done+' 张'+(failures.length?'；失败：'+failures.join('；'):'');msg('批量上传完成'+(failures.length?'（有部分失败）':''),!!failures.length)};
 const refreshWithAssets=refresh;refresh=async()=>{await refreshWithAssets();await reloadAssets()};
 async function inspectAsset(path){try{const response=await fetch(path,{cache:'no-store'});if(!response.ok||!response.headers.get('content-type')?.includes('image/webp'))return {status:'未上传',size:'—'};const data=await response.blob();const bitmap=await createImageBitmap(data);const width=bitmap.width,height=bitmap.height;bitmap.close();return {status:'可读取',size:width+' × '+height,ratio:height/width}}catch{return {status:'加载失败',size:'—'}}}
-document.getElementById('auditAssets').onclick=async()=>{const btn=document.getElementById('auditAssets');btn.disabled=true;const names=slotNames.filter(name=>name.startsWith('characters/')||name.startsWith('cards/'));const rows=document.getElementById('auditRows');rows.replaceChildren();let ok=0;for(const path of names){const item=await inspectAsset('/assets/'+path);if(item.status==='可读取')ok++;const tr=document.createElement('tr');const aspect=item.ratio&&path.startsWith('cards/')&&Math.abs(item.ratio-4/3)>.12?'（建议 3:4）':'';for(const value of [path.startsWith('characters/')?'人物立绘':'回忆卡面',path,item.status,item.size+aspect])tr.append(node('td',value));rows.append(tr)}document.getElementById('auditSummary').textContent='检查完成：'+ok+' / '+names.length+' 已读取，'+(names.length-ok)+' 项缺失或加载失败。';btn.disabled=false}
+document.getElementById('auditAssets').onclick=async()=>{
+ const btn=$('auditAssets');btn.disabled=true;
+ try{
+  const names=slotNames.filter(name=>name.startsWith('characters/')||name.startsWith('cards/')),rows=$('auditRows');rows.replaceChildren();let ok=0;
+  for(const path of names){const item=await inspectAsset('/assets/'+path);if(item.status==='可读取')ok++;const tr=document.createElement('tr'),aspect=item.ratio&&path.startsWith('cards/')&&Math.abs(item.ratio-4/3)>.12?'（建议 3:4）':'';for(const value of [path.startsWith('characters/')?'人物立绘':'回忆卡面',path,item.status,item.size+aspect])tr.append(node('td',value));rows.append(tr)}
+  $('auditSummary').textContent='检查完成：'+ok+' / '+names.length+' 已读取，'+(names.length-ok)+' 项缺失或加载失败。';
+ }catch(e){msg(e.message,true)}finally{btn.disabled=false}
+};
 function beijingInput(value){return value?new Date(Date.parse(value)+8*3600000).toISOString().slice(0,19):''}
 function scheduleInput(value){return value?(value.length===16?value+':00':value)+'+08:00':null}
 async function loadActivity(){const config=await req('activity');$('activityStartsAt').value=beijingInput(config.startsAt);$('activityEndsAt').value=beijingInput(config.endsAt);$('activityStatus').textContent='服务器状态：'+({upcoming:'未开始',active:'进行中',ended:'已结束'}[config.phase])+' · 时间均为北京时间'+(!config.startsAt&&!config.endsAt?' · 当前不限时':'')}
@@ -99,9 +107,28 @@ $('coinGrantCheck').onclick=async()=>{try{const id=$('coinGrantId').value.trim()
 $('coinGrantForm').onsubmit=async e=>{e.preventDefault();if(!checkedGrant)return;if(!confirm('确认向「'+checkedGrant.nickname+'」('+checkedGrant.userId+') 发放 '+checkedGrant.amount+' 枚金币吗？\\n原因：'+checkedGrant.reason))return;const btn=$('coinGrantSubmit');btn.disabled=true;try{const out=await req('coins/grant',{...checkedGrant,requestId:grantRequestId});$('coinGrantPreview').textContent=(out.alreadyProcessed?'这笔发放此前已处理':'发放成功')+'，岛民当前余额 '+out.coins+' 金币';checkedGrant=null;grantRequestId=null;await loadCoinGrants();msg('金币发放已保存至流水和后台审计')}catch(err){$('coinGrantPreview').textContent='发放状态待确认：'+err.message+'。请勿重复点击；先刷新发放记录。';btn.disabled=false}};
 $('coinGrantReload').onclick=()=>loadCoinGrants().catch(e=>msg(e.message,true));document.addEventListener('admin-page',e=>{if(e.detail==='coins')loadCoinGrants().catch(err=>msg(err.message,true))});
 </script><script>
-let islanderRecoverySelected=null;
-$('islanderSearchButton').onclick=async()=>{const term=$('islanderSearchText').value.trim();$('islanderSearchResults').replaceChildren();$('islanderRecoveryAction').hidden=true;islanderRecoverySelected=null;try{const result=await req('islanders/find?q='+encodeURIComponent(term));$('islanderSearchStatus').textContent='找到 '+result.items.length+' 条匹配记录。请核对同名账户。';for(const u of result.items){const line=node('div','');line.className='flex';line.style.cssText='padding:10px;border-bottom:1px solid #c1d9e8';line.append(node('span',u.nickname+' · '+u.id+' · '+u.coins+'金币 · '+(u.status==='verified'?'已认证':'未认证')));const send=node('button','填入金币发放');send.type='button';send.onclick=()=>{$('coinGrantId').value=u.id;$('coinGrantId').dispatchEvent(new Event('input'));window.showAdminPage?.('coins')};const reset=node('button','账户找回');reset.type='button';reset.className='secondary';reset.onclick=()=>{islanderRecoverySelected=u;$('islanderRecoverySelected').textContent='待找回：'+u.nickname+' / '+u.id;$('islanderRecoveryAction').hidden=false;$('islanderRecoveryNote').value='';$('islanderRecoveryConfirmed').checked=false;$('islanderRecoveryResult').textContent=''};line.append(send,reset);$('islanderSearchResults').append(line)}}catch(e){$('islanderSearchStatus').textContent=e.message}};
-$('islanderResetKey').onclick=async()=>{const u=islanderRecoverySelected,note=$('islanderRecoveryNote').value.trim();if(!u||!$('islanderRecoveryConfirmed').checked||note.length<6)return $('islanderRecoveryResult').textContent='请先完成身份核验并填写说明';if(!confirm('此操作会立即使 '+u.nickname+'（'+u.id+'）的旧恢复密钥及所有登录会话失效。确定已核实本人吗？'))return;const button=$('islanderResetKey');button.disabled=true;try{const out=await req('islanders/reset-key',{userId:u.id,confirmed:true,note});$('islanderRecoveryResult').textContent='新恢复密钥（仅展示一次，请妥善交给本人）：\\n'+out.recoveryKey+'\\n'+out.warning;msg('恢复密钥已重置，旧账户资料完整保留')}catch(e){$('islanderRecoveryResult').textContent=e.message}finally{button.disabled=false}};
+let islanderRecoverySelected=null,recoveryRevision=0;
+function clearRecoveryCredential(){recoveryRevision++;islanderRecoverySelected=null;$('islanderRecoveryResult').replaceChildren();$('islanderRecoveryAction').hidden=true}
+$('logout').addEventListener('click',clearRecoveryCredential);
+document.addEventListener('admin-page',event=>{if(event.detail!=='recovery')clearRecoveryCredential()});
+$('islanderSearchButton').onclick=async()=>{clearRecoveryCredential();const term=$('islanderSearchText').value.trim();$('islanderSearchResults').replaceChildren();$('islanderRecoveryAction').hidden=true;islanderRecoverySelected=null;try{const result=await req('islanders/find?q='+encodeURIComponent(term));$('islanderSearchStatus').textContent='找到 '+result.items.length+' 条匹配记录。请核对同名账户。';for(const u of result.items){const line=node('div','');line.className='flex';line.style.cssText='padding:10px;border-bottom:1px solid #c1d9e8';line.append(node('span',u.nickname+' · '+u.id+' · '+u.coins+'金币 · '+(u.status==='verified'?'已认证':'未认证')));const send=node('button','填入金币发放');send.type='button';send.onclick=()=>{$('coinGrantId').value=u.id;$('coinGrantId').dispatchEvent(new Event('input'));window.showAdminPage?.('coins')};const reset=node('button','账户找回');reset.type='button';reset.className='secondary';reset.onclick=()=>{recoveryRevision++;islanderRecoverySelected=u;$('islanderRecoverySelected').textContent='待找回：'+u.nickname+' / '+u.id;$('islanderRecoveryAction').hidden=false;$('islanderRecoveryNote').value='';$('islanderRecoveryConfirmed').checked=false;$('islanderRecoveryResult').textContent=''};line.append(send,reset);$('islanderSearchResults').append(line)}}catch(e){$('islanderSearchStatus').textContent=e.message}};
+$('islanderResetKey').onclick=async()=>{
+ const u=islanderRecoverySelected,note=$('islanderRecoveryNote').value.trim();
+ if(!u||!$('islanderRecoveryConfirmed').checked||note.length<6)return $('islanderRecoveryResult').textContent='请先完成身份核验并填写说明';
+ if(!confirm('此操作会立即使 '+u.nickname+'（'+u.id+'）的旧恢复密钥及所有登录会话失效。确定已核实本人吗？'))return;
+ const button=$('islanderResetKey'),result=$('islanderRecoveryResult'),revision=++recoveryRevision,credential=adminToken;button.disabled=true;result.replaceChildren();
+ try{
+  const out=await req('islanders/reset-key',{userId:u.id,confirmed:true,note});
+  if(revision!==recoveryRevision||credential!==adminToken)return;
+  result.append(node('p','新恢复密钥仅展示一次。请同时交付正确的岛民编号，复制密钥时不要附带说明文字。'));
+  const idLabel=node('label','岛民参与者编号：'+out.userId);result.append(idLabel);
+  const label=node('label','新恢复密钥（请保密）');label.htmlFor='islanderRecoveryKey';
+  const key=document.createElement('input');key.id='islanderRecoveryKey';key.value=out.recoveryKey;key.readOnly=true;key.autocomplete='off';key.spellcheck=false;key.addEventListener('click',()=>key.select());
+  const copy=node('button','复制新恢复密钥');copy.id='islanderRecoveryCopy';copy.type='button';copy.className='secondary';
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(key.value);msg('新恢复密钥已复制，请通过核验过的渠道交付本人')}catch{key.focus();key.select();msg('自动复制不可用，请复制已选中的密钥',true)}};
+  result.append(label,key,copy,node('p',out.warning));msg('恢复密钥已重置，旧账户资料完整保留');
+ }catch(e){if(revision===recoveryRevision&&credential===adminToken)result.textContent=e.message}finally{button.disabled=false}
+};
 </script><script src="/admin/membership.js"></script><script src="/admin/maintenance.js"></script><script src="/admin/messages.js"></script><script src="/admin/residents.js"></script><script src="/admin/account-recovery.js"></script><script src="/admin/navigation.js"></script></body></html>
 
 

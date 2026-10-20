@@ -88,7 +88,7 @@ function check(value,label){assert.ok(value,label);checks++;}
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.locator('.pencil-reveal').scrollIntoViewIfNeeded();
   await page.locator('.pencil-replay').click();
-  const playback=await page.waitForFunction(()=>{const v=document.querySelector('.pencil-reveal video');return v.currentTime>.15&&!v.paused;});
+  let playback;try{playback=await page.waitForFunction(()=>{const v=document.querySelector('.pencil-reveal video');return v.currentTime>.15&&!v.paused;},{},{timeout:10000});}catch(error){console.error('VIDEO_DIAGNOSTIC',await video.evaluate(v=>({time:v.currentTime,duration:v.duration,paused:v.paused,ready:v.readyState,error:v.error?.message,src:v.currentSrc,codec:v.canPlayType('video/mp4; codecs="avc1.42E01E"'),motion:document.querySelector('.world').dataset.motion,hidden:document.hidden,rect:v.getBoundingClientRect().toJSON()})));throw error;}
   check(await playback.jsonValue(),'Drawing process is a real playable sequence');await playback.dispose();
   await page.locator('#motion-toggle').click();
   check(await video.evaluate(v=>v.paused),'Global switch pauses drawing playback');
@@ -139,7 +139,7 @@ function check(value,label){assert.ok(value,label);checks++;}
   check(Boolean(port),'Temporary production server starts');
   const live=`http://127.0.0.1:${port}`;
   for(const [path,type] of [['/assets/pencil/postcard.png','image/png'],['/assets/pencil/postcard-drawing.mp4','video/mp4']]){const response=await fetch(live+path);check(response.status===200&&response.headers.get('content-type')===type,`Actual production route serves ${path} with the correct MIME`);}
-  const registered=await fetch(live+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:'隔离未认证贴纸检查'})}).then(r=>r.json());
+  const registered=await fetch(live+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:'Isolated-test-password-2026!',nickname:'隔离未认证贴纸检查'})}).then(r=>r.json());
   const visitor=await browser.newContext({viewport:{width:390,height:1000},reducedMotion:'reduce'});
   await visitor.addInitScript(token=>sessionStorage.setItem('buzhi-online-token',token),registered.token);
   await visitor.route('**/*',r=>r.request().url().startsWith(live+'/')?r.continue():r.abort());
@@ -152,3 +152,4 @@ function check(value,label){assert.ok(value,label);checks++;}
   check(errors.length===0,`No browser errors: ${errors.join('; ')}`);
   console.log(`PASS ${checks} pencil-case assertions: ${process.argv.includes('--features-only')?'targeted interactions':'seven treatments, eleven pages, three widths'} and production assets`);
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();await new Promise(r=>staticServer.close(r));if(productionServer){const stopped=new Promise(r=>productionServer.once('exit',r));productionServer.kill();await stopped;}if(folder)rmSync(folder,{recursive:true,force:true});});
+

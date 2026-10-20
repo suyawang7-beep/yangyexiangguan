@@ -4,8 +4,18 @@ let browser,logs='',release;
 const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..'),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:join(folder,'test.sqlite'),ADMIN_TOKEN:'isolated-race-admin-token-0000000000'},stdio:['ignore','ignore','pipe']});server.stderr.on('data',c=>logs+=c);
 (async()=>{
  let ready=false;for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}assert(ready,logs);
- const account=await fetch(base+'/api/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nickname:'申请并发测试'})}).then(r=>r.json());
+ const account=await fetch(base+'/api/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:'Isolated-test-password-2026!',nickname:'申请并发测试'})}).then(r=>r.json());
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
+ // Hold the final account render until the user has typed into certification.
+ const draftPage=await browser.newPage();await draftPage.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),account.token);
+ let releaseMe,meSeen;const meGate=new Promise(r=>releaseMe=r),meHeld=new Promise(r=>meSeen=r);
+ await draftPage.route('**/api/me',async route=>{const response=await route.fetch();meSeen();await meGate;await route.fulfill({response});});
+ await draftPage.goto(base+'/passport.html',{waitUntil:'domcontentloaded'});await meHeld;await draftPage.locator('#membershipApplyForm').waitFor();
+ await draftPage.locator('#douyinId').fill('draft_before_profile');await draftPage.locator('#membershipNote').fill('账号资料稍后返回时也要保留这段输入');
+ releaseMe();await draftPage.locator('#public-id').waitFor();
+ assert.equal(await draftPage.locator('#douyinId').inputValue(),'draft_before_profile','Late account render must preserve certification input');
+ assert.equal(await draftPage.locator('#membershipNote').inputValue(),'账号资料稍后返回时也要保留这段输入');await draftPage.close();
+ console.log('PASS late account render preserves certification draft');
  const page=await browser.newPage();await page.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),account.token);
  await page.goto(base+'/verify.html',{waitUntil:'networkidle'});await page.locator('#membershipApplyForm').waitFor();
  let captured;const held=new Promise(resolve=>captured=resolve),gate=new Promise(resolve=>release=resolve);

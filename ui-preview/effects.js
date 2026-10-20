@@ -16,7 +16,7 @@
   const SVG = 'http://www.w3.org/2000/svg';
   const featureStyles = document.createElement('link');
   featureStyles.rel = 'stylesheet';
-  featureStyles.href = new URL('effects.css?v=20261017-glass5', document.currentScript.src).href;
+  featureStyles.href = new URL('effects.css?v=20261020-milestone1', document.currentScript.src).href;
   document.head.append(featureStyles);
   const glassStyles = document.createElement('link');
   glassStyles.rel = 'stylesheet'; glassStyles.id = 'glass-surfaces';
@@ -119,8 +119,11 @@
     document.querySelectorAll('.guide-water-motion,.guide-cloud-motion').forEach(el => {
       if (ambientItems.has(el)) return;
       const water=el.classList.contains('guide-water-motion');
-      const frames=water?[{strokeDashoffset:0,opacity:.2},{strokeDashoffset:-71,opacity:.55}]:[{transform:'translateX(-12px)',opacity:.12},{transform:'translateX(16px)',opacity:.23}];
-      bindAmbient(el,[el.animate(frames,{duration:water?8500:23000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'})],true);
+      const ink=el.querySelector('.guide-motion-ink')||el;
+      const harbor=el.dataset.guideFeature==='harbor';
+      const frames=water?[{strokeDashoffset:0,opacity:.12},{strokeDashoffset:harbor?-36:-48,opacity:.32}]:[{transform:'translateX(-3px)',opacity:.1},{transform:'translateX(3px)',opacity:.18}];
+      // Keep the clip region fixed. Only ink inside the registered sea/valley moves.
+      bindAmbient(el,[ink.animate(frames,{duration:water?(harbor?10500:14500):26000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'})],true);
     });
     if(!ambientMutationObserver){
       ambientMutationObserver=new MutationObserver(records=>{
@@ -392,17 +395,34 @@
     addEventListener('hashchange', onHash); onHash();
   }
 
+  const progressByAccount=new Map();
+  let milestoneTimers=[],activeMilestone=null;
+  function clearMilestone(){
+    milestoneTimers.forEach(clearTimeout);milestoneTimers=[];
+    if(activeMilestone){activeMilestone.closest('.bird-journey')?.classList.remove('has-milestone-gift');activeMilestone.remove();activeMilestone=null}
+  }
+  document.addEventListener('buzhi:render',clearMilestone);
+  subscribe(()=>{if(!enabled())clearMilestone()});
+  function revealMilestone(figure,n){
+    if(!figure.isConnected||!enabled()||!allowedMode('effectProgress'))return;
+    const card=document.createElement('div');card.className='milestone-surprise';card.dataset.milestoneCelebration=String(n);card.setAttribute('role','status');
+    card.innerHTML=`<div class="milestone-package ${n===3?'milestone-envelope':'milestone-present'}" aria-hidden="true"><span>✦</span></div><div class="milestone-message"><small>${n} 项任务 · 小岛的惊喜</small><strong>${n===3?'肥啾送来一封星光信':'庆典礼盒送达啦'}</strong><span>阶段奖励 +25 金币已到账</span></div><div class="milestone-sparkles" aria-hidden="true">${Array.from({length:8},(_,i)=>`<i style="--sx:${12+i*11}%;--sy:${i%2?15:80}%;--sd:${i*.07}s">${n===3?'✦':'✧'}</i>`).join('')}</div>`;
+    activeMilestone=card;figure.after(card);
+    const r=figure.querySelector('.flight-bird').getBoundingClientRect();document.dispatchEvent(new CustomEvent('buzhi:burst',{detail:{x:r.x+r.width/2,y:r.y+r.height/2,count:innerWidth<620?12:20}}));
+    milestoneTimers.push(setTimeout(()=>{card.remove();figure.classList.remove('has-milestone-gift');if(activeMilestone===card)activeMilestone=null},2100));
+  }
   function installProgress() {
-    const track = document.querySelector('.progress-track'); if (!track) return;
-    const count = Number(track.dataset.completed || 0);
-    const figure = document.createElement('div'); figure.className = 'bird-journey';
-    figure.setAttribute('role', 'progressbar'); figure.setAttribute('aria-label', '不同任务完成进度'); figure.setAttribute('aria-valuemin', '0'); figure.setAttribute('aria-valuemax', '9'); figure.setAttribute('aria-valuenow', count);
-    const old = Number(sessionStorageSafe('buzhi-progress-last') || count);
-    figure.style.setProperty('--progress', `${clamp(old / 9 * 100, 0, 100)}%`);
-    figure.innerHTML = `<div class="flight-cloud cloud-left"></div><div class="flight-cloud cloud-right"></div><div class="flight-line"></div><div class="flight-bird">${bird}<span class="flight-envelope">✉</span></div><div class="flight-markers"><span>出发</span><span>3</span><span>6</span><span>9</span></div><p>每一次参与，都让肥啾飞得更远。</p>`;
-    track.replaceWith(figure);
-    requestAnimationFrame(() => figure.style.setProperty('--progress', `${clamp(count / 9 * 100, 0, 100)}%`));
-    try { sessionStorage.setItem('buzhi-progress-last', String(count)); } catch { /* Cosmetic progress memory. */ }
+    const track=document.querySelector('.progress-track');if(!track)return;
+    const count=Number(track.dataset.completed||0),account=track.dataset.account||'demo';
+    const fresh=[...new Set((track.dataset.newBonuses||'').split(',').map(Number).filter(n=>n===3||n===6))];
+    const previous=progressByAccount.has(account)?progressByAccount.get(account):count;
+    progressByAccount.set(account,count);
+    const figure=document.createElement('div');figure.className='bird-journey';
+    figure.setAttribute('role','progressbar');figure.setAttribute('aria-label','不同正式任务完成进度');figure.setAttribute('aria-valuemin','0');figure.setAttribute('aria-valuemax','9');figure.setAttribute('aria-valuenow',String(Math.min(9,count)));figure.setAttribute('aria-valuetext',`已完成 ${count} 种不同正式任务`);
+    figure.style.setProperty('--progress',`${clamp(previous/9*100,0,100)}%`);
+    figure.innerHTML=`<div class="flight-cloud cloud-left"></div><div class="flight-cloud cloud-right"></div><div class="flight-line"></div><div class="flight-bird">${bird}<span class="flight-envelope">✉</span></div><div class="flight-markers"><span>出发</span><span>3</span><span>6</span><span>9 · 待开放</span></div><p>每一次参与，都让肥啾飞得更远。</p>`;
+    track.replaceWith(figure);requestAnimationFrame(()=>figure.style.setProperty('--progress',`${clamp(count/9*100,0,100)}%`));
+    if(enabled()&&allowedMode('effectProgress'))fresh.forEach((n,i)=>milestoneTimers.push(setTimeout(()=>revealMilestone(figure,n),1200+i*2300)));
   }
   function sessionStorageSafe(key) { try { return sessionStorage.getItem(key); } catch { return null; } }
 
@@ -497,34 +517,34 @@
     const stage = voyage.querySelector('.guide-map-stage');
     const entries = Array.from(voyage.querySelector('#voyage-stops').content.querySelectorAll('[data-guide-entry]'));
     const pins = Array.from(voyage.querySelectorAll('[data-map-stop]'));
-    const points = [[792,496.5,1],[780,520,1.06],[810,500,1.06],[770,500,1.06],[810,515,1.06],[792,510,1.06]];
     const motion = () => enabled() && allowedMode('effectGuide');
-    let active = 0, desired = 0, position = 0, frame = 0;
+    let active = 0, unsubscribe;
+    // Artwork, leader lines and ground anchors always use the same fixed viewBox.
+    // Navigation pans the viewport, never the picture underneath HTML labels.
+    camera.setAttribute('transform','translate(0 0)');
     function placePins() {
       const matrix = camera.getScreenCTM(); if (!matrix) return;
       const bounds = stage.getBoundingClientRect();
+      const ratioX=stage.clientWidth/bounds.width,ratioY=stage.clientHeight/bounds.height;
       pins.forEach(pin => {
-        const point = new DOMPoint(Number(pin.dataset.mapX), Number(pin.dataset.mapY)).matrixTransform(matrix);
-        const half = pin.offsetWidth / 2;
-        pin.style.left = `${clamp(point.x - bounds.left, half + 8, bounds.width - half - 8)}px`;
-        pin.style.top = `${clamp(point.y - bounds.top, 30, bounds.height - 30)}px`;
+        const point = new DOMPoint(Number(pin.dataset.labelX), Number(pin.dataset.labelY)).matrixTransform(matrix);
+        pin.style.left = `${(point.x-bounds.left)*ratioX}px`;
+        pin.style.top = `${(point.y-bounds.top)*ratioY}px`;
       });
     }
-    function paint() {
-      if (!voyage.isConnected) return;
-      const i = Math.min(Math.floor(position), points.length - 2); const f = clamp(position - i, 0, 1);
-      const p = points[i].map((value, axis) => value + (points[i + 1][axis] - value) * f);
-      camera.setAttribute('transform', motion() ? `translate(792 496.5) scale(${p[2]}) translate(${-p[0]} ${-p[1]})` : 'translate(0 0)');
-      placePins();
-    }
-    function tick() {
-      frame = 0; position += (desired - position) * .12; if (Math.abs(desired - position) < .002) position = desired;
-      paint(); if (voyage.isConnected && motion() && position !== desired) frame = requestAnimationFrame(tick);
+    function panToActive(animate=false) {
+      if(!voyage.isConnected)return;
+      const chosen=pins.find(pin=>Number(pin.dataset.mapStop)===active);
+      const matrix=camera.getScreenCTM();if(!matrix)return;
+      const target=new DOMPoint(chosen?Number(chosen.dataset.mapX):792,chosen?Number(chosen.dataset.mapY):496.5).matrixTransform(matrix);
+      const bounds=map.getBoundingClientRect();
+      const left=map.scrollLeft+target.x-bounds.left-map.clientLeft-map.clientWidth/2;
+      map.scrollTo({left:clamp(left,0,map.scrollWidth-map.clientWidth),behavior:animate&&motion()?'smooth':'instant'});
     }
     function select(index) {
-      active = desired = clamp(index, 0, entries.length - 1);
+      active = clamp(index, 0, entries.length - 1);
       const entry = entries[active], action = entry.querySelector('a');
-      voyage.querySelector('#voyage-count').textContent = `${String(active + 1).padStart(2, '0')} / 06`;
+      voyage.querySelector('#voyage-count').textContent = `${String(active + 1).padStart(2, '0')} / ${String(entries.length).padStart(2,'0')}`;
       voyage.querySelector('#voyage-location').textContent = entry.dataset.location;
       voyage.querySelector('#voyage-card-title').textContent = entry.querySelector('h2').textContent;
       voyage.querySelector('#voyage-card-copy').textContent = entry.querySelector('p').textContent;
@@ -536,18 +556,17 @@
       voyage.querySelector('#voyage-overview').setAttribute('aria-pressed', String(active === 0));
       voyage.dataset.stop = active;
       pins.forEach(pin => pin.setAttribute('aria-pressed', String(Number(pin.dataset.mapStop) === active)));
-      if (!motion()) { position = desired; paint(); } else if (!frame) frame = requestAnimationFrame(tick);
-      const chosen = pins.find(pin => Number(pin.dataset.mapStop) === active);
-      const x = chosen ? Number(chosen.dataset.mapX) / 1584 * stage.clientWidth : 792 / 1584 * stage.clientWidth;
-      map.scrollTo({left:clamp(x-map.clientWidth/2,0,stage.clientWidth-map.clientWidth),behavior:motion()?'smooth':'instant'});
+      voyage.querySelectorAll('[data-guide-leader],[data-guide-anchor]').forEach(el=>el.dataset.active=String(Number(el.dataset.guideLeader||el.dataset.guideAnchor)===active));
+      placePins();panToActive(true);
     }
     voyage.querySelector('#voyage-prev').onclick = () => select(active - 1);
     voyage.querySelector('#voyage-next').onclick = () => select(active + 1);
     voyage.querySelector('#voyage-overview').onclick = () => select(0);
     pins.forEach(pin => { pin.onclick = () => select(Number(pin.dataset.mapStop)); });
-    new ResizeObserver(paint).observe(stage);
-    subscribe(() => { cancelAnimationFrame(frame); frame = 0; position = desired; paint(); });
-    document.fonts.ready.then(placePins);
+    const resize=new ResizeObserver(()=>{if(!voyage.isConnected){resize.disconnect();return;}placePins();panToActive();});
+    resize.observe(stage);resize.observe(map);
+    unsubscribe=subscribe(()=>{if(!voyage.isConnected){resize.disconnect();unsubscribe?.();return;}if(!motion())panToActive();});
+    document.fonts.ready.then(()=>{if(voyage.isConnected){placePins();panToActive();}});
     voyage.dataset.guideReady = 'true'; select(0);
   }
 

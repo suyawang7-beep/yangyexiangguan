@@ -12,7 +12,7 @@ const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..
 let browser,logs='';server.stderr.on('data',c=>logs+=c);
 (async()=>{
  let ready=false;for(let i=0;i<60;i++){try{if((await fetch(base+'/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}assert(ready,logs);
- const account=await fetch(base+'/api/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nickname:'下载验收'})}).then(r=>r.json());
+ const account=await fetch(base+'/api/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:'Isolated-test-password-2026!',nickname:'下载验收'})}).then(r=>r.json());
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
  for(const width of [390,1440]){
   const page=await browser.newPage({viewport:{width,height:900},acceptDownloads:true});

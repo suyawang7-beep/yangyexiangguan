@@ -18,7 +18,7 @@ body[data-page="guide"] .world .guide-map-art{display:block;width:100%;height:10
 .map-pins{position:absolute;inset:0;pointer-events:none;visibility:hidden}
 [data-guide-ready="true"] .map-pins{visibility:visible}
 .island-map-pin{position:absolute;display:flex;align-items:center;justify-content:center;gap:5px;min-width:68px;min-height:44px;padding:7px 10px;transform:translate(-50%,-50%);pointer-events:auto;border:1px solid #fff;border-radius:6px 14px 6px 14px;background:#f6fbf5ed;color:#2d5363;box-shadow:0 4px 12px #234a6040;font-size:12px;white-space:nowrap;transition:background .2s,box-shadow .2s}
-.island-map-pin:after{content:'';position:absolute;left:calc(50% - 4px);bottom:-5px;width:8px;height:8px;background:inherit;transform:rotate(45deg);border-right:1px solid white;border-bottom:1px solid white}
+.island-map-pin:after{display:none}
 .island-map-pin .icon{width:13px;height:13px}
 .island-map-pin:hover{background:#fff}
 .island-map-pin[aria-pressed="true"]{background:#285c69;color:#fff;box-shadow:0 0 0 4px #ffffff70,0 6px 18px #294f6b40}
@@ -33,7 +33,14 @@ body[data-page="guide"] .world .guide-info{position:relative;inset:auto;width:10
 .guide-info>p{font-size:12px;line-height:1.9;margin:0;color:#416878;max-width:800px;grid-column:1}
 .guide-destination{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:44px;font-size:12px;color:#2e6279;grid-column:2;grid-row:1/4;align-self:center}
 .guide-destination .icon{width:16px;height:16px}
-.guide-water-motion,.guide-cloud-motion{pointer-events:none}.guide-water-motion{opacity:.38}
+.guide-water-motion,.guide-cloud-motion,.guide-landmarks{pointer-events:none}
+.guide-water-motion{fill:none;stroke:#e3ffff;stroke-width:2;stroke-linecap:round;stroke-dasharray:10 18 3 17}
+.guide-cloud-motion{fill:#fff;stroke:none}
+.guide-landmarks{opacity:1}
+.guide-landmarks line{stroke:#426775;stroke-width:1.5;stroke-dasharray:3 4;vector-effect:non-scaling-stroke;opacity:.8}
+.guide-landmarks circle{fill:#f9ffff;stroke:#426775;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.guide-landmarks line[data-active="true"]{stroke:#244e61;stroke-width:2;stroke-dasharray:none;opacity:1}
+.guide-landmarks circle[data-active="true"]{fill:#c7eff6;stroke:#244e61;stroke-width:3}
 body[data-page="guide"] .world .scene-decor{height:74px;margin:10px auto 20px;max-width:600px}
 body[data-page="guide"] .world .scene-decor .island-sticker{width:55px;height:55px}
 @media(max-width:620px){
