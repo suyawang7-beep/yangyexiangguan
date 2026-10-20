@@ -119,8 +119,11 @@
     document.querySelectorAll('.guide-water-motion,.guide-cloud-motion').forEach(el => {
       if (ambientItems.has(el)) return;
       const water=el.classList.contains('guide-water-motion');
-      const frames=water?[{strokeDashoffset:0,opacity:.2},{strokeDashoffset:-71,opacity:.55}]:[{transform:'translateX(-12px)',opacity:.12},{transform:'translateX(16px)',opacity:.23}];
-      bindAmbient(el,[el.animate(frames,{duration:water?8500:23000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'})],true);
+      const ink=el.querySelector('.guide-motion-ink')||el;
+      const harbor=el.dataset.guideFeature==='harbor';
+      const frames=water?[{strokeDashoffset:0,opacity:.12},{strokeDashoffset:harbor?-36:-48,opacity:.32}]:[{transform:'translateX(-3px)',opacity:.1},{transform:'translateX(3px)',opacity:.18}];
+      // Keep the clip region fixed. Only ink inside the registered sea/valley moves.
+      bindAmbient(el,[ink.animate(frames,{duration:water?(harbor?10500:14500):26000,iterations:Infinity,direction:'alternate',easing:'ease-in-out'})],true);
     });
     if(!ambientMutationObserver){
       ambientMutationObserver=new MutationObserver(records=>{
@@ -514,34 +517,34 @@
     const stage = voyage.querySelector('.guide-map-stage');
     const entries = Array.from(voyage.querySelector('#voyage-stops').content.querySelectorAll('[data-guide-entry]'));
     const pins = Array.from(voyage.querySelectorAll('[data-map-stop]'));
-    const points = [[792,496.5,1],[780,520,1.06],[810,500,1.06],[770,500,1.06],[810,515,1.06],[792,510,1.06]];
     const motion = () => enabled() && allowedMode('effectGuide');
-    let active = 0, desired = 0, position = 0, frame = 0;
+    let active = 0, unsubscribe;
+    // Artwork, leader lines and ground anchors always use the same fixed viewBox.
+    // Navigation pans the viewport, never the picture underneath HTML labels.
+    camera.setAttribute('transform','translate(0 0)');
     function placePins() {
       const matrix = camera.getScreenCTM(); if (!matrix) return;
       const bounds = stage.getBoundingClientRect();
+      const ratioX=stage.clientWidth/bounds.width,ratioY=stage.clientHeight/bounds.height;
       pins.forEach(pin => {
-        const point = new DOMPoint(Number(pin.dataset.mapX), Number(pin.dataset.mapY)).matrixTransform(matrix);
-        const half = pin.offsetWidth / 2;
-        pin.style.left = `${clamp(point.x - bounds.left, half + 8, bounds.width - half - 8)}px`;
-        pin.style.top = `${clamp(point.y - bounds.top, 30, bounds.height - 30)}px`;
+        const point = new DOMPoint(Number(pin.dataset.labelX), Number(pin.dataset.labelY)).matrixTransform(matrix);
+        pin.style.left = `${(point.x-bounds.left)*ratioX}px`;
+        pin.style.top = `${(point.y-bounds.top)*ratioY}px`;
       });
     }
-    function paint() {
-      if (!voyage.isConnected) return;
-      const i = Math.min(Math.floor(position), points.length - 2); const f = clamp(position - i, 0, 1);
-      const p = points[i].map((value, axis) => value + (points[i + 1][axis] - value) * f);
-      camera.setAttribute('transform', motion() ? `translate(792 496.5) scale(${p[2]}) translate(${-p[0]} ${-p[1]})` : 'translate(0 0)');
-      placePins();
-    }
-    function tick() {
-      frame = 0; position += (desired - position) * .12; if (Math.abs(desired - position) < .002) position = desired;
-      paint(); if (voyage.isConnected && motion() && position !== desired) frame = requestAnimationFrame(tick);
+    function panToActive(animate=false) {
+      if(!voyage.isConnected)return;
+      const chosen=pins.find(pin=>Number(pin.dataset.mapStop)===active);
+      const matrix=camera.getScreenCTM();if(!matrix)return;
+      const target=new DOMPoint(chosen?Number(chosen.dataset.mapX):792,chosen?Number(chosen.dataset.mapY):496.5).matrixTransform(matrix);
+      const bounds=map.getBoundingClientRect();
+      const left=map.scrollLeft+target.x-bounds.left-map.clientLeft-map.clientWidth/2;
+      map.scrollTo({left:clamp(left,0,map.scrollWidth-map.clientWidth),behavior:animate&&motion()?'smooth':'instant'});
     }
     function select(index) {
-      active = desired = clamp(index, 0, entries.length - 1);
+      active = clamp(index, 0, entries.length - 1);
       const entry = entries[active], action = entry.querySelector('a');
-      voyage.querySelector('#voyage-count').textContent = `${String(active + 1).padStart(2, '0')} / 06`;
+      voyage.querySelector('#voyage-count').textContent = `${String(active + 1).padStart(2, '0')} / ${String(entries.length).padStart(2,'0')}`;
       voyage.querySelector('#voyage-location').textContent = entry.dataset.location;
       voyage.querySelector('#voyage-card-title').textContent = entry.querySelector('h2').textContent;
       voyage.querySelector('#voyage-card-copy').textContent = entry.querySelector('p').textContent;
@@ -553,18 +556,17 @@
       voyage.querySelector('#voyage-overview').setAttribute('aria-pressed', String(active === 0));
       voyage.dataset.stop = active;
       pins.forEach(pin => pin.setAttribute('aria-pressed', String(Number(pin.dataset.mapStop) === active)));
-      if (!motion()) { position = desired; paint(); } else if (!frame) frame = requestAnimationFrame(tick);
-      const chosen = pins.find(pin => Number(pin.dataset.mapStop) === active);
-      const x = chosen ? Number(chosen.dataset.mapX) / 1584 * stage.clientWidth : 792 / 1584 * stage.clientWidth;
-      map.scrollTo({left:clamp(x-map.clientWidth/2,0,stage.clientWidth-map.clientWidth),behavior:motion()?'smooth':'instant'});
+      voyage.querySelectorAll('[data-guide-leader],[data-guide-anchor]').forEach(el=>el.dataset.active=String(Number(el.dataset.guideLeader||el.dataset.guideAnchor)===active));
+      placePins();panToActive(true);
     }
     voyage.querySelector('#voyage-prev').onclick = () => select(active - 1);
     voyage.querySelector('#voyage-next').onclick = () => select(active + 1);
     voyage.querySelector('#voyage-overview').onclick = () => select(0);
     pins.forEach(pin => { pin.onclick = () => select(Number(pin.dataset.mapStop)); });
-    new ResizeObserver(paint).observe(stage);
-    subscribe(() => { cancelAnimationFrame(frame); frame = 0; position = desired; paint(); });
-    document.fonts.ready.then(placePins);
+    const resize=new ResizeObserver(()=>{if(!voyage.isConnected){resize.disconnect();return;}placePins();panToActive();});
+    resize.observe(stage);resize.observe(map);
+    unsubscribe=subscribe(()=>{if(!voyage.isConnected){resize.disconnect();unsubscribe?.();return;}if(!motion())panToActive();});
+    document.fonts.ready.then(()=>{if(voyage.isConnected){placePins();panToActive();}});
     voyage.dataset.guideReady = 'true'; select(0);
   }
 

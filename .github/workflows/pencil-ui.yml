@@ -7,10 +7,14 @@ on:
       - 'server/index.mjs'
       - 'tests/pencil-*'
       - 'tests/liquid-page-evidence.cjs'
+      - 'tests/resident-appearance.cjs'
+      - 'tests/resident-production.cjs'
+      - 'tests/guide-alignment.cjs'
+      - 'tests/ambient-motion.cjs'
       - '.github/workflows/pencil-ui.yml'
   pull_request:
     branches: [main]
-    paths: ['ui-preview/**', 'server/index.mjs', 'tests/pencil-*', 'tests/liquid-page-evidence.cjs', '.github/workflows/pencil-ui.yml']
+    paths: ['ui-preview/**', 'server/index.mjs', 'tests/pencil-*', 'tests/liquid-page-evidence.cjs', 'tests/resident-appearance.cjs', 'tests/resident-production.cjs', 'tests/guide-alignment.cjs', 'tests/ambient-motion.cjs', '.github/workflows/pencil-ui.yml']
   workflow_dispatch:
 jobs:
   browser:
@@ -26,6 +30,14 @@ jobs:
       - run: npm install --no-save playwright@1.56.1
       # Use system Chrome with H.264 playback support; keep real playback assertions.
       - run: node tests/pencil-assets.mjs
+      - run: node tests/resident-appearance.cjs
+        env:
+          RESIDENT_EVIDENCE_DIR: ${{ runner.temp }}/resident-evidence
+      - run: node tests/resident-production.cjs
+      - run: node tests/guide-alignment.cjs
+        env:
+          GUIDE_EVIDENCE_DIR: ${{ runner.temp }}/guide-evidence
+      - run: node tests/ambient-motion.cjs
       - run: node tests/pencil-case.cjs
       - shell: pwsh
         run: |
@@ -36,3 +48,13 @@ jobs:
         with:
           name: computed-liquid-page-evidence
           path: ${{ runner.temp }}/liquid-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resident-appearance-evidence
+          path: ${{ runner.temp }}/resident-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guide-alignment-evidence
+          path: ${{ runner.temp }}/guide-evidence
