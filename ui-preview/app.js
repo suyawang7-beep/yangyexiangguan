@@ -174,6 +174,8 @@
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
+  let liveCatalogReady=false,liveCatalogFailed=false;
+  let latestLiveProfile=null,latestLiveProfileToken='',profileRevision=0;
   let liveOcProfiles=[];
   let managedAssets={};
   let managedVersions={};
@@ -222,10 +224,22 @@
   }
 
   async function liveApi(path,body){
-    const resp=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{...(liveToken?{'Authorization':'Bearer '+liveToken}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
-    let result;try{result=await resp.json()}catch{throw Error('账户服务器暂时不可用')}
-    if(!resp.ok)throw Error(result.error||'操作未完成');
-    return result;
+    const timed=body===undefined||path==='login'||path==='draw';
+    const controller=timed?new AbortController():null;let timer;
+    const timeoutError=()=>Object.assign(Error(path==='draw'?'抽卡结果尚未确认，请先查看收藏和抽卡记录，勿重复抽取。':'网络响应较慢，请稍后重试。'),{code:'NETWORK_TIMEOUT',uncertain:path==='draw'});
+    const request=(async()=>{
+      const resp=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{...(liveToken?{'Authorization':'Bearer '+liveToken}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},...(controller?{signal:controller.signal}:{}),...(body===undefined?{}:{body:JSON.stringify(body)})});
+      let result;try{result=await resp.json()}catch{throw Object.assign(Error('账户服务器暂时不可用'),{status:resp.status,uncertain:path==='draw'&&resp.ok})}
+      if(!resp.ok)throw Object.assign(Error(result.error||'操作未完成'),{status:resp.status});
+      return result;
+    })();
+    try{
+      if(!timed)return await request;
+      return await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>{reject(timeoutError());controller.abort()},15000)})]);
+    }catch(err){
+      if(path==='draw'&&!err.status){err.uncertain=true;err.message='抽卡结果尚未确认，请先查看收藏和抽卡记录，勿重复抽取。'}
+      throw err;
+    }finally{if(timer!==undefined)clearTimeout(timer)}
   }
   function takeProfile(profile,{celebrate=false}={}){
     const fresh=celebrate&&state.passport?.id===profile.id?profile.bonuses.filter(n=>[3,6].includes(n)&&!state.bonuses.includes(n)):[];
@@ -249,10 +263,28 @@
   }
   async function liveInit(){
     TASKS=LIVE_TASKS;
-    await loadManagedArtwork();
-    try{const [catalog,oc]=await Promise.all([liveApi('catalog'),liveApi('oc')]);liveCatalog=catalog.cards;for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters};liveOcProfiles=oc}catch(e){toast(e.message)}
-    if(liveToken){try{takeProfile(await liveApi('me'))}catch{liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}}
-    else renderPage();
+    const tokenAtStart=liveToken,revisionAtStart=profileRevision;
+    renderPage();
+    const artworkTask=loadManagedArtwork();
+    const catalogTask=(async()=>{
+      try{
+        const catalog=await liveApi('catalog');liveCatalog=catalog.cards;
+        for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}
+        liveCatalogReady=true;
+        if(latestLiveProfile&&liveToken&&latestLiveProfileToken===liveToken)takeProfile(latestLiveProfile);
+        else if(PAGE!=='passport')renderPage();
+      }catch(e){liveCatalogFailed=true;if(PAGE==='collection'||PAGE==='draw')renderPage();toast(e.message)}
+    })();
+    const ocTask=liveApi('oc').then(oc=>{liveOcProfiles=oc;if(PAGE==='islanders')renderPage()}).catch(e=>toast(e.message));
+    const profileTask=tokenAtStart?(async()=>{
+      try{const profile=await liveApi('me');if(liveToken===tokenAtStart&&profileRevision===revisionAtStart)takeProfile(profile)}
+      catch(e){
+        if(liveToken!==tokenAtStart||profileRevision!==revisionAtStart)return;
+        if(e.status===401){liveToken='';latestLiveProfile=null;sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}
+        else toast('暂时无法读取账户，登录状态已保留，请刷新重试。');
+      }
+    })():Promise.resolve();
+    await Promise.allSettled([artworkTask,catalogTask,ocTask,profileTask]);
   }
   function activeAsset(name,fallback){
     if(!LIVE)return fallback;
@@ -335,7 +367,7 @@
       </div>
       <section class="glass draw-info" aria-label="抽取生日回忆">
         <div class="draw-cost"><span>每次单抽 <strong>50</strong> 金币</span><i aria-hidden="true"></i><span>我的金币 <strong data-balance>${state.balance}</strong> 枚</span></div>
-        ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
+        ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 || (LIVE&&!liveCatalogReady) ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
         <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
         <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 32 张'}</span></div>
@@ -350,7 +382,7 @@
     const title = heading('05', 'Keep the moments that matter', '回忆收藏室', '不是每一个瞬间都会重来，但我们可以把它好好收起来。');
     const owned = Object.values(state.collection).filter((entry) => entry.quantity > 0).length;
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
-    return title + `<section class="glass collection-summary"><div><strong>${owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
+    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
       return card ? `<div class="history-row"><span class="rarity">${card.rarity}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
@@ -358,6 +390,7 @@
 
   function fillCollection() {
     const grid = document.querySelector('#collection-grid');
+    if(LIVE&&!liveCatalogReady){grid.innerHTML='<p class="info-note" role="status">'+(liveCatalogFailed?'暂时无法读取收藏目录，请刷新重试。已有卡片仍安全保存。':'正在读取收藏目录，已有卡片仍安全保存。')+'</p>';return}
     const cards = CARDS.filter((card) => {
       const quantity = state.collection[card.id]?.quantity || 0;
       return (filters.ownership === 'all' || (filters.ownership === 'owned' ? quantity > 0 : quantity === 0))
@@ -680,7 +713,8 @@
   }
   function bindLiveDraw(){
     document.querySelector('#draw-button')?.addEventListener('click',async()=>{
-      if(drawing||!state.passport||state.balance<50)return;drawing=true;
+      if(drawing||!state.passport||state.balance<50)return;
+      if(!liveCatalogReady){toast('卡片目录正在加载，请稍后再试。');return}drawing=true;
       const button=document.querySelector('#draw-button');button.disabled=true;
       try{const result=await liveApi('draw',{});const cardInfo=liveCatalog.find(c=>c.id===result.card.id);if(!cardInfo)throw Error('卡片目录缺少映射，请联系岛主');
         const card=CARDS.find(c=>c.id===cardInfo.previewId);
@@ -689,11 +723,11 @@
         stage.classList.remove('is-revealed');stage.classList.add('is-drawing');stage.setAttribute('aria-busy','true');
         document.querySelector('#stage-card').innerHTML=drawBack();
         document.querySelector('#draw-status').textContent='服务器已扣币并保存收藏，肥啾正在送达…';
-        const show=()=>{if(!drawing)return;drawing=false;stage.classList.remove('is-drawing');stage.classList.add('is-revealed');stage.setAttribute('aria-busy','false');document.querySelector('#stage-card').innerHTML=cardMarkup(card);document.querySelector('#draw-result-label').textContent=card.rarity+' · '+card.name;document.querySelector('#draw-status').textContent='已存入收藏 · '+card.name;button.disabled=state.balance<50;button.textContent='再寄出一份期待 ↗';};
+        const show=()=>{if(!drawing)return;drawing=false;stage.classList.remove('is-drawing');stage.classList.add('is-revealed');stage.setAttribute('aria-busy','false');document.querySelector('#stage-card').innerHTML=cardMarkup(card);document.querySelector('#draw-result-label').textContent=card.rarity+' · '+card.name;document.querySelector('#draw-status').textContent='已存入收藏 · '+card.name;const activeButton=document.querySelector('#draw-button');activeButton.disabled=state.balance<50;activeButton.textContent='再寄出一份期待 ↗';};
         setTimeout(show,document.querySelector('.world').dataset.motion==='off'||document.hidden?0:3000);
         document.addEventListener('buzhi:motion',()=>{if(drawing&&document.querySelector('.world').dataset.motion==='off')show()},{once:true});
         document.addEventListener('visibilitychange',()=>{if(document.hidden)show()},{once:true});
-      }catch(err){drawing=false;button.disabled=false;toast(err.message)}
+      }catch(err){drawing=false;const activeButton=document.querySelector('#draw-button');if(activeButton){activeButton.disabled=!!err.uncertain;if(err.uncertain)activeButton.textContent='请先到收藏室核对抽卡结果'}toast(err.message)}
     });
   }
   function bindCollection() {
