@@ -237,7 +237,7 @@
       if(!timed)return await request;
       return await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>{reject(timeoutError());controller.abort()},15000)})]);
     }catch(err){
-      if(path==='draw'&&!err.status){err.uncertain=true;err.message='抽卡结果尚未确认，请先查看收藏和抽卡记录，勿重复抽取。'}
+      if(path==='draw'&&(!err.status||err.status>=500)){err.uncertain=true;err.message='抽卡结果尚未确认，请先查看收藏和抽卡记录，勿重复抽取。'}
       throw err;
     }finally{if(timer!==undefined)clearTimeout(timer)}
   }
