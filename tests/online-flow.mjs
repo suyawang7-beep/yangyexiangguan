@@ -45,11 +45,11 @@ const assetAfter=await api('admin/assets',undefined,admin);assert(assetAfter.dat
 const initialCleanup=await api('admin/test-cleanup',undefined,admin);assert.equal(initialCleanup.status,200);assert.equal(initialCleanup.data.count,0);
 const deniedCleanup=await api('admin/test-cleanup',{confirm:'确认清理测试账户',ids:[]});assert.equal(deniedCleanup.status,403);
 const wrongCleanup=await api('admin/test-cleanup',{confirm:'wrong',ids:[]},admin);assert.equal(wrongCleanup.status,409);
-let c=await api('admin/codes',{taskId:'quiz',count:1},admin);assert.equal(c.status,200);
+let c=await api('admin/codes',{taskId:'commission',count:1},admin);assert.equal(c.status,200);
 let reg=await api('register',{password:'Isolated-test-password-2026!',nickname:'远程测试岛民'});assert.equal(reg.status,200);const {id,recoveryKey,token}=reg.data;assert.equal(reg.data.profile.coins,50);await verifyAccount(root,admin,reg.data);
-let bad=await api('redeem',{taskId:'quiz',code:'wrong'},token);assert.equal(bad.status,400);
-let red=await api('redeem',{taskId:'quiz',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,75);
-let again=await api('redeem',{taskId:'quiz',code:c.data.codes[0]},token);assert.notEqual(again.status,200);
+let bad=await api('redeem',{taskId:'commission',code:'wrong'},token);assert.equal(bad.status,400);
+let red=await api('redeem',{taskId:'commission',code:c.data.codes[0]},token);assert.equal(red.status,200);assert.equal(red.data.coins,75);
+let again=await api('redeem',{taskId:'commission',code:c.data.codes[0]},token);assert.notEqual(again.status,200);
 let sign=await api('checkin',{},token);assert.equal(sign.data.coins,85);
 let duplicate=await api('checkin',{},token);assert.equal(duplicate.status,409);
 let firstRealDraw=await api('draw',{},token);assert.equal(firstRealDraw.status,200);assert.equal(firstRealDraw.data.profile.coins,35);assert(['SSR','SR'].includes(firstRealDraw.data.card.rarity));
@@ -75,9 +75,9 @@ const badVisual=await api('admin/visual-settings',{...changedVisual,collectionFa
 assert.equal(badVisual.status,400);
 let detail=await api('admin/user?id='+encodeURIComponent(id),undefined,admin);assert.equal(detail.status,200);
 assert.equal(detail.data.user.id,id);assert.equal(detail.data.ledger.reduce((n,x)=>n+x.amount,0),35);
-assert(detail.data.tasks.some(t=>t.task_id==='quiz'));assert(detail.data.checkins.length===1);
+assert(detail.data.tasks.some(t=>t.task_id==='commission'));assert(detail.data.checkins.length===1);
 let forbiddenDetail=await api('admin/user?id='+encodeURIComponent(id));assert.equal(forbiddenDetail.status,403);
-let codeStats=await api('admin/code-stats',undefined,admin);assert.equal(codeStats.status,200);assert(codeStats.data.some(x=>x.task_id==='quiz'&&x.redeemed>=1));
+let codeStats=await api('admin/code-stats',undefined,admin);assert.equal(codeStats.status,200);assert(codeStats.data.some(x=>x.task_id==='commission'&&x.redeemed>=1));
 let audit=await api('admin/audit',undefined,admin);assert.equal(audit.status,200);
 assert(audit.data.some(x=>x.action==='codes.generate'));assert(audit.data.some(x=>x.action==='announcement.save'));
 assert(!JSON.stringify(audit.data).includes(recoveryKey));

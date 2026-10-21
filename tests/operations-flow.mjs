@@ -22,8 +22,8 @@ try{
  const empty=await api('admin/backups',undefined,admin);assert.equal(empty.status,200,'Admin can list snapshots');assert.deepEqual(empty.data,[]);
  const account=(await api('register',{password:'Isolated-test-password-2026!',nickname:'隔离备份测试'})).data;
  const {token,recoveryKey,id}=account;await verifyAccount(base,admin,account);
- const code=(await api('admin/codes',{taskId:'quiz',count:1},admin)).data.codes[0];
- await api('redeem',{taskId:'quiz',code},token);await api('checkin',{},token);await api('draw',{},token);
+ const code=(await api('admin/codes',{taskId:'commission',count:1},admin)).data.codes[0];
+ await api('redeem',{taskId:'commission',code},token);await api('checkin',{},token);await api('draw',{},token);
  db=new DatabaseSync(dbPath);
  // More than the admin list's 100-row cap: operational export must not silently truncate.
  const insert=db.prepare('INSERT INTO users(id,nickname,secret_hash,created_at) VALUES(?,?,?,?)');
