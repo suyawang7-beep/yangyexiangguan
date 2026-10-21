@@ -1,3 +1,4 @@
+import {listTaskWritings} from './task-writings.mjs';
 import {createMessageBoard} from './message-board.mjs';
 import {createAccountRecovery} from './account-recovery.mjs';
 import {createResidentCenter} from './resident-center.mjs';
@@ -15,8 +16,8 @@ import {dirname,resolve,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const ADMIN_PAGES=new Set(['messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery','residents','account-recovery']);
-const ADMIN_SCRIPTS=new Set(['messages.js','navigation.js','membership.js','maintenance.js','residents.js','account-recovery.js']);
+const ADMIN_PAGES=new Set(['task-writings','messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery','residents','account-recovery']);
+const ADMIN_SCRIPTS=new Set(['task-writings.js','messages.js','navigation.js','membership.js','maintenance.js','residents.js','account-recovery.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
 const BUILD_REVISION=/^[a-f0-9]{7,40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA||'')?process.env.RAILWAY_GIT_COMMIT_SHA:'unknown';
@@ -239,6 +240,7 @@ else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
 else if(path==='/api/messages'&&req.method==='GET')data={items:messageBoard.publicRows(),accepting:getActivity().phase==='active'};
 else if(path==='/api/messages'&&req.method==='POST'){requireActiveActivity();data=messageBoard.submit(auth(req),b)}
+else if(path==='/api/admin/task-writings'&&req.method==='GET'){admin(req);data=listTaskWritings(db,new URL(req.url,'http://localhost').searchParams)}
 else if(path==='/api/admin/messages'&&req.method==='GET'){admin(req);data=messageBoard.adminRows()}
 else if(path==='/api/admin/messages/reply'&&req.method==='POST'){admin(req);data=messageBoard.reply(b)}
 else if(path==='/api/admin/messages/moderate'&&req.method==='POST'){admin(req);data=messageBoard.moderate(b)}
