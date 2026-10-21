@@ -167,7 +167,7 @@
     {id:'arrival',title:'首次报到',text:'领取通行证即自动完成',reward:0,motif:'flag'},
     {id:'letter',title:'生日来信',text:'写给菜菜的话，不少于15字；每天可写一次并领取25金币',reward:25,motif:'heart'},
     {id:'memory',title:'岛屿回忆',text:'写下一段相遇与回忆，不少于15字；完成后领取25金币',reward:25,motif:'mail'},
-    {id:'quiz',title:'默契小测',text:'完成小测后领取代码',reward:25,motif:'star'},
+    {id:'quiz',title:'默契小测',text:'每天更新5题，答对至少3题领取25金币；点击直接答题',reward:25,motif:'star'},
     {id:'creative',title:'创作展投稿',text:'完成投稿后领取代码',reward:25,motif:'cards'},
     {id:'support',title:'直播应援',text:'每位岛民只能领取一次，完成应援后领取代码',reward:25,motif:'music'},
     {id:'commission',title:'临时委托',text:'接受岛主发布的活动委托',reward:25,motif:'bird'}
@@ -224,7 +224,7 @@
   }
 
   async function liveApi(path,body){
-    const timed=body===undefined||path==='login'||path==='draw';
+    const timed=body===undefined||path==='login'||path==='draw'||path==='quiz/submit';
     const controller=timed?new AbortController():null;let timer;
     const timeoutError=()=>Object.assign(Error(path==='draw'?'抽卡结果尚未确认，请先查看收藏和抽卡记录，勿重复抽取。':'网络响应较慢，请稍后重试。'),{code:'NETWORK_TIMEOUT',uncertain:path==='draw'});
     const request=(async()=>{
@@ -247,7 +247,8 @@
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
     state.balance=profile.coins;
     state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
-    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t.startsWith('letter:')?'letter':t);
+    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t.startsWith('letter:')?'letter':t.startsWith('quiz:')?'quiz':t);
+    state.quizRewarded=!!profile.quiz?.rewarded;
     state.bonuses=profile.bonuses;
     state.checkins=profile.checkins;
     state.demoIslander=true;
@@ -320,15 +321,15 @@
     const title = heading('02', 'Little tasks, little happiness', '岛民事务所', '庆典由每一位岛民一起完成。做一点小事，领取金币，也留下一份参与的证明。');
     if (!state.passport) return title + needPassport();
     return title + `<div class="office-layout"><div>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>${LIVE ? '已登录不等于已核验岛民。请完成对应活动后，填写岛主私信发放的代码，奖励以服务器记录为准。' : `若想体验任务界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button>`}</div>` : ''}<div class="info-note" style="margin-bottom:14px">🎨 创作展投稿已迁往 <a href="resident.html"><strong>岛民个人中心 · 创作工坊 ↗</strong></a>。历史完成记录及已领金币不受影响；新作品暂进入待审流程。</div><div class="task-list">${TASKS.filter(task => task.id !== 'arrival' && task.id !== 'creative').map((task) => {
-      const completed = state.tasks.includes(task.id);
+      const completed = LIVE&&task.id==='quiz'?state.quizRewarded:state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
-      return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : '输入完成代码'}</button>`}</div></article>`;
+      return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed&&!(LIVE&&task.id==='quiz') ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : LIVE&&task.id==='quiz' ? (completed?'查看今日答题':'开始答题') : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : '输入完成代码'}</button>`}</div></article>`;
     }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">完成不同正式任务可获得阶段奖励；首次报到不计入，同一种每日任务只算一次。</p><div class="progress-track" data-completed="${formalTaskCount()}" data-account="${esc(state.passport?.id||'demo')}" data-new-bonuses="${(state.pendingMilestones||[]).join(',')}"><span style="width:${Math.min(formalTaskCount() / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p id="task-dialog-tip" class="small muted">请填写岛主私信发放的一次性完成代码。</p><div id="task-writing-wrap" hidden><label for="task-writing">写下你的心意（不少于15字）</label><textarea id="task-writing" maxlength="2000" rows="6" placeholder="在这里写下想说的话…"></textarea><p id="task-writing-count" class="small muted">0 / 15 字</p></div><div class="form-field" id="task-code-wrap"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
   }
 
   function formalTaskCount(value=state){
     const count=value.taskProgress?.completed;if(Number.isSafeInteger(count)&&count>=0)return count;
-    return new Set(value.tasks.filter(t=>t!=='arrival'&&t!=='report').map(t=>t==='letter'||t.startsWith('letter:')?'letter':t)).size;
+    return new Set(value.tasks.filter(t=>t!=='arrival'&&t!=='report').map(t=>t==='letter'||t.startsWith('letter:')?'letter':t.startsWith('quiz:')?'quiz':t)).size;
   }
   function memorialCard(streak){
     const name='decor/checkin-memorial.webp',unlocked=streak>=7;
@@ -699,12 +700,70 @@
     };
     select(0);
   }
+  
+  // Native dialog keeps the approved page layout and keyboard focus behavior.
+  let quizOwnerToken='';
+  async function openLiveQuiz(retry=false){
+    const token=liveToken;
+    document.querySelector('#quiz-dialog')?.remove();
+    const modal=document.createElement('dialog');modal.id='quiz-dialog';modal.className='detail-dialog';
+    modal.setAttribute('aria-labelledby','quiz-title');modal.style.cssText='width:min(620px,calc(100vw - 28px));max-height:85dvh;overflow-y:auto';
+    modal.innerHTML='<style>#quiz-dialog{overflow-wrap:anywhere}#quiz-dialog fieldset{border:0;padding:0;margin:18px 0;min-width:0}#quiz-dialog legend{font-size:1.1rem;line-height:1.7;margin-bottom:14px}#quiz-dialog .quiz-choice{display:flex;align-items:flex-start;gap:10px;padding:13px;margin:10px 0;border:1px solid #b6d6e8;border-radius:14px;background:#ffffff80;cursor:pointer;line-height:1.6}#quiz-dialog input[type=radio]{width:18px;height:18px;min-height:0;flex:0 0 18px;margin-top:4px;accent-color:#5599c8}#quiz-dialog .quiz-nav{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}#quiz-dialog .quiz-nav button{min-height:44px}#quiz-feedback article{border-top:1px solid #c3dce9;padding:14px 0}#quiz-feedback p{line-height:1.8;white-space:pre-wrap}#quiz-status{min-height:1.7em}</style><button id="quiz-close" class="dialog-close" type="button" aria-label="关闭默契小测">×</button><h2 id="quiz-title">今日默契小测</h2><p class="small muted">每天5题 · 答对至少3题领取25金币 · 北京时间00:00换题</p><div id="quiz-body"></div><p id="quiz-status" role="status" aria-live="polite">正在取来今天的题目…</p>';
+    document.body.append(modal);quizOwnerToken=token;
+    const close=()=>{modal.close();modal.remove()};
+    modal.querySelector('#quiz-close').onclick=close;
+    modal.addEventListener('cancel',()=>modal.remove());
+    modal.showModal();
+    const host=modal.querySelector('#quiz-body'),status=modal.querySelector('#quiz-status');
+    const current=()=>modal.isConnected&&liveToken===token;
+    let deck,index=0,answers={},busy=false;
+    function result(out){
+      if(!current())return;
+      const rewarded=out.rewarded||out.alreadyRewarded||deck.rewarded;
+      const score=Number.isInteger(out.score)?'你答对了 '+out.score+' / 5 题':'今天的默契已记录';
+      host.innerHTML='<section id="quiz-result"><h3 tabindex="-1">'+esc(score)+'</h3><p>'+esc(out.rewardGranted===25?'今天的默契已送达 ♡ 25金币已到账。':rewarded?'今日25金币已领取，明天再来相遇吧。':'再答对几题就能领取啦，至少答对3题即可。')+'</p><div id="quiz-feedback">'+(out.feedback||[]).map((q,i)=>'<article><strong>'+esc((i+1)+'. '+q.prompt)+'</strong><p>'+esc(q.correct?'✓ 回答正确':'这题再记住一点点')+'<br>你的选择：'+esc(q.selectedText)+'<br>正确答案：'+esc(q.correctText)+'</p><p class="small muted">'+esc(q.explanation)+'</p></article>').join('')+'</div>'+(rewarded?'':'<button id="quiz-retry" class="btn primary full" type="button">再试一次</button>')+'</section>';
+      status.textContent=deck.date+' · '+deck.title+' · 明天北京时间00:00更新';
+      host.querySelector('#quiz-retry')?.addEventListener('click',()=>openLiveQuiz(true));
+      host.querySelector('h3').focus();
+    }
+    function question(){
+      if(!current())return;
+      const q=deck.questions[index];
+      host.innerHTML='<form id="quiz-form"><p id="quiz-progress" role="status">第 '+(index+1)+' / 5 题 · '+esc(deck.title)+'</p><fieldset id="quiz-question" data-question-id="'+esc(q.id)+'"><legend tabindex="-1">'+esc(q.prompt)+'</legend>'+q.options.map(o=>'<label class="quiz-choice"><input type="radio" name="answer" value="'+esc(o.id)+'" '+(answers[q.id]===o.id?'checked':'')+'><span>'+esc(o.text)+'</span></label>').join('')+'</fieldset><div class="quiz-nav"><button id="quiz-previous" class="btn" type="button" '+(index===0?'disabled':'')+'>上一题</button>'+(index<4?'<button id="quiz-next" class="btn primary" type="button">下一题</button>':'<button id="quiz-submit" class="btn primary" type="submit">提交5题</button>')+'</div></form>';
+      status.textContent=deck.date+' · 可以返回修改答案';
+      host.querySelectorAll('input').forEach(input=>input.onchange=()=>{answers[q.id]=input.value;status.textContent='已选择，可以继续'});
+      host.querySelector('#quiz-previous').onclick=()=>{if(index>0){index--;question()}};
+      host.querySelector('#quiz-next')?.addEventListener('click',()=>{if(!answers[q.id]){status.textContent='先选一个答案吧';return}index++;question()});
+      host.querySelector('#quiz-form').onsubmit=async event=>{
+        event.preventDefault();if(busy)return;
+        const missing=deck.questions.findIndex(q=>!answers[q.id]);
+        if(missing>=0){index=missing;question();status.textContent='还有一道题没有作答哦';return}
+        busy=true;host.querySelectorAll('button,input').forEach(e=>e.disabled=true);status.textContent='正在核对答案与奖励…';
+        try{
+          const out=await liveApi('quiz/submit',{date:deck.date,answers:deck.questions.map(q=>({questionId:q.id,optionId:answers[q.id]}))});
+          if(!current())return;
+          profileRevision++;takeProfile(out.profile,{celebrate:out.rewardGranted===25});result(out);
+        }catch(e){
+          if(!current())return;
+          busy=false;host.querySelectorAll('button,input').forEach(e=>e.disabled=false);status.textContent=e.status===409?e.message+'。请关闭后重新打开。':e.message+'，可重新提交；同一天不会重复发放奖励。';
+        }
+      };
+      host.querySelector('legend').focus();
+    }
+    try{
+      deck=await liveApi('quiz');if(!current())return;
+      if(deck.rewarded||(!retry&&deck.latest))result(deck.latest||{alreadyRewarded:true});else question();
+    }catch(e){
+      if(!current())return;status.textContent='读取失败：'+e.message;host.innerHTML='<button id="quiz-load-again" type="button" class="btn primary">重新读取</button>';host.querySelector('button').onclick=()=>openLiveQuiz(retry);
+    }
+  }
+
   function bindLiveOffice(){
     const dialog=document.querySelector('#task-dialog');if(!dialog)return;let task=null;
     const writing=dialog.querySelector('#task-writing'),count=dialog.querySelector('#task-writing-count'),tip=dialog.querySelector('#task-dialog-tip');
     const updateCount=()=>{const length=Array.from(writing.value.trim().replace(/\s/g,'')).length;count.textContent=length+' / 15 字';count.style.color=length>=15?'#16876a':''};
     writing.addEventListener('input',updateCount);
-    document.querySelectorAll('[data-task]').forEach(button=>{button.onclick=()=>{task=TASKS.find(t=>t.id===button.dataset.task);if(!task||task.id==='arrival')return;const isWriting=task.id==='letter'||task.id==='memory';dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.querySelector('#task-writing-wrap').hidden=!isWriting;dialog.querySelector('#task-code-wrap').hidden=isWriting;dialog.querySelector('#task-code').required=!isWriting;dialog.querySelector('#task-code').value='';writing.value='';updateCount();tip.textContent=isWriting?'至少填写15个非空白字符，提交后自动获得25金币。':'请填写岛主私信发放的一次性完成代码。';dialog.showModal()}});
+    document.querySelectorAll('[data-task]').forEach(button=>{button.onclick=()=>{task=TASKS.find(t=>t.id===button.dataset.task);if(!task||task.id==='arrival')return;if(task.id==='quiz'){openLiveQuiz();return}const isWriting=task.id==='letter'||task.id==='memory';dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.querySelector('#task-writing-wrap').hidden=!isWriting;dialog.querySelector('#task-code-wrap').hidden=isWriting;dialog.querySelector('#task-code').required=!isWriting;dialog.querySelector('#task-code').value='';writing.value='';updateCount();tip.textContent=isWriting?'至少填写15个非空白字符，提交后自动获得25金币。':'请填写岛主私信发放的一次性完成代码。';dialog.showModal()}});
     dialog.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
     dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory';const content=writing.value.trim();if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}const submit=e.submitter;if(submit)submit.disabled=true;try{const profile=await liveApi(writingTask?'task-writing':'redeem',writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});dialog.close();takeProfile(profile,{celebrate:true});toast('任务完成，25金币已到账！')}catch(err){toast(err.message);if(submit)submit.disabled=false}});
   }
@@ -842,6 +901,7 @@
   }
 
   function renderPage() {
+    if(PAGE!=='office'||!state.passport||quizOwnerToken!==liveToken)document.querySelector('#quiz-dialog')?.remove();
     const renderers = { home: renderHome, passport: renderPassport, office: renderOffice, checkin: renderCheckin, draw: renderDraw, collection: renderCollection, mailbox: renderMailbox, guide: renderGuide, islanders: renderIslanders, effects: renderEffects };
     const main = document.querySelector('#main');
     main.innerHTML = renderers[PAGE]();

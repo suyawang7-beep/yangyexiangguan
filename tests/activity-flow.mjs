@@ -30,7 +30,7 @@ try{
  assert.equal((await api('admin/activity',{startsAt:null,endsAt:null})).status,403);
  const account=await api('register',{password:'Isolated-test-password-2026!',nickname:'隔离活动测试'});assert.equal(account.status,200);assert.equal(account.data.profile.coins,50);
  const {id,token,recoveryKey}=account.data;await verifyAccount(base,admin,account.data);
- const generated=await api('admin/codes',{taskId:'quiz',count:1},admin);assert.equal(generated.status,200);
+ const generated=await api('admin/codes',{taskId:'commission',count:1},admin);assert.equal(generated.status,200);
  const code=generated.data.codes[0];
  const before=snapshot();
  for(const [settings,phase] of [
@@ -39,7 +39,7 @@ try{
  ]){
   const saved=await api('admin/activity',settings,admin);assert.equal(saved.status,200);assert.equal(saved.data.phase,phase);
   assert.equal((await api('activity')).data.phase,phase);
-  for(const [path,body,auth] of [['register',{password:'Isolated-test-password-2026!',nickname:'不应创建'},undefined],['redeem',{taskId:'quiz',code},token],['checkin',{},token],['draw',{},token],['task-writing',{taskId:'letter',content:'这是未开放期间不应被写入数据库的生日来信'},token]]){
+  for(const [path,body,auth] of [['register',{password:'Isolated-test-password-2026!',nickname:'不应创建'},undefined],['redeem',{taskId:'commission',code},token],['checkin',{},token],['draw',{},token],['task-writing',{taskId:'letter',content:'这是未开放期间不应被写入数据库的生日来信'},token]]){
    const denied=await api(path,body,auth);assert.equal(denied.status,403,path+' must be blocked when '+phase);
   }
   assert.deepEqual(snapshot(),before,'Rejected operations must not change participant data or consume a code');
@@ -54,7 +54,7 @@ try{
  assert.equal((await api('admin/activity',undefined,admin)).data.endsAt,saved.endsAt,'Invalid writes cannot clear the prior schedule');
  await stop();await start();assert.equal((await api('activity')).data.phase,'ended','Schedule must survive restart');
  assert.equal((await api('admin/activity',{startsAt:null,endsAt:null},admin)).status,200);
- assert.equal((await api('redeem',{taskId:'quiz',code},token)).data.coins,75);
+ assert.equal((await api('redeem',{taskId:'commission',code},token)).data.coins,75);
  assert.equal((await api('checkin',{},token)).data.coins,85);
  const drawn=await api('draw',{},token);assert.equal(drawn.status,200);assert.equal(drawn.data.profile.coins,35);assert(['SSR','SR'].includes(drawn.data.card.rarity));
  const untouched=snapshot();

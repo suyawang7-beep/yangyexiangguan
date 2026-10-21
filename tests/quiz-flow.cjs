@@ -35,7 +35,7 @@ async function account(name,verified=true){const r=await api('register',{nicknam
  assert.equal((await api('admin/codes',{taskId:'quiz',count:1},admin)).status,400);
  const legacy=await account('今日旧小测');db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(legacy.id,'quiz',new Date().toISOString());assert((await api('quiz',undefined,legacy.token)).data.rewarded);const legacyCoins=await coin(legacy.token);assert.equal((await api('quiz/submit',{date:deck.date,answers:answers(5)},legacy.token)).data.rewardGranted,0);assert.equal(await coin(legacy.token),legacyCoins);
  assert.equal((await api('admin/quiz-results')).status,403);const records=(await api('admin/quiz-results?q='+a.id,undefined,admin)).data;assert.equal(records.total,1);assert.equal(records.items[0].score,3);assert.equal(records.items[0].attempts,2);
- const exported=(await api('admin/operations/export',undefined,admin));if(exported.status===200)assert.equal(exported.data.data.quizAttempts.length,1);
+ const exported=await api('admin/export',undefined,admin);assert.equal(exported.status,200);assert.equal(exported.data.data.quizAttempts.length,1);
  const b=await account('关闭活动小测');await api('admin/activity',{startsAt:null,endsAt:'2000-01-01T00:00:00+08:00'},admin);assert.equal((await api('quiz/submit',{date:deck.date,answers:answers(5)},b.token)).status,403);await api('admin/activity',{startsAt:null,endsAt:null},admin);
  console.log('PASS 35 approved questions, Beijing midnight/7-day rotation, private answers, grading, retries, daily idempotent reward, legacy preservation, progress and activity gates');
  if(process.argv.includes('--api-only'))return;
@@ -51,6 +51,7 @@ async function account(name,verified=true){const r=await api('register',{nicknam
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await page.screenshot({path:'test-results/daily-quiz-'+width+'.png',fullPage:true});
   await page.locator('#quiz-close').click();await page.reload({waitUntil:'networkidle'});await page.locator('[data-task=quiz]').click();await page.locator('#quiz-result').waitFor();assert.equal(await coin(u.token),beginCoins+25);assert.equal(await page.locator('#quiz-submit').count(),0);assert.deepEqual(errors,[]);await context.close();
  }
- console.log('PASS mobile/desktop instant dialog, five questions, back/next, score feedback, saved result and reward after reload');
+ for(const width of [390,1440]){const page=await browser.newPage({viewport:{width,height:900}});await page.goto(base+'/admin/quiz-results');await page.locator('#token').fill(admin);await page.locator('#enter').click();await page.locator('#quizAdminStatus').getByText(/共 .* 条/).waitFor();await page.locator('#quizAdminSearch').fill(a.id);await page.locator('#quizAdminFilter button[type=submit]').click();await page.locator('#quizAdminStatus').getByText(/共 1 条/).waitFor();assert.match(await page.locator('#quizAdminList').textContent(),/3\/5题/);await page.locator('#adminRouteLogout').click();assert.equal(await page.locator('#quizAdminList').textContent(),'');await page.close()}
+ console.log('PASS mobile/desktop instant dialog, five questions, back/next, score feedback, saved result, admin records and logout privacy');
  }finally{await browser?.close();db?.close();if(server?.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}rmSync(folder,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});
