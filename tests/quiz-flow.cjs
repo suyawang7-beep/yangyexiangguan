@@ -37,6 +37,13 @@ async function account(name,verified=true){const r=await api('register',{nicknam
  assert.equal((await api('admin/quiz-results')).status,403);const records=(await api('admin/quiz-results?q='+a.id,undefined,admin)).data;assert.equal(records.total,1);assert.equal(records.items[0].score,3);assert.equal(records.items[0].attempts,2);
  const exported=await api('admin/export',undefined,admin);assert.equal(exported.status,200);assert.equal(exported.data.data.quizAttempts.length,1);
  const b=await account('关闭活动小测');await api('admin/activity',{startsAt:null,endsAt:'2000-01-01T00:00:00+08:00'},admin);assert.equal((await api('quiz/submit',{date:deck.date,answers:answers(5)},b.token)).status,403);await api('admin/activity',{startsAt:null,endsAt:null},admin);
+ // New related records must be backed up and removed with an explicitly selected test visitor.
+ const cleanup=await account('小测关联清理'),cleanDeck=(await api('quiz',undefined,cleanup.token)).data;
+ await api('quiz/submit',{date:cleanDeck.date,answers:cleanDeck.questions.map(q=>({questionId:q.id,optionId:QUIZ_BANK.find(x=>x.id===q.id).options.find(o=>o.id!==QUIZ_BANK.find(x=>x.id===q.id).correct).id}))},cleanup.token);
+ const membership=(await api('membership',undefined,cleanup.token)).data;assert.equal((await api('admin/memberships/review',{userId:cleanup.id,action:'revoke',confirmed:true,verificationCode:membership.verificationCode,note:'仅用于隔离测试记录清理'},admin)).status,200);
+ const preview=await api('admin/visitors/preview-delete',{ids:[cleanup.id]},admin);assert.equal(preview.status,200);assert.equal(preview.data.counts.quizAttempts,1);
+ const removed=await api('admin/visitors/delete',{token:preview.data.token,confirm:'确认删除所选游客'},admin);assert.equal(removed.status,200);assert.equal(db.prepare('SELECT count(*) n FROM quiz_attempts WHERE user_id=?').get(cleanup.id).n,0);
+ const backup=new DatabaseSync(join(folder,'backups',removed.data.backup.name),{readOnly:true});assert.equal(backup.prepare('SELECT count(*) n FROM quiz_attempts WHERE user_id=?').get(cleanup.id).n,1);backup.close();assert.equal(db.prepare('SELECT score FROM quiz_attempts WHERE user_id=?').get(a.id).score,3);
  console.log('PASS 35 approved questions, Beijing midnight/7-day rotation, private answers, grading, retries, daily idempotent reward, legacy preservation, progress and activity gates');
  if(process.argv.includes('--api-only'))return;
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
