@@ -1,0 +1,27 @@
+[Unit]
+Description=Buzhi Island Node.js server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=buzhi
+Group=buzhi
+WorkingDirectory=/opt/buzhi/app
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=4178
+Environment=DB_PATH=/var/lib/buzhi/island.sqlite
+Environment=ASSET_DIR=/var/lib/buzhi/assets
+EnvironmentFile=/etc/buzhi/buzhi.env
+ExecStart=/usr/bin/node /opt/buzhi/app/server/index.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/buzhi
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
