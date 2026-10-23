@@ -55,6 +55,8 @@ export function createOperations(db,dbPath,audit){
     memberships:db.prepare('SELECT user_id,status,submitted_at,reviewed_at FROM memberships ORDER BY user_id').all(),
     users:db.prepare('SELECT u.id,u.nickname,u.created_at,COALESCE((SELECT SUM(l.amount) FROM ledger l WHERE l.user_id=u.id),0) AS coins FROM users u ORDER BY u.rowid').all(),
     ledger:db.prepare('SELECT id,user_id,amount,reason,created_at FROM ledger ORDER BY id').all(),
+    islandMail:db.prepare('SELECT id,user_id,title,message,kind,amount,item_name,created_at,claimed_at FROM island_mail ORDER BY id').all(),
+    islandItems:db.prepare('SELECT mail_id,user_id,item_name,acquired_at FROM island_items ORDER BY mail_id').all(),
     tasks:db.prepare('SELECT user_id,task_id,redeemed_at FROM tasks ORDER BY rowid').all(),
     checkins:db.prepare('SELECT user_id,day FROM checkins ORDER BY rowid').all(),
     draws:db.prepare('SELECT id,user_id,card_id,rarity,created_at FROM draws ORDER BY id').all(),

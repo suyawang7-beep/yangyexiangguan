@@ -82,7 +82,7 @@ let audit=await api('admin/audit',undefined,admin);assert.equal(audit.status,200
 assert(audit.data.some(x=>x.action==='codes.generate'));assert(audit.data.some(x=>x.action==='announcement.save'));
 assert(!JSON.stringify(audit.data).includes(recoveryKey));
 
-browser=await chromium.launch({headless:true});
+browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
 const page=await browser.newPage();
 page.on('pageerror',e=>{throw e});
 await page.goto(root+'/admin');

@@ -17,7 +17,7 @@ import {dirname,resolve,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const ADMIN_PAGES=new Set(['quiz-results','task-writings','messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery','residents','account-recovery']);
+const ADMIN_PAGES=new Set(['island-mail','quiz-results','task-writings','messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','recovery','residents','account-recovery']);
 const ADMIN_SCRIPTS=new Set(['quiz-results.js','task-writings.js','messages.js','navigation.js','membership.js','maintenance.js','residents.js','account-recovery.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
@@ -93,14 +93,20 @@ function grantCoins(b){
 
 db.exec("CREATE TABLE IF NOT EXISTS island_mail (id INTEGER PRIMARY KEY AUTOINCREMENT,request_id TEXT NOT NULL UNIQUE,user_id TEXT NOT NULL REFERENCES users(id),title TEXT NOT NULL,message TEXT NOT NULL,kind TEXT NOT NULL CHECK(kind IN ('coins','item')),amount INTEGER NOT NULL DEFAULT 0,item_name TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,claimed_at TEXT)");
 db.exec("CREATE INDEX IF NOT EXISTS idx_island_mail_user ON island_mail(user_id,id DESC)");
-function mailList(id){return {items:db.prepare("SELECT id,title,message,kind,amount,item_name AS itemName,created_at AS createdAt,claimed_at AS claimedAt FROM island_mail WHERE user_id=? ORDER BY id DESC LIMIT 100").all(id),unclaimed:db.prepare("SELECT COUNT(*) AS n FROM island_mail WHERE user_id=? AND claimed_at IS NULL").get(id).n}}
+db.exec("CREATE TABLE IF NOT EXISTS island_items (mail_id INTEGER PRIMARY KEY REFERENCES island_mail(id),user_id TEXT NOT NULL REFERENCES users(id),item_name TEXT NOT NULL,acquired_at TEXT NOT NULL); CREATE INDEX IF NOT EXISTS idx_island_items_user ON island_items(user_id,mail_id DESC)");
+// Compatibility for item gifts claimed by the original inbox implementation.
+db.exec("INSERT OR IGNORE INTO island_items(mail_id,user_id,item_name,acquired_at) SELECT id,user_id,item_name,claimed_at FROM island_mail WHERE kind='item' AND claimed_at IS NOT NULL");
+function mailCursor(value){if(value===null)return Number.MAX_SAFE_INTEGER;if(!/^[1-9][0-9]*$/.test(value)||!Number.isSafeInteger(Number(value)))throw error(400,'历史游标无效');return Number(value)}
+function mailPage(rows,key='id'){return {items:rows.slice(0,100),nextBefore:rows.length>100?rows[99][key]:null}}
+function mailList(id,before){membership.requireVerified(id);return {...mailPage(db.prepare("SELECT id,title,message,kind,amount,item_name AS itemName,created_at AS createdAt,claimed_at AS claimedAt FROM island_mail WHERE user_id=? AND id<? ORDER BY id DESC LIMIT 101").all(id,before)),coins:balance(id),unclaimed:db.prepare("SELECT COUNT(*) AS n FROM island_mail WHERE user_id=? AND claimed_at IS NULL").get(id).n}}
+function islandItems(id,before){membership.requireVerified(id);return mailPage(db.prepare("SELECT mail_id AS mailId,item_name AS itemName,acquired_at AS acquiredAt FROM island_items WHERE user_id=? AND mail_id<? ORDER BY mail_id DESC LIMIT 101").all(id,before),'mailId')}
 function sendIslandMail(b){
  const userId=String(b.userId||'').trim(),title=String(b.title||'').trim(),message=String(b.message||'').trim(),kind=String(b.kind||''),itemName=String(b.itemName||'').trim(),requestId=String(b.requestId||'');
- const amount=Number(b.amount||0);
+ const amount=b.amount;
  if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||title.length<2||title.length>80||message.length>500||!['coins','item'].includes(kind)||!/^[0-9a-f-]{36}$/i.test(requestId)||kind==='coins'&&(!Number.isSafeInteger(amount)||amount<1||amount>5000)||kind==='item'&&(!itemName||itemName.length>80))throw error(400,'请核对岛民编号、信件标题与奖励内容');
  return tx(()=>{
-  const old=db.prepare('SELECT id,user_id AS userId,title,kind,amount,item_name AS itemName FROM island_mail WHERE request_id=?').get(requestId);
-  if(old){if(old.userId!==userId||old.title!==title||old.kind!==kind||old.amount!==(kind==='coins'?amount:0)||old.itemName!==(kind==='item'?itemName:''))throw error(409,'请求编号已被使用');return {...old,alreadyProcessed:true}}
+  const old=db.prepare('SELECT id,user_id AS userId,title,message,kind,amount,item_name AS itemName FROM island_mail WHERE request_id=?').get(requestId);
+  if(old){if(old.userId!==userId||old.title!==title||old.message!==message||old.kind!==kind||old.amount!==(kind==='coins'?amount:0)||old.itemName!==(kind==='item'?itemName:''))throw error(409,'请求编号已被使用');return {...old,alreadyProcessed:true}}
   const user=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(userId);if(!user)throw error(404,'岛民不存在');
   const result=db.prepare('INSERT INTO island_mail(request_id,user_id,title,message,kind,amount,item_name,created_at) VALUES(?,?,?,?,?,?,?,?)').run(requestId,userId,title,message,kind,kind==='coins'?amount:0,kind==='item'?itemName:'',now());
   auditAdmin('mail.send',{id:Number(result.lastInsertRowid),userId,kind,amount:kind==='coins'?amount:0,itemName:kind==='item'?itemName:''});
@@ -108,18 +114,20 @@ function sendIslandMail(b){
  })
 }
 function claimIslandMail(userId,id){
+ membership.requireVerified(userId);
  if(!Number.isSafeInteger(id)||id<1)throw error(400,'邮件编号无效');
  return tx(()=>{
   const row=db.prepare('SELECT * FROM island_mail WHERE id=? AND user_id=?').get(id,userId);
   if(!row)throw error(404,'信件不存在');
-  if(row.claimed_at)return {alreadyClaimed:true,coins:balance(userId),itemName:row.item_name};
+  if(row.claimed_at)return {alreadyClaimed:true,coins:balance(userId),itemName:row.item_name,kind:row.kind,claimedAt:row.claimed_at};
   const t=now(),changed=db.prepare('UPDATE island_mail SET claimed_at=? WHERE id=? AND user_id=? AND claimed_at IS NULL').run(t,id,userId);
   if(changed.changes!==1)throw error(409,'领取状态已改变');
   if(row.kind==='coins')earn(userId,row.amount,'岛民信箱：'+row.title);
-  return {claimed:true,coins:balance(userId),itemName:row.item_name,kind:row.kind}
+  else db.prepare('INSERT INTO island_items(mail_id,user_id,item_name,acquired_at) VALUES(?,?,?,?)').run(id,userId,row.item_name,t);
+  return {claimed:true,coins:balance(userId),itemName:row.item_name,kind:row.kind,claimedAt:t}
  })
 }
-function adminIslandMail(){return db.prepare("SELECT m.id,m.user_id AS userId,u.nickname,m.title,m.kind,m.amount,m.item_name AS itemName,m.created_at AS createdAt,m.claimed_at AS claimedAt FROM island_mail m JOIN users u ON u.id=m.user_id ORDER BY m.id DESC LIMIT 100").all()}
+function adminIslandMail(before){return mailPage(db.prepare("SELECT m.id,m.user_id AS userId,u.nickname,m.title,m.message,m.kind,m.amount,m.item_name AS itemName,m.created_at AS createdAt,m.claimed_at AS claimedAt FROM island_mail m JOIN users u ON u.id=m.user_id WHERE m.id<? ORDER BY m.id DESC LIMIT 101").all(before))}
 
 function findIslanders(q){const term=String(q||'').trim();if(term.length<2||term.length>64)throw error(400,'请输入至少2个字符的昵称或通行证ID');const rows=db.prepare("SELECT u.id,u.nickname,COALESCE((SELECT SUM(amount) FROM ledger WHERE user_id=u.id),0) AS coins,CASE WHEN EXISTS(SELECT 1 FROM memberships WHERE user_id=u.id AND status='verified') THEN 'verified' ELSE 'visitor' END AS status FROM users u WHERE u.id LIKE ? OR u.nickname LIKE ? ORDER BY u.created_at DESC LIMIT 30").all('%'+term+'%','%'+term+'%');return {items:rows}}
 function resetIslanderKey(b){const id=String(b.userId||''),confirmed=b.confirmed===true,note=String(b.note||'').trim();if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id)||!confirmed||note.length<6||note.length>200)throw error(400,'请确认身份核验，并填写6至200字找回说明');return tx(()=>{const u=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(id);if(!u)throw error(404,'账户不存在');const recoveryKey=rand(32);db.prepare('UPDATE users SET secret_hash=? WHERE id=?').run(sha(recoveryKey),id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);auditAdmin('account.recovery.reset',{userId:id,reason:note});return {userId:id,nickname:u.nickname,recoveryKey,warning:'仅本次显示新密钥，旧密钥及所有旧会话立即失效。请通过核验过的渠道交付本人。'}})}
@@ -167,6 +175,8 @@ function cleanupCandidates(){
  AND (u.nickname LIKE '远程测试%' OR u.nickname LIKE '新版页面测试%' OR u.nickname LIKE '自动化测试%' OR u.nickname LIKE '测试岛民%')
  AND NOT EXISTS(SELECT 1 FROM memberships m WHERE m.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM quiz_attempts q WHERE q.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM island_mail m WHERE m.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM island_items i WHERE i.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM checkins c WHERE c.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM draws d WHERE d.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM bonuses b WHERE b.user_id=u.id)
@@ -210,7 +220,7 @@ function restoreAsset(b){const name=String(b.name||''),version=String(b.version|
 
 function readBody(req,maxSize=8192){return new Promise((ok,no)=>{let chunks='',size=0;req.on('data',d=>{size+=d.length;if(size>maxSize){no(error(413,'请求过大'));req.destroy();return}chunks+=d});req.on('end',()=>{try{ok(chunks?JSON.parse(chunks):{})}catch{no(error(400,'JSON 无效'))}});req.on('error',no)})}
 function send(res,code,data){res.writeHead(code,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data))}
-http.createServer(async(req,res)=>{try{res.setHeader('x-buzhi-revision',BUILD_REVISION);const path=new URL(req.url||'/', 'http://localhost').pathname;
+http.createServer(async(req,res)=>{try{res.setHeader('x-buzhi-revision',BUILD_REVISION);const url=new URL(req.url||'/', 'http://localhost'),path=url.pathname;
 if(path==='/api/admin/site-maintenance'&&req.method==='GET'){admin(req);return send(res,200,maintenanceState())}
 if(path==='/api/admin/site-maintenance'&&req.method==='POST'){admin(req);if(!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');return send(res,200,saveSiteMaintenance(await readBody(req,8192)))}
 if(path==='/api/site-maintenance'&&req.method==='GET')return send(res,200,maintenanceState());
@@ -254,9 +264,10 @@ else if(path==='/api/recovery/reset'&&req.method==='POST')data=accountRecovery.r
 else if(path==='/api/admin/recovery/requests'&&req.method==='GET'){admin(req);data=accountRecovery.list()}
 else if(path==='/api/admin/recovery/review'&&req.method==='POST'){admin(req);data=accountRecovery.review(b)}
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
-else if(path==='/api/island-mail'&&req.method==='GET')data=mailList(auth(req));
-else if(path==='/api/island-mail/claim'&&req.method==='POST')data=claimIslandMail(auth(req),Number(b.id));
-else if(path==='/api/admin/island-mail'&&req.method==='GET'){admin(req);data=adminIslandMail()}
+else if(path==='/api/island-mail'&&req.method==='GET')data=mailList(auth(req),mailCursor(url.searchParams.get('before')));
+else if(path==='/api/island-items'&&req.method==='GET')data=islandItems(auth(req),mailCursor(url.searchParams.get('before')));
+else if(path==='/api/island-mail/claim'&&req.method==='POST')data=claimIslandMail(auth(req),b.id);
+else if(path==='/api/admin/island-mail'&&req.method==='GET'){admin(req);data=adminIslandMail(mailCursor(url.searchParams.get('before')))}
 else if(path==='/api/admin/island-mail/send'&&req.method==='POST'){admin(req);data=sendIslandMail(b)}
 
 else if(path==='/api/password'&&req.method==='POST')data=updatePassword(auth(req),b);
