@@ -38,6 +38,13 @@ jobs:
             status=1
           fi
           exit "$status"
+      - name: Island mail atomic claims, inventory, history and browser flows
+        if: ${{ !cancelled() }}
+        run: |
+          node --test tests/test-port.mjs
+          node --test tests/island-mail-flow.mjs
+          node tests/island-mail-browser.cjs
+          python3 tests/backup-restore.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
