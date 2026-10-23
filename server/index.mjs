@@ -90,6 +90,37 @@ function grantCoins(b){
   return {userId,nickname:user.nickname,amount,reason,coins:balance(userId),createdAt:t,alreadyProcessed:false}
  });
 }
+
+db.exec("CREATE TABLE IF NOT EXISTS island_mail (id INTEGER PRIMARY KEY AUTOINCREMENT,request_id TEXT NOT NULL UNIQUE,user_id TEXT NOT NULL REFERENCES users(id),title TEXT NOT NULL,message TEXT NOT NULL,kind TEXT NOT NULL CHECK(kind IN ('coins','item')),amount INTEGER NOT NULL DEFAULT 0,item_name TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,claimed_at TEXT)");
+db.exec("CREATE INDEX IF NOT EXISTS idx_island_mail_user ON island_mail(user_id,id DESC)");
+function mailList(id){return {items:db.prepare("SELECT id,title,message,kind,amount,item_name AS itemName,created_at AS createdAt,claimed_at AS claimedAt FROM island_mail WHERE user_id=? ORDER BY id DESC LIMIT 100").all(id),unclaimed:db.prepare("SELECT COUNT(*) AS n FROM island_mail WHERE user_id=? AND claimed_at IS NULL").get(id).n}}
+function sendIslandMail(b){
+ const userId=String(b.userId||'').trim(),title=String(b.title||'').trim(),message=String(b.message||'').trim(),kind=String(b.kind||''),itemName=String(b.itemName||'').trim(),requestId=String(b.requestId||'');
+ const amount=Number(b.amount||0);
+ if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||title.length<2||title.length>80||message.length>500||!['coins','item'].includes(kind)||!/^[0-9a-f-]{36}$/i.test(requestId)||kind==='coins'&&(!Number.isSafeInteger(amount)||amount<1||amount>5000)||kind==='item'&&(!itemName||itemName.length>80))throw error(400,'请核对岛民编号、信件标题与奖励内容');
+ return tx(()=>{
+  const old=db.prepare('SELECT id,user_id AS userId,title,kind,amount,item_name AS itemName FROM island_mail WHERE request_id=?').get(requestId);
+  if(old){if(old.userId!==userId||old.title!==title||old.kind!==kind||old.amount!==(kind==='coins'?amount:0)||old.itemName!==(kind==='item'?itemName:''))throw error(409,'请求编号已被使用');return {...old,alreadyProcessed:true}}
+  const user=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(userId);if(!user)throw error(404,'岛民不存在');
+  const result=db.prepare('INSERT INTO island_mail(request_id,user_id,title,message,kind,amount,item_name,created_at) VALUES(?,?,?,?,?,?,?,?)').run(requestId,userId,title,message,kind,kind==='coins'?amount:0,kind==='item'?itemName:'',now());
+  auditAdmin('mail.send',{id:Number(result.lastInsertRowid),userId,kind,amount:kind==='coins'?amount:0,itemName:kind==='item'?itemName:''});
+  return {id:Number(result.lastInsertRowid),userId,nickname:user.nickname,alreadyProcessed:false}
+ })
+}
+function claimIslandMail(userId,id){
+ if(!Number.isSafeInteger(id)||id<1)throw error(400,'邮件编号无效');
+ return tx(()=>{
+  const row=db.prepare('SELECT * FROM island_mail WHERE id=? AND user_id=?').get(id,userId);
+  if(!row)throw error(404,'信件不存在');
+  if(row.claimed_at)return {alreadyClaimed:true,coins:balance(userId),itemName:row.item_name};
+  const t=now(),changed=db.prepare('UPDATE island_mail SET claimed_at=? WHERE id=? AND user_id=? AND claimed_at IS NULL').run(t,id,userId);
+  if(changed.changes!==1)throw error(409,'领取状态已改变');
+  if(row.kind==='coins')earn(userId,row.amount,'岛民信箱：'+row.title);
+  return {claimed:true,coins:balance(userId),itemName:row.item_name,kind:row.kind}
+ })
+}
+function adminIslandMail(){return db.prepare("SELECT m.id,m.user_id AS userId,u.nickname,m.title,m.kind,m.amount,m.item_name AS itemName,m.created_at AS createdAt,m.claimed_at AS claimedAt FROM island_mail m JOIN users u ON u.id=m.user_id ORDER BY m.id DESC LIMIT 100").all()}
+
 function findIslanders(q){const term=String(q||'').trim();if(term.length<2||term.length>64)throw error(400,'请输入至少2个字符的昵称或通行证ID');const rows=db.prepare("SELECT u.id,u.nickname,COALESCE((SELECT SUM(amount) FROM ledger WHERE user_id=u.id),0) AS coins,CASE WHEN EXISTS(SELECT 1 FROM memberships WHERE user_id=u.id AND status='verified') THEN 'verified' ELSE 'visitor' END AS status FROM users u WHERE u.id LIKE ? OR u.nickname LIKE ? ORDER BY u.created_at DESC LIMIT 30").all('%'+term+'%','%'+term+'%');return {items:rows}}
 function resetIslanderKey(b){const id=String(b.userId||''),confirmed=b.confirmed===true,note=String(b.note||'').trim();if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id)||!confirmed||note.length<6||note.length>200)throw error(400,'请确认身份核验，并填写6至200字找回说明');return tx(()=>{const u=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(id);if(!u)throw error(404,'账户不存在');const recoveryKey=rand(32);db.prepare('UPDATE users SET secret_hash=? WHERE id=?').run(sha(recoveryKey),id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);auditAdmin('account.recovery.reset',{userId:id,reason:note});return {userId:id,nickname:u.nickname,recoveryKey,warning:'仅本次显示新密钥，旧密钥及所有旧会话立即失效。请通过核验过的渠道交付本人。'}})}
 function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nickname,g.amount,g.reason,g.created_at AS createdAt FROM admin_coin_grants g JOIN users u ON u.id=g.user_id ORDER BY g.created_at DESC LIMIT 100').all()}
@@ -223,6 +254,11 @@ else if(path==='/api/recovery/reset'&&req.method==='POST')data=accountRecovery.r
 else if(path==='/api/admin/recovery/requests'&&req.method==='GET'){admin(req);data=accountRecovery.list()}
 else if(path==='/api/admin/recovery/review'&&req.method==='POST'){admin(req);data=accountRecovery.review(b)}
 else if(path==='/api/me'&&req.method==='GET')data=state(auth(req));
+else if(path==='/api/island-mail'&&req.method==='GET')data=mailList(auth(req));
+else if(path==='/api/island-mail/claim'&&req.method==='POST')data=claimIslandMail(auth(req),Number(b.id));
+else if(path==='/api/admin/island-mail'&&req.method==='GET'){admin(req);data=adminIslandMail()}
+else if(path==='/api/admin/island-mail/send'&&req.method==='POST'){admin(req);data=sendIslandMail(b)}
+
 else if(path==='/api/password'&&req.method==='POST')data=updatePassword(auth(req),b);
 else if(path==='/api/admin/residents'&&req.method==='GET'){admin(req);data=residentCenter.adminList()}
 else if(path==='/api/admin/residents/review'&&req.method==='POST'){admin(req);data=residentCenter.adminReview(b)}
