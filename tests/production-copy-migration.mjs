@@ -17,6 +17,6 @@ try{
  db=new DatabaseSync(targetPath,{readOnly:true});
  if(db.prepare('PRAGMA integrity_check').get().integrity_check!=='ok'||db.prepare('PRAGMA foreign_key_check').all().length)throw Error('Migrated database integrity failed');
  for(const {table,query,rows} of snapshots)if(JSON.stringify(db.prepare(query).all())!==rows)throw Error('Existing data changed in '+table);
- for(const table of ['island_mail','island_items','card_rarities'])db.prepare('SELECT count(*) FROM '+table).get();
+ for(const table of ['island_mail','island_items','card_profiles','coin_redemption_campaigns'])db.prepare('SELECT count(*) FROM '+table).get();
  console.log(JSON.stringify({migration:'passed',allOriginalTablesUnchanged:true,originalTableCount:tables.length,users:db.prepare('SELECT count(*) AS n FROM users').get().n,ledgerRows:db.prepare('SELECT count(*) AS n FROM ledger').get().n,coinsTotal:db.prepare('SELECT sum(amount) AS n FROM ledger').get().n,catalogCards:catalog.cards.length}));
 }finally{if(db)db.close();if(server?.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}}

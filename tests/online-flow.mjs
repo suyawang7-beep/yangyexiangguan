@@ -17,7 +17,7 @@ try{
 let ready=false;for(let i=0;i<50;i++){try{const res=await fetch(root+'/health');if(res.ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}
 assert(ready,'server did not start: '+logs);
 const admin='test-only-secret-not-for-production-0000';
-const catalog=await fetch(root+'/api/catalog').then(r=>r.json());assert.equal(catalog.cards.length,32);assert.equal(catalog.cards[0].previewId,'BZ-01');assert.equal(catalog.cards[0].id,'UR-1');assert.equal(catalog.cards[15].id,'N-5');assert.equal(catalog.timezone,'Asia/Shanghai');
+const catalog=await fetch(root+'/api/catalog').then(r=>r.json());assert.equal(catalog.cards.length,46);assert.equal(catalog.visibleCards,46);assert.equal(catalog.totalSlots,50);assert.equal(catalog.cards[0].previewId,'BZ-01');assert.equal(catalog.cards[0].id,'UR-1');assert.equal(catalog.cards[15].id,'N-5');assert.equal(catalog.timezone,'Asia/Shanghai');
 const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,63);
 const mockWebp=Buffer.concat([Buffer.from('RIFF'),Buffer.from([16,0,0,0]),Buffer.from('WEBPVP8 '),Buffer.alloc(8)]).toString('base64');
 const rejectAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp});assert.equal(rejectAsset.status,403);
@@ -92,7 +92,7 @@ await page.locator('#enter').click();
 await page.locator('#stats .stat').first().waitFor();
 assert.match(await page.locator('#notices').textContent(),/岛主公告测试/);
 await page.locator('#adminNavigation a[href="/admin/asset-check"]').click();await page.locator('#auditAssets').click();
-await page.locator('#auditSummary').getByText(/检查完成：0 \/ 52/).waitFor({timeout:15000});
+await page.locator('#auditSummary').getByText(/检查完成：14 \/ 52/).waitFor({timeout:15000});
 assert.equal(await page.locator('#auditRows tr').count(),52);
 await page.goto(root+'/legacy');
 await page.waitForFunction(()=>document.querySelector('#bzHomeLatest')?.textContent.includes('岛主公告测试'));
@@ -163,4 +163,5 @@ const deletedSession=await api('me',undefined,disposable.data.token);assert.notE
 const preservedSession=await api('me',undefined,protectedAccount.data.token);assert.equal(preservedSession.status,200);
 console.log('PASS remote account and admin: register, code redemption, check-in, recovery, overview, protected admin UI, published/draft notices, home/mailbox publish-update-delete sync');
 }finally{await browser?.close();if(processServer.exitCode===null){const done=new Promise(r=>processServer.once('exit',r));processServer.kill('SIGTERM');await done}rmSync(dir,{recursive:true,force:true})}
+
 

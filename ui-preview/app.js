@@ -243,6 +243,7 @@
     }finally{if(timer!==undefined)clearTimeout(timer)}
   }
   function takeProfile(profile,{celebrate=false}={}){
+    latestLiveProfile=profile;latestLiveProfileToken=liveToken;
     const fresh=celebrate&&state.passport?.id===profile.id?profile.bonuses.filter(n=>[3,6].includes(n)&&!state.bonuses.includes(n)):[];
     state=blank();state.pendingMilestones=fresh;state.taskProgress=profile.taskProgress||null;
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
@@ -361,7 +362,7 @@
     const cards=LIVE&&liveCatalogReady?liveCatalog:CARDS,counts={UR:0,SSR:0,SR:0,R:0,N:0};
     for(const card of cards)counts[card.rarity]++;
     const total=cards.length,remaining=Math.max(0,(LIVE?liveTotalSlots:50)-total);
-    return {total,counts,first:counts.SSR+counts.SR,description:`UR、SSR、SR、R、N，当前公开${total}张卡片，剩余${remaining}张待开放。正常卡池每张概率均为1/${total}。`};
+    return {ready:!LIVE||liveCatalogReady,total,counts,first:counts.SSR+counts.SR,description:`UR、SSR、SR、R、N，当前公开${total}张卡片，剩余${remaining}张待开放。正常卡池每张概率均为1/${total}。`};
   }
   function renderDraw() {
     const first = state.history.length === 0;
@@ -379,9 +380,9 @@
         ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 || (LIVE&&!liveCatalogReady) ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
         <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
-        <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : `生日回忆卡池 · ${pool.total} 张`}</span></div>
-        <p class="draw-description" id="draw-pool-description">${first ? `首次抽卡从公开的${pool.counts.SSR}张SSR与${pool.counts.SR}张SR中抽取，每张概率为1/${pool.first}。把第一份相遇，留得特别一点。` : pool.description}</p>
-        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池${pool.total}张，各1/${pool.total}。</p><ul class="probability-list">${Object.entries(pool.counts).map(([rarity,count])=>`<li><span>${rarity} · ${count} 张</span><strong>${Number((100*count/pool.total).toFixed(3))}%</strong></li>`).join('')}</ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
+        <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${!pool.ready?'正在读取卡池…':first ? '首次赴约 · SR / SSR 保障' : `生日回忆卡池 · ${pool.total} 张`}</span></div>
+        <p class="draw-description" id="draw-pool-description">${!pool.ready?'正在读取公开卡池与概率…':first ? `首次抽卡从公开的${pool.counts.SSR}张SSR与${pool.counts.SR}张SR中抽取，每张概率为1/${pool.first}。把第一份相遇，留得特别一点。` : pool.description}</p>
+        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；${pool.ready?`之后正常卡池${pool.total}张，各1/${pool.total}。`:'正在读取卡池概率…'}</p><ul class="probability-list">${Object.entries(pool.counts).map(([rarity,count])=>`<li><span>${rarity} · ${pool.ready?count:'…'} 张</span><strong>${pool.ready?Number((100*count/pool.total).toFixed(3)):'—'}%</strong></li>`).join('')}</ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
       </section>
     </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>${LIVE ? '看看有哪些回忆' : '以下为部分示意卡面'}</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
   }
@@ -1005,4 +1006,3 @@
   pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;
   document.body.append(pencilScript);
 })();
-
