@@ -174,6 +174,7 @@
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
+  let liveTotalSlots=50;
   let liveCatalogReady=false,liveCatalogFailed=false;
   let latestLiveProfile=null,latestLiveProfileToken='',profileRevision=0;
   let liveOcProfiles=[];
@@ -258,7 +259,7 @@
       const id=card.previewId;
       const entry=state.collection[id]||{quantity:0,firstAt:Date.parse(item.created_at)};
       entry.quantity++;state.collection[id]=entry;
-      state.history.push({id:'server-'+index,cardId:id,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
+      state.history.push({id:'server-'+index,cardId:id,rarity:item.rarity,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
     }
     renderPage();state.pendingMilestones=[];
   }
@@ -269,8 +270,8 @@
     const artworkTask=loadManagedArtwork();
     const catalogTask=(async()=>{
       try{
-        const catalog=await liveApi('catalog');liveCatalog=catalog.cards;
-        for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}
+        const catalog=await liveApi('catalog');liveCatalog=catalog.cards;liveTotalSlots=catalog.totalSlots;
+        for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.rarity=item.rarity;card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}
         liveCatalogReady=true;
         if(latestLiveProfile&&liveToken&&latestLiveProfileToken===liveToken)takeProfile(latestLiveProfile);
         else if(PAGE!=='passport')renderPage();
@@ -356,8 +357,15 @@
   function drawBack() {
     return `<div class="memory-card card-back"><img class="card-back-art" src="assets/memory-card-back.svg?v=20261018-arcana1" alt="" aria-hidden="true" width="300" height="425" draggable="false"><div class="card-back-label"><span class="card-back-kicker">CELESTIAL ARCHIVE</span><h2>不吱岛</h2><p>星海秘藏 · 生日回忆</p></div><span class="card-back-edition">BUZHI ISLAND · 2026</span></div>`;
   }
+  function drawPoolInfo() {
+    const cards=LIVE&&liveCatalogReady?liveCatalog:CARDS,counts={UR:0,SSR:0,SR:0,R:0,N:0};
+    for(const card of cards)counts[card.rarity]++;
+    const total=cards.length,remaining=Math.max(0,(LIVE?liveTotalSlots:50)-total);
+    return {total,counts,first:counts.SSR+counts.SR,description:`UR、SSR、SR、R、N，当前公开${total}张卡片，剩余${remaining}张待开放。正常卡池每张概率均为1/${total}。`};
+  }
   function renderDraw() {
     const first = state.history.length === 0;
+    const pool=drawPoolInfo();
     return `<section class="postal-experience" aria-labelledby="postal-title">
       <header class="postal-masthead"><span class="postal-location">${icon('mail')} 肥啾邮局 <span>／生日抽卡</span></span><span class="postal-edition">庆典限定 · 10.18—10.25</span></header>
       <div class="postal-intro"><h1 id="postal-title">把这一刻，<em>寄给你。</em></h1><p>海风送来一封信，里面藏着我们相遇的某个瞬间。</p></div>
@@ -371,9 +379,9 @@
         ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 || (LIVE&&!liveCatalogReady) ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
         <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
-        <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 32 张'}</span></div>
-        <p class="draw-description" id="draw-pool-description">${first ? '首次抽卡从公开的4张SSR与6张SR中抽取，每张概率为1/10。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，当前公开32张卡片，剩余18张待开放。正常卡池每张概率均为1/32。'}</p>
-        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池32张，各1/32。</p><ul class="probability-list"><li><span>UR · 2 张</span><strong>6.25%</strong></li><li><span>SSR · 4 张</span><strong>12.5%</strong></li><li><span>SR · 6 张</span><strong>18.75%</strong></li><li><span>R · 9 张</span><strong>28.125%</strong></li><li><span>N · 11 张</span><strong>34.375%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
+        <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : `生日回忆卡池 · ${pool.total} 张`}</span></div>
+        <p class="draw-description" id="draw-pool-description">${first ? `首次抽卡从公开的${pool.counts.SSR}张SSR与${pool.counts.SR}张SR中抽取，每张概率为1/${pool.first}。把第一份相遇，留得特别一点。` : pool.description}</p>
+        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池${pool.total}张，各1/${pool.total}。</p><ul class="probability-list">${Object.entries(pool.counts).map(([rarity,count])=>`<li><span>${rarity} · ${count} 张</span><strong>${Number((100*count/pool.total).toFixed(3))}%</strong></li>`).join('')}</ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
       </section>
     </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>${LIVE ? '看看有哪些回忆' : '以下为部分示意卡面'}</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
   }
@@ -385,7 +393,7 @@
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
     return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
-      return card ? `<div class="history-row"><span class="rarity">${card.rarity}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
+      return card ? `<div class="history-row"><span class="rarity">${esc(entry.rarity||card.rarity)}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
   }
 
@@ -590,8 +598,8 @@
         button.disabled = state.balance < 50; button.textContent = state.balance >= 50 ? '再寄出一份期待 ↗' : '金币暂时不足50枚';
         toast(`${card.rarity}「${card.name}」已收入收藏。`);
         if (first) {
-          document.querySelector('#draw-pool-label').textContent = '首抽已完成 · 后续为32张正常池';
-          document.querySelector('#draw-pool-description').textContent = '接下来正常卡池包含UR、SSR、SR、R、N，32张卡片每张概率均为1/32。';
+          document.querySelector('#draw-pool-label').textContent = `首抽已完成 · 后续为${drawPoolInfo().total}张正常池`;
+          document.querySelector('#draw-pool-description').textContent = drawPoolInfo().description;
         }
       };
       const noMotion = document.querySelector('.world').dataset.motion === 'off' || document.hidden || stage.dataset.deliveryReady !== 'true';
@@ -776,7 +784,7 @@
       if(!liveCatalogReady){toast('卡片目录正在加载，请稍后再试。');return}drawing=true;
       const button=document.querySelector('#draw-button');button.disabled=true;
       try{const result=await liveApi('draw',{});const cardInfo=liveCatalog.find(c=>c.id===result.card.id);if(!cardInfo)throw Error('卡片目录缺少映射，请联系岛主');
-        const card=CARDS.find(c=>c.id===cardInfo.previewId);
+        const card={...CARDS.find(c=>c.id===cardInfo.previewId),rarity:result.card.rarity};
         const first=state.history.length===0;takeProfile(result.profile);drawing=true;
         const stage=document.querySelector('#draw-stage');
         stage.classList.remove('is-revealed');stage.classList.add('is-drawing');stage.setAttribute('aria-busy','true');
@@ -988,6 +996,8 @@
   if(LIVE)TASKS=LIVE_TASKS;
   renderShell();
   if(LIVE)liveInit();else renderPage();
+  const touchStyle=document.createElement('link');touchStyle.rel='stylesheet';touchStyle.href=new URL('mobile-experience.css?v=20261024',document.currentScript.src).href;document.head.append(touchStyle);
+  const touchScript=document.createElement('script');touchScript.src=new URL('mobile-experience.js?v=20261024',document.currentScript.src).href;document.body.append(touchScript);
   const effectsScript = document.createElement('script');
   effectsScript.src = new URL('effects.js?v=20261020-guide-milestone2', document.currentScript.src).href;
   document.body.append(effectsScript);

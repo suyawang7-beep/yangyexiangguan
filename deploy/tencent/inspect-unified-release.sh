@@ -34,4 +34,7 @@ for label,db_path,asset_path in [
     folder=pathlib.Path(asset_path)/'cards'
     if folder.exists():
         print('Card files:',json.dumps({'environment':label,'items':[{'name':p.name,'bytes':p.stat().st_size,'modifiedUTC':datetime.datetime.fromtimestamp(p.stat().st_mtime,datetime.timezone.utc).isoformat(),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(folder.glob('*.webp'))]},ensure_ascii=False))
+    root=pathlib.Path(asset_path)
+    if root.exists():
+        print('Recent asset files:',json.dumps({'environment':label,'items':[{'name':str(p.relative_to(root)),'bytes':p.stat().st_size,'modifiedUTC':datetime.datetime.fromtimestamp(p.stat().st_mtime,datetime.timezone.utc).isoformat()} for p in sorted(root.rglob('*')) if p.is_file() and p.stat().st_mtime>=1792454400]},ensure_ascii=False))
 PY
