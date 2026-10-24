@@ -83,10 +83,10 @@ if not current.is_symlink():
     rollback=release.parent/('pre-unified-'+time.strftime('%Y%m%dT%H%M%SZ',time.gmtime()))
 assert rollback.is_relative_to(pathlib.Path('/opt/buzhi-production'))
 state={'revision':revision,'previousRelease':str(rollback),'snapshot':str(backup),'baseline':baseline,'archiveSha256':archive_hash,'manifestSha256':manifest_hash}
-state_path=backup/'deployment-state.json'
+state_path=backup/('deployment-state-'+revision+'.json')
 with state_path.open('x') as out: json.dump(state,out,indent=2)
 state_path.chmod(0o600)
-config_backup=backup/'environment.env'
+config_backup=backup/('environment-'+revision+'.env')
 with config_backup.open('xb') as out: out.write(config_bytes)
 config_backup.chmod(0o600)
 switched=False
