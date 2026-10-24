@@ -37,6 +37,7 @@ jobs:
       - run: node tests/guide-alignment.cjs
         env:
           GUIDE_EVIDENCE_DIR: ${{ runner.temp }}/guide-evidence
+      - run: node tests/mobile-experience.cjs
       - run: node tests/ambient-motion.cjs
       - run: node tests/pencil-case.cjs
       - shell: pwsh

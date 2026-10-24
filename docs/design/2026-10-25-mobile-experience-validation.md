@@ -17,6 +17,7 @@
 - `node tests/membership-dialog.cjs` 和 `node tests/membership-race.cjs`：390/1440，注册弹窗顺序、手动入口、草稿、审核状态、跨页入口、账号切换与延迟响应通过。
 - `node tests/card-catalog.cjs` 和 `node tests/card-release.cjs`：46张目录、后台编辑卡名/等级、图片渲染、历史等级、首抽与重启持久化通过；补充服务器确认等级优先于页面缓存的回归。
 - 独立静态审查：手机新交互未发现阻止合入的重要问题。
+- CI补充验收：修复手绘线条后台暂停，`resident-appearance` 43项、`guide-alignment` 180项、`ambient-motion` 93项通过；按新认证弹窗流程更新旧断言，并修复小测成绩选择器歧义，失败的quiz-flow/membership-admin/production-layout定向复验通过。新手机交互测试已加入界面CI。
 
 手机测试为 Chromium 触屏模拟，尚非 iPhone/Android 真机验收。
 

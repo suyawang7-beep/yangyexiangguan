@@ -2,6 +2,8 @@
 (() => {
  'use strict';
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),mobile=matchMedia('(max-width: 620px)');
+ const visibility=()=>{document.documentElement.dataset.seaHidden=String(document.hidden)};
+ document.addEventListener('visibilitychange',visibility);visibility();
  const motion=()=>!reduced.matches&&(document.querySelector('.world')?.dataset.motion||document.body.dataset.motion)!=='off';
  const make=(tag,className,text)=>{const node=document.createElement(tag);node.className=className;if(text!==undefined)node.textContent=text;return node};
  function guide(){

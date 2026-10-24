@@ -22,3 +22,4 @@
 }
 @media(prefers-reduced-motion:reduce){.sea-underlined:after,.sea-success-stamp{animation:none!important}.guide-place-card,.sea-tab-indicator,body[data-page=guide] .world .guide-info{transition:none!important}}
 .world[data-motion=off] .sea-underlined:after,body[data-motion=off] .sea-underlined:after,body[data-motion=off] .sea-success-stamp{animation:none}.world[data-motion=off] .sea-tab-indicator,.world[data-motion=off] .guide-info,.world[data-motion=off] .guide-place-card{transition:none}
+html[data-sea-hidden=true] .sea-underlined:after,html[data-sea-hidden=true] .sea-success-stamp{animation-play-state:paused}
