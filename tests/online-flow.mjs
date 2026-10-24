@@ -17,7 +17,7 @@ try{
 let ready=false;for(let i=0;i<50;i++){try{const res=await fetch(root+'/health');if(res.ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}
 assert(ready,'server did not start: '+logs);
 const admin='test-only-secret-not-for-production-0000';
-const catalog=await fetch(root+'/api/catalog').then(r=>r.json());assert.equal(catalog.cards.length,32);assert.equal(catalog.cards[0].previewId,'BZ-01');assert.equal(catalog.cards[0].id,'UR-1');assert.equal(catalog.cards[15].id,'N-5');assert.equal(catalog.timezone,'Asia/Shanghai');
+const catalog=await fetch(root+'/api/catalog').then(r=>r.json());assert.equal(catalog.cards.length,46);assert.equal(catalog.visibleCards,46);assert.equal(catalog.totalSlots,50);assert.equal(catalog.cards[0].previewId,'BZ-01');assert.equal(catalog.cards[0].id,'UR-1');assert.equal(catalog.cards[15].id,'N-5');assert.equal(catalog.timezone,'Asia/Shanghai');
 const beforeAssets=await api('admin/assets',undefined,admin);assert.equal(beforeAssets.status,200);assert.equal(beforeAssets.data.length,63);
 const mockWebp=Buffer.concat([Buffer.from('RIFF'),Buffer.from([16,0,0,0]),Buffer.from('WEBPVP8 '),Buffer.alloc(8)]).toString('base64');
 const rejectAsset=await api('admin/assets/upload',{name:'cards/SSR-1.webp',base64:mockWebp});assert.equal(rejectAsset.status,403);
