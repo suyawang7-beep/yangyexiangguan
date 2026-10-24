@@ -318,7 +318,7 @@ else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fr
 else if(path==='/api/activity'&&req.method==='GET')data=getActivity();
 else if(path==='/api/admin/activity'&&req.method==='GET'){admin(req);data=getActivity()}
 else if(path==='/api/admin/activity'&&req.method==='POST'){admin(req);data=saveActivity(b)}
-else if(path==='/api/catalog'&&req.method==='GET'){const cards=getCards().filter(c=>!c.unreleased);data={cards,totalSlots:50,visibleCards:cards.length,cost:50,firstDrawRarities:['SSR','SR'],timezone:'Asia/Shanghai',nicknameMaxLength:20}};
+else if(path==='/api/catalog'&&req.method==='GET'){const cards=getCards().filter(c=>!c.unreleased);data={cards,totalSlots:50,visibleCards:cards.length,cost:50,firstDrawRarities:['SSR','SR'],timezone:'Asia/Shanghai',nicknameMaxLength:20}}
 else if(path==='/api/oc'&&req.method==='GET')data=listOc(true);
 else if(path==='/api/admin/oc'&&req.method==='GET'){admin(req);data=listOc()}
 else if(path==='/api/admin/oc'&&req.method==='POST'){admin(req);data=saveOc(b)}
