@@ -7,6 +7,7 @@ import {createMembership} from './membership.mjs';
 import {listVisitors} from './visitors.mjs';
 import {createMaintenance} from './maintenance.mjs';
 import {assetHelp} from './asset-help.mjs';
+import {TODAY_CARDS} from './card-release.mjs';
 import http from 'node:http';
 import {createOperations,streamBackup} from './operations.mjs';
 import {activityPhase,validateActivity} from './activity.mjs';
@@ -59,21 +60,7 @@ const CARDS=[...Array.from({length:1},(_,i)=>({id:'UR-'+(i+1),rarity:'UR'})),...
   ...Array.from({length:2},(_,i)=>({id:'SR-'+(i+5),rarity:'SR'})),
   ...Array.from({length:5},(_,i)=>({id:'R-'+(i+5),rarity:'R'})),
   ...Array.from({length:6},(_,i)=>({id:'N-'+(i+6),rarity:'N'})),
-  {id:'LOCK-33',rarity:'UR',name:'星屿回响'},
-  {id:'LOCK-34',rarity:'SSR',name:'月潮来信'},
-  {id:'LOCK-35',rarity:'SSR',name:'银砂誓约'},
-  {id:'LOCK-36',rarity:'SR',name:'晨雾花园'},
-  {id:'LOCK-37',rarity:'SR',name:'潮汐星愿'},
-  {id:'LOCK-38',rarity:'SR',name:'鲸落之歌'},
-  {id:'LOCK-39',rarity:'R',name:'落日航线'},
-  {id:'LOCK-40',rarity:'R',name:'雾海旅人'},
-  {id:'LOCK-41',rarity:'R',name:'蓝夜灯塔'},
-  {id:'LOCK-42',rarity:'R',name:'云端邮戳'},
-  {id:'LOCK-43',rarity:'N',name:'海盐汽水'},
-  {id:'LOCK-44',rarity:'N',name:'风铃岛屿'},
-  {id:'LOCK-45',rarity:'N',name:'浮光拾贝'},
-  {id:'LOCK-46',rarity:'N',name:'归航之日'},
-  ...Array.from({length:4},(_,i)=>({id:'LOCK-'+String(i+47).padStart(2,'0'),rarity:'N',unreleased:true}))];
+  ...Array.from({length:18},(_,i)=>{const id='LOCK-'+String(i+33).padStart(2,'0');return TODAY_CARDS.find(c=>c.id===id)||{id,rarity:'N',unreleased:true}})];
 const CARD_TITLES=['岛屿与永恒','许愿的瞬间','与你共赴星海','海风来信','今日晴朗','雪啾旧梦','岛上的花','贝壳耳语','停靠的心愿','漂流的旋律','一片新绿','浪花一朵','小岛邮戳','口袋星光','来客留名','晚安小啾'];
 const OFFICIAL_OC=[['oc-official-caicai','菜菜','不吱岛的共同岛主，也是这场生日庆典的主角。与吱吱一起欢迎每一位登岛的朋友。',-200],['oc-official-zhizhi','吱吱','不吱岛的共同岛主，与菜菜一起筹备庆典，收藏岛上每一份相遇与故事。',-199]];
 for(const [id,name,description,sort] of OFFICIAL_OC)db.prepare('INSERT OR IGNORE INTO oc_profiles(id,name,description,sort_order,hidden,updated_at) VALUES(?,?,?,?,0,?)').run(id,name,description,sort,new Date().toISOString());
@@ -223,12 +210,13 @@ function deleteAnnouncement(b){const id=Number(b.id);if(!Number.isSafeInteger(id
 const ASSET_NAMES=new Set(['characters/zhizhi.webp','characters/caicai.webp','decor/home-background.webp','decor/home-poster.webp','decor/island-map.webp','decor/office-background.webp','decor/checkin-background.webp','decor/checkin-memorial.webp','decor/post-office-background.webp','decor/collection-background.webp','decor/mailbox-background.webp',...CARDS.map(card=>'cards/'+card.id+'.webp')]);
 function allAssetNames(){return [...ASSET_NAMES,...listOc().map(p=>'oc/'+p.id+'.webp')]}
 function assetPath(name){if(!ASSET_NAMES.has(name)&&!(/^oc\/oc-[A-Za-z0-9_-]{8,30}\.webp$/.test(name)&&db.prepare('SELECT id FROM oc_profiles WHERE id=?').get(name.slice(3,-5))))throw error(400,'素材位置无效');return resolve(ASSET_DIR,name)}
+function assetReadPath(name){const uploaded=assetPath(name);if(existsSync(uploaded))return uploaded;const bundled=resolve(fileURLToPath(new URL('..',import.meta.url)),'assets',name);return existsSync(bundled)?bundled:null}
 function versionFolder(name){return resolve(ASSET_DIR,'history',name)}
 function assetVersions(name){assetPath(name);const folder=versionFolder(name);if(!existsSync(folder))return [];return readdirSync(folder).filter(f=>/^[0-9TZ.-]+-[a-f0-9]{12}\.webp$/.test(f)).sort().reverse().slice(0,20).map(f=>({version:f,size:statSync(resolve(folder,f)).size}))}
 const ASSET_LAYOUT_DEFAULT={scale:100,x:50,y:50,opacity:100,fit:'contain',layer:0};
 function getAssetLayouts(){const out={};for(const row of db.prepare('SELECT name,settings FROM asset_layouts').all()){if(allAssetNames().includes(row.name)){try{out[row.name]=JSON.parse(row.settings)}catch{}}}return out}
 function saveAssetLayout(b){const name=String(b.name||'');assetPath(name);const settings=b.settings;if(!settings||typeof settings!=='object'||Array.isArray(settings)||Object.keys(settings).length!==6)throw error(400,'布局参数不完整');const fields=['scale','x','y','opacity','fit','layer'];if(fields.some(k=>!Object.hasOwn(settings,k)))throw error(400,'布局参数不完整');for(const [k,min,max] of [['scale',30,250],['x',0,100],['y',0,100],['opacity',0,100],['layer',-5,5]])if(typeof settings[k]!=='number'||!Number.isFinite(settings[k])||settings[k]<min||settings[k]>max)throw error(400,'布局数值超出范围');if(!['contain','cover'].includes(settings.fit))throw error(400,'裁切方式不受支持');db.prepare('INSERT INTO asset_layouts(name,settings,updated_at) VALUES(?,?,?) ON CONFLICT(name) DO UPDATE SET settings=excluded.settings,updated_at=excluded.updated_at').run(name,JSON.stringify(settings),now());auditAdmin('asset.layout',{name,settings});return {name,settings}}
-function assetStatus(){return allAssetNames().map(name=>({name,help:assetHelp(name),uploaded:existsSync(assetPath(name)),url:'/assets/'+name,versions:assetVersions(name).length}))}
+function assetStatus(){return allAssetNames().map(name=>({name,help:assetHelp(name),uploaded:!!assetReadPath(name),url:'/assets/'+name,versions:assetVersions(name).length}))}
 function backupAsset(name){const filepath=assetPath(name);if(!existsSync(filepath))return null;const folder=versionFolder(name);mkdirSync(folder,{recursive:true});const version=now().replace(/[:]/g,'-')+'-'+randomBytes(6).toString('hex')+'.webp';copyFileSync(filepath,resolve(folder,version));return version}
 function saveAsset(b){const name=String(b.name||'');const filepath=assetPath(name),raw=String(b.base64||'');if(!/^[A-Za-z0-9+/]+={0,2}$/.test(raw)||raw.length>5600000)throw error(400,'图片内容无效或超过 4 MB');const bytes=Buffer.from(raw,'base64');if(bytes.length<24||bytes.length>4*1024*1024||bytes.toString('ascii',0,4)!=='RIFF'||bytes.toString('ascii',8,12)!=='WEBP'||!['VP8 ','VP8L','VP8X'].includes(bytes.toString('ascii',12,16)))throw error(400,'仅允许有效的 WebP 图片（最大 4 MB）');mkdirSync(dirname(filepath),{recursive:true});const temp=filepath+'.'+rand(8)+'.tmp';try{writeFileSync(temp,bytes,{flag:'wx',mode:0o600});const previous=backupAsset(name);renameSync(temp,filepath);auditAdmin('asset.upload',{name,size:bytes.length,previous})}finally{if(existsSync(temp))unlinkSync(temp)}return {name,size:bytes.length,url:'/assets/'+name}}
 function restoreAsset(b){const name=String(b.name||''),version=String(b.version||'');const filepath=assetPath(name);if(!/^[0-9TZ.-]+-[a-f0-9]{12}\.webp$/.test(version))throw error(400,'版本编号无效');const source=resolve(versionFolder(name),version);if(!existsSync(source))throw error(404,'历史版本不存在');mkdirSync(dirname(filepath),{recursive:true});const previous=backupAsset(name);const temp=filepath+'.'+rand(8)+'.tmp';try{copyFileSync(source,temp);renameSync(temp,filepath)}finally{if(existsSync(temp))unlinkSync(temp)}auditAdmin('asset.restore',{name,version,previous});return {name,url:'/assets/'+name,restored:version}}
@@ -314,7 +302,7 @@ else if(path==='/api/admin/messages'&&req.method==='GET'){admin(req);data=messag
 else if(path==='/api/admin/messages/reply'&&req.method==='POST'){admin(req);data=messageBoard.reply(b)}
 else if(path==='/api/admin/messages/moderate'&&req.method==='POST'){admin(req);data=messageBoard.moderate(b)}
 else if(path==='/api/announcements'&&req.method==='GET')data=announcements(false);
-else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries(allAssetNames().map(name=>[name,existsSync(assetPath(name))])),versions:Object.fromEntries(allAssetNames().map(name=>[name,existsSync(assetPath(name))?Math.trunc(statSync(assetPath(name)).mtimeMs):0])),layouts:getAssetLayouts()};
+else if(path==='/api/assets-manifest'&&req.method==='GET')data={assets:Object.fromEntries(allAssetNames().map(name=>[name,!!assetReadPath(name)])),versions:Object.fromEntries(allAssetNames().map(name=>[name,assetReadPath(name)?Math.trunc(statSync(assetReadPath(name)).mtimeMs):0])),layouts:getAssetLayouts()};
 else if(path==='/api/activity'&&req.method==='GET')data=getActivity();
 else if(path==='/api/admin/activity'&&req.method==='GET'){admin(req);data=getActivity()}
 else if(path==='/api/admin/activity'&&req.method==='POST'){admin(req);data=saveActivity(b)}

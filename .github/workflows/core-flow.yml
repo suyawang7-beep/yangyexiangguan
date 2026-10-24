@@ -41,6 +41,7 @@ jobs:
       - name: Island mail atomic claims, inventory, history and browser flows
         if: ${{ !cancelled() }}
         run: |
+          node tests/card-assets-release.mjs
           node --test tests/test-port.mjs
           node --test tests/island-mail-flow.mjs
           node tests/island-mail-browser.cjs
