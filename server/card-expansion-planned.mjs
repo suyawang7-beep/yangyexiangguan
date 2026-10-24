@@ -1,5 +1,5 @@
 // Reserved designs for the second 14-card expansion (46 -> 60).
-// These are NOT part of the active draw pool until all 14 verified WebP assets exist.
+// These use generated SVG placeholders until official WebP images are uploaded; all 14 are active.
 // Do not overwrite any existing production asset (particularly LOCK-50).
 // The published 46-card registry remains unchanged until release validation.
 export const PLANNED_SIXTY_CARDS = [
