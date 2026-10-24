@@ -634,7 +634,7 @@
     document.querySelector('#copy-id')?.addEventListener('click',()=>navigator.clipboard.writeText(state.passport.id).then(()=>toast('编号已复制，请妥善保存恢复密钥')));
     const form=document.querySelector('#passport-form');
     form?.addEventListener('submit',async e=>{e.preventDefault();const nickname=form.elements.nickname.value.trim();if(!nickname||[...nickname].length>20){toast('昵称请填写 1–20 个字符');return}
-      try{const password=form.elements.password?.value||'';if(password.length<10){toast('密码至少10个字符');return}const result=await liveApi('register',{nickname,password});liveToken=result.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(result.profile);showRecoveryOnce(result.id,result.recoveryKey);document.dispatchEvent(new CustomEvent('buzhi:passport-issued'))}catch(err){toast(err.message)}
+      try{const password=form.elements.password?.value||'';if(password.length<10){toast('密码至少10个字符');return}const result=await liveApi('register',{nickname,password});liveToken=result.token;sessionStorage.setItem('buzhi-online-token',liveToken);takeProfile(result.profile);showRecoveryOnce(result.id,result.recoveryKey)}catch(err){toast(err.message)}
     });
   }
 
