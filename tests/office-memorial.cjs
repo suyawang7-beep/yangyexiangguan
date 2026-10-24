@@ -41,7 +41,7 @@ function records(){return Object.fromEntries(['users','ledger','tasks','task_wri
   }
   assert.equal((await api('admin/assets/versions?name='+encodeURIComponent(slot),undefined,admin)).data.length,1,'Replacement preserves previous artwork');assert.deepEqual(records(),before);
   assert.equal((await api('admin/assets/upload',{name:slot,base64:'AAAA'})).status,403);
-  assert.equal((await api('assets-manifest')).data.assets[slot],true);assert.equal((await api('catalog')).data.cards.length,32,'Memorial never enters the draw pool');await context.close();
+  assert.equal((await api('assets-manifest')).data.assets[slot],true);const catalog=(await api('catalog')).data;assert.equal(catalog.cards.length,46,'Today\'s 14 new cards expand the public pool to 46');assert(!catalog.cards.some(card=>/memorial/i.test(card.id)||card.image===slot),'Memorial never enters the draw pool');await context.close();
  });
  for(const width of [1440,390])await check('real milestone 3/6 celebration, once only, width '+width,async()=>{
   const a=await account('肥啾里程碑'+width),{page,context}=await userPage(a,width);await visit(page,'/office.html');
