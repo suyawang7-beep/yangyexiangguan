@@ -23,9 +23,9 @@ try{
  assert.equal((await api('admin/oc',{...form,id:oc.id,sortOrder:999},admin)).status,200);assert.equal((await api('oc')).data.at(-1).id,oc.id,'Higher order must appear after existing profiles');
  const changed=await api('admin/oc',{...form,id:oc.id,name:'新人物',hidden:true,sortOrder:9},admin);assert.equal(changed.status,200);assert(!(await api('oc')).data.some(p=>p.id===oc.id));assert((await api('admin/oc',undefined,admin)).data.some(p=>p.id===oc.id));
  assert.equal((await api('admin/oc',{...form,name:''},admin)).status,400);
- const metadata={cardId:'UR-1',name:'新的卡名 <b>',story:'新的故事 & 记忆',ocId:oc.id};assert.equal((await api('admin/cards',metadata,admin)).status,200);
- const catalog=(await api('catalog')).data;assert.equal(catalog.cards.length,46);assert.equal(catalog.visibleCards,46);assert.equal(catalog.totalSlots,50);assert.equal(catalog.cost,50);const card=catalog.cards.find(c=>c.id==='UR-1');assert.equal(card.name,metadata.name);assert.equal(card.story,metadata.story);assert.equal(card.characters,'新人物');assert.equal(card.rarity,'UR');assert.equal(card.previewId,'BZ-01');
- for(const bad of [{...metadata,rarity:'N'},{...metadata,cardId:'N-999'},{...metadata,ocId:'unknown'},{...metadata,name:''}])assert.equal((await api('admin/cards',bad,admin)).status,400);
+ const metadata={cardId:'UR-1',name:'新的卡名 <b>',rarity:'SSR',story:'新的故事 & 记忆',ocId:oc.id};assert.equal((await api('admin/cards',metadata,admin)).status,200);
+ const catalog=(await api('catalog')).data;assert.equal(catalog.cards.length,46);assert.equal(catalog.visibleCards,46);assert.equal(catalog.totalSlots,50);assert.equal(catalog.cost,50);const card=catalog.cards.find(c=>c.id==='UR-1');assert.equal(card.name,metadata.name);assert.equal(card.story,metadata.story);assert.equal(card.characters,'新人物');assert.equal(card.rarity,'SSR');assert.equal(card.previewId,'BZ-01');
+ for(const bad of [{...metadata,rarity:'INVALID'},{...metadata,cardId:'N-999'},{...metadata,ocId:'unknown'},{...metadata,name:''}])assert.equal((await api('admin/cards',bad,admin)).status,400);
  const image=Buffer.concat([Buffer.from('RIFF'),Buffer.from([16,0,0,0]),Buffer.from('WEBPVP8 '),Buffer.alloc(8)]).toString('base64');
  assert.equal((await api('admin/assets/upload',{name:oc.imageAsset,base64:image},admin)).status,200);assert.equal((await fetch(base+'/assets/'+oc.imageAsset)).status,200);
  const manifest=(await api('assets-manifest')).data;assert.equal(manifest.assets[oc.imageAsset],true);
