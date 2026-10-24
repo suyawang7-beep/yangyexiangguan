@@ -73,7 +73,7 @@ function check(value,label){assert.ok(value,label);checks++;}
   await page.waitForFunction(()=>document.querySelector('#motion-toggle').getAttribute('aria-pressed')==='false');checks++;
   await other.close();await page.bringToFront();
   await page.locator('#motion-toggle').click();
-  await page.evaluate(()=>scrollTo(0,document.body.scrollHeight));await page.waitForTimeout(140);
+  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,document.body.scrollHeight));await page.waitForTimeout(140);
   check(await shell.evaluate(el=>el.getAnimations().every(a=>a.playState==='paused')),'Offscreen hero stickers pause');
   await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(140);
   check(await shell.evaluate(el=>el.getAnimations().some(a=>a.playState==='running')),'Stickers resume on returning to the hero');
