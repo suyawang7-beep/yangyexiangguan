@@ -358,6 +358,15 @@
   }
   function renderDraw() {
     const first = state.history.length === 0;
+    const poolReady = !LIVE || liveCatalogReady;
+    const visibleCount = poolReady ? CARDS.length : 0;
+    const hiddenCount = Math.max(0, 50 - visibleCount);
+    const rarityCounts = CARDS.reduce((counts, card) => { counts[card.rarity] = (counts[card.rarity] || 0) + 1; return counts; }, { UR: 0, SSR: 0, SR: 0, R: 0, N: 0 });
+    const firstPoolCount = rarityCounts.SSR + rarityCounts.SR;
+    const percent = count => visibleCount ? `${(count / visibleCount * 100).toFixed(2).replace(/\\.?0+$/, '')}%` : '—';
+    const poolLabel = poolReady ? `生日回忆卡池 · ${visibleCount} 张` : '正在读取卡池…';
+    const firstDescription = poolReady ? `首次抽卡从公开的${rarityCounts.SSR}张SSR与${rarityCounts.SR}张SR中抽取，每张概率为1/${firstPoolCount}。把第一份相遇，留得特别一点。` : '正在读取公开卡池与概率…';
+    const normalDescription = poolReady ? `UR、SSR、SR、R、N，当前公开${visibleCount}张卡片，剩余${hiddenCount}张待开放。正常卡池每张概率均为1/${visibleCount}。` : '正在读取公开卡池与概率…';
     return `<section class="postal-experience" aria-labelledby="postal-title">
       <header class="postal-masthead"><span class="postal-location">${icon('mail')} 肥啾邮局 <span>／生日抽卡</span></span><span class="postal-edition">庆典限定 · 10.18—10.25</span></header>
       <div class="postal-intro"><h1 id="postal-title">把这一刻，<em>寄给你。</em></h1><p>海风送来一封信，里面藏着我们相遇的某个瞬间。</p></div>
@@ -371,9 +380,9 @@
         ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 || (LIVE&&!liveCatalogReady) ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
         <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
-        <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : '生日回忆卡池 · 32 张'}</span></div>
-        <p class="draw-description" id="draw-pool-description">${first ? '首次抽卡从公开的4张SSR与6张SR中抽取，每张概率为1/10。把第一份相遇，留得特别一点。' : 'UR、SSR、SR、R、N，当前公开32张卡片，剩余18张待开放。正常卡池每张概率均为1/32。'}</p>
-        <details><summary>公开概率与首抽说明</summary><p class="small muted">首抽从公开SSR与SR卡片中等概率抽取，保证SR及以上；之后正常卡池32张，各1/32。</p><ul class="probability-list"><li><span>UR · 2 张</span><strong>6.25%</strong></li><li><span>SSR · 4 张</span><strong>12.5%</strong></li><li><span>SR · 6 张</span><strong>18.75%</strong></li><li><span>R · 9 张</span><strong>28.125%</strong></li><li><span>N · 11 张</span><strong>34.375%</strong></li></ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
+        <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${first ? '首次赴约 · SR / SSR 保障' : poolLabel}</span></div>
+        <p class="draw-description" id="draw-pool-description">${first ? firstDescription : normalDescription}</p>
+        <details><summary>公开概率与首抽说明</summary><p class="small muted">${poolReady ? `首抽从公开的 ${rarityCounts.SSR} 张 SSR 与 ${rarityCounts.SR} 张 SR 中等概率抽取（共 ${firstPoolCount} 张），每张概率为 1/${firstPoolCount}；之后正常卡池每张概率为 1/${visibleCount}。` : '正在读取卡池概率…'}</p><ul class="probability-list">${['UR', 'SSR', 'SR', 'R', 'N'].map(r => `<li><span>${r} · ${poolReady ? rarityCounts[r] : '…'} 张</span><strong>${percent(rarityCounts[r])}</strong></li>`).join('')}</ul><p class="small muted">金币为活动积分，不可充值、提现或兑换现金。</p></details>
       </section>
     </section><section class="postal-collection" aria-labelledby="postal-collection-title"><div class="section-heading"><div><span class="postal-shelf-label">把相遇，慢慢收集</span><h2 id="postal-collection-title">信封里的小小宇宙</h2></div><small>${LIVE ? '看看有哪些回忆' : '以下为部分示意卡面'}</small></div><div class="pool-preview">${CARDS.slice(0, 8).map((card) => cardMarkup(card)).join('')}</div></section>`;
   }
@@ -590,8 +599,8 @@
         button.disabled = state.balance < 50; button.textContent = state.balance >= 50 ? '再寄出一份期待 ↗' : '金币暂时不足50枚';
         toast(`${card.rarity}「${card.name}」已收入收藏。`);
         if (first) {
-          document.querySelector('#draw-pool-label').textContent = '首抽已完成 · 后续为32张正常池';
-          document.querySelector('#draw-pool-description').textContent = '接下来正常卡池包含UR、SSR、SR、R、N，32张卡片每张概率均为1/32。';
+          document.querySelector('#draw-pool-label').textContent = `首抽已完成 · 后续为${CARDS.length}张正常池`;
+          document.querySelector('#draw-pool-description').textContent = `接下来正常卡池包含UR、SSR、SR、R、N，${CARDS.length}张卡片每张概率均为1/${CARDS.length}。`;
         }
       };
       const noMotion = document.querySelector('.world').dataset.motion === 'off' || document.hidden || stage.dataset.deliveryReady !== 'true';
