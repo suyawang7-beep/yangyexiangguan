@@ -1,6 +1,6 @@
 /* Production identity integration. Does not replace the shared ui-preview renderer or styles. */
 (() => {
- 'use strict';let current=null,revision=0,applying=false,renderedPanel=null,renderedState='',previousToken=sessionStorage.getItem('buzhi-online-token')||'',autoOpen=false;
+ 'use strict';let current=null,revision=0,applying=false,renderedPanel=null,renderedState='',autoOpen=location.pathname.endsWith('/passport.html')&&location.hash==='#membershipApplication';
  const ownToken=()=>sessionStorage.getItem('buzhi-online-token')||'';
  const labels={visitor:'游客 · 尚未申请',pending:'游客 · 待审核',verified:'已认证岛民',rejected:'游客 · 申请未通过',revoked:'游客 · 认证已撤销'};
  const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
@@ -18,12 +18,12 @@
  function openMembershipDialog(){if(!location.pathname.endsWith('/passport.html'))return;const dialog=document.querySelector('#membershipApplication');if(dialog&&!dialog.open){const other=[...document.querySelectorAll('dialog[open]')].find(item=>item!==dialog);if(other){other.addEventListener('close',()=>queueMicrotask(openMembershipDialog),{once:true});return}dialog.showModal();autoOpen=false}}
  function reflect(){
   if(location.pathname.endsWith('/verify.html')){renderApplication();return}
-  if(location.pathname.endsWith('/passport.html')){const token=ownToken();if(token&&token!==previousToken)autoOpen=true;previousToken=token;renderApplication()}
+  if(location.pathname.endsWith('/passport.html'))renderApplication()
   const verified=current?.status==='verified',protectedPage=/\/(office|checkin|draw)\.html$/.test(location.pathname);if(protectedPage&&ownToken()&&!verified){let notice=document.querySelector('[data-membership-notice]');if(!notice){notice=el('div');notice.className='info-note';notice.dataset.membershipNotice='true';notice.id='membershipNotice';notice.append(el('strong',labels[current?.status]||'正在核对岛民身份'),el('p','签到、兑奖和抽卡需要正式入团并通过岛民认证。已有金币、签到与收藏记录均保留。'));const a=el('a','前往岛民认证 →');a.href='passport.html#membershipApplication';a.className='btn text';notice.append(a);document.querySelector('#main')?.prepend(notice)}for(const button of document.querySelectorAll('#draw-button,#checkin-button,[data-task]')){if(!button.hasAttribute('data-membership-blocked'))button.dataset.membershipOriginalDisabled=String(button.disabled);button.dataset.membershipBlocked='true';button.disabled=true;button.setAttribute('aria-describedby','membershipNotice')}}else{document.querySelector('[data-membership-notice]')?.remove();for(const button of document.querySelectorAll('[data-membership-blocked]')){button.disabled=button.dataset.membershipOriginalDisabled==='true';delete button.dataset.membershipBlocked;delete button.dataset.membershipOriginalDisabled;button.removeAttribute('aria-describedby')}}
   const identity=document.querySelector('.ticket-readable dd');if(identity&&current)identity.textContent=verified?'已认证岛民':'访客 · 未核验';const image=document.querySelector('#ticket-image');if(image&&verified)image.alt=image.alt.replace('访客 · 未核验','已认证岛民');
  }
  async function update(){if(applying)return;const mark=++revision;reflect();if(!ownToken())return;try{const result=await api('membership');if(mark!==revision)return;current=result;reflect()}catch(e){if(mark!==revision)return;current=null;reflect();if(location.pathname.endsWith('/verify.html'))document.querySelector('#membershipApplication')?.append(el('p',e.message))}}
- document.addEventListener('click',event=>{if(event.target.closest('a[href$="#membershipApplication"]')){event.preventDefault();if(location.pathname.endsWith('/passport.html'))openMembershipDialog()}});document.addEventListener('buzhi:render',update);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update,{once:true});else update();
+ document.addEventListener('click',event=>{const link=event.target.closest('a[href$="#membershipApplication"]');if(!link)return;event.preventDefault();if(location.pathname.endsWith('/passport.html'))openMembershipDialog();else location.href=new URL('passport.html#membershipApplication',location.href).href});document.addEventListener('buzhi:passport-issued',()=>{autoOpen=true;openMembershipDialog()});document.addEventListener('buzhi:render',update);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update,{once:true});else update();
 })();
 
 
