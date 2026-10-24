@@ -55,6 +55,7 @@ server.stderr.on('data', chunk => { logs += chunk; });
   const recovery = {id:await page.locator('#recovery-participant').inputValue(), key:await page.locator('#recovery-secret').inputValue()};
   await page.locator('#recovery-saved').click();
   await page.locator('#recovery-once').waitFor({ state: 'detached' });
+  assert.equal(await page.locator('#membershipApplication').evaluate(dialog => dialog.open), false, 'Registration must not open a blocking membership dialog automatically');
   assert.equal(await page.locator('#recovery-once').count(), 0, 'Dismissed secret must be removed from the DOM');
   await page.locator('#public-id').waitFor();
   await page.locator('[data-ticket-ready="true"]').waitFor();

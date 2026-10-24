@@ -1,3 +1,4 @@
+import {TODAY_CARDS} from './card-release.mjs';
 // These descriptions follow the actual artwork hosts in app.js and effects.js.
 // Keep page names user-facing; card and OC identities come from their own editors.
 const HELP = {
@@ -70,13 +71,13 @@ const CARD_IDS = [
   ...Array.from({length:18},(_,i)=>'LOCK-'+String(i+33).padStart(2,'0'))
 ];
 for(const [index,id] of CARD_IDS.entries()){
-  const unreleased=index>=32;
+  const unreleased=index>=32&&!TODAY_CARDS.some(c=>c.id===id);
   HELP['cards/'+id+'.webp']={
     label:(unreleased?'待开放 · ':'')+id+' 回忆卡插画',
     pages:unreleased?['后台卡片管理（暂不公开）']:['肥啾邮局','回忆收藏室'],
     region:unreleased?'第 '+(index+1)+' 号预留卡位，仅管理员可编辑':'第 '+(index+1)+' 张公开卡片的中央插画框'+(index<8?'，也出现在邮局下方前八张预览中':''),
-    description:unreleased?'第 '+(index+1)+' 号卡位属于50张总容量中尚未开放的18张。现在可以预先上传与填写资料，但不会在公开卡池、抽卡结果或收藏列表展示。未来需另行开放才会显示。':'此图用于该编号卡片的抽卡结果、收藏列表与详情。卡框、编号、稀有度、卡名由网页绘制，不要烘焙进图片。上传不会改变抽卡概率、历史持有数或原账户数据。',
-    recommendation:'上传主体居中、周围留白的插画，优先 WebP；通过下方位置X/Y、缩放和裁切调整显示。卡名、故事和关联人物在「卡片管理」修改。'
+    description:unreleased?'第 '+(index+1)+' 号卡位属于50张总容量中尚未开放的4张。现在可以预先上传与填写资料，但不会在公开卡池、抽卡结果或收藏列表展示。未来需另行开放才会显示。':'此图用于该编号卡片的抽卡结果、收藏列表与详情。卡框、编号、稀有度、卡名由网页绘制，不要烘焙进图片。上传不会改变抽卡概率、历史持有数或原账户数据。',
+    recommendation:'上传主体居中、周围留白的插画，优先 WebP；通过下方位置X/Y、缩放和裁切调整显示。卡名、稀有度、故事和关联人物在「卡片管理」修改。'
   };
 }
 
