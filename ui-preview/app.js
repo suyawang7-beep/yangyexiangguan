@@ -270,7 +270,7 @@
     const catalogTask=(async()=>{
       try{
         const catalog=await liveApi('catalog');liveCatalog=catalog.cards;
-        for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}
+        for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.rarity=item.rarity;card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}
         liveCatalogReady=true;
         if(latestLiveProfile&&liveToken&&latestLiveProfileToken===liveToken)takeProfile(latestLiveProfile);
         else if(PAGE!=='passport')renderPage();
