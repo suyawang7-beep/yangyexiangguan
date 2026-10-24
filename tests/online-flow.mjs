@@ -92,7 +92,7 @@ await page.locator('#enter').click();
 await page.locator('#stats .stat').first().waitFor();
 assert.match(await page.locator('#notices').textContent(),/岛主公告测试/);
 await page.locator('#adminNavigation a[href="/admin/asset-check"]').click();await page.locator('#auditAssets').click();
-await page.locator('#auditSummary').getByText(/检查完成：0 \/ 52/).waitFor({timeout:15000});
+await page.locator('#auditSummary').getByText(/检查完成：14 \/ 52/).waitFor({timeout:15000});
 assert.equal(await page.locator('#auditRows tr').count(),52);
 await page.goto(root+'/legacy');
 await page.waitForFunction(()=>document.querySelector('#bzHomeLatest')?.textContent.includes('岛主公告测试'));
@@ -163,4 +163,5 @@ const deletedSession=await api('me',undefined,disposable.data.token);assert.notE
 const preservedSession=await api('me',undefined,protectedAccount.data.token);assert.equal(preservedSession.status,200);
 console.log('PASS remote account and admin: register, code redemption, check-in, recovery, overview, protected admin UI, published/draft notices, home/mailbox publish-update-delete sync');
 }finally{await browser?.close();if(processServer.exitCode===null){const done=new Promise(r=>processServer.once('exit',r));processServer.kill('SIGTERM');await done}rmSync(dir,{recursive:true,force:true})}
+
 

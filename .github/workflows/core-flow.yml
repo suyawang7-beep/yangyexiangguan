@@ -42,6 +42,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           node tests/card-assets-release.mjs
+          node tests/card-profile-loading.cjs
           node --test tests/test-port.mjs
           node --test tests/island-mail-flow.mjs
           node tests/island-mail-browser.cjs
@@ -94,3 +95,4 @@ jobs:
       - run: node tests/loading-browser.cjs
       - run: node tests/deployment-artifact.mjs
       - run: node tests/recovery-flow.cjs
+

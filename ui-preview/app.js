@@ -242,6 +242,7 @@
     }finally{if(timer!==undefined)clearTimeout(timer)}
   }
   function takeProfile(profile,{celebrate=false}={}){
+    latestLiveProfile=profile;latestLiveProfileToken=liveToken;
     const fresh=celebrate&&state.passport?.id===profile.id?profile.bonuses.filter(n=>[3,6].includes(n)&&!state.bonuses.includes(n)):[];
     state=blank();state.pendingMilestones=fresh;state.taskProgress=profile.taskProgress||null;
     state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
@@ -1004,4 +1005,5 @@
   pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;
   document.body.append(pencilScript);
 })();
+
 
