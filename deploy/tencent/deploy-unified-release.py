@@ -134,7 +134,11 @@ try:
     assert {c['id'] for c in catalog if c['id'].startswith('LOCK-')}==expected_ids
     assert all(c['rarity'] in ['UR','SSR','SR','R','N'] for c in catalog)
     # Keep the public maintenance gate on and ensure it does not admit visitors.
-    row=readonly(database).execute('SELECT enabled FROM site_maintenance WHERE id=1').fetchone()
+    checkdb=readonly(database)
+    try:
+        row=checkdb.execute('SELECT enabled FROM site_maintenance WHERE id=1').fetchone()
+    finally:
+        checkdb.close()
     if row and row[0]:
         try:
             urllib.request.urlopen('http://127.0.0.1:14179/api/catalog',timeout=5)
