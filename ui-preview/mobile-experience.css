@@ -23,3 +23,22 @@
 @media(prefers-reduced-motion:reduce){.sea-underlined:after,.sea-success-stamp{animation:none!important}.guide-place-card,.sea-tab-indicator,body[data-page=guide] .world .guide-info{transition:none!important}}
 .world[data-motion=off] .sea-underlined:after,body[data-motion=off] .sea-underlined:after,body[data-motion=off] .sea-success-stamp{animation:none}.world[data-motion=off] .sea-tab-indicator,.world[data-motion=off] .guide-info,.world[data-motion=off] .guide-place-card{transition:none}
 html[data-sea-hidden=true] .sea-underlined:after,html[data-sea-hidden=true] .sea-success-stamp{animation-play-state:paused}
+
+/* Sixty-card release: subtle, accessible card feedback with no homepage redesign. */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+  .world[data-motion="on"] .memory-card,
+  .world[data-motion="on"] .draw-stage .card-inner,
+  .world[data-motion="on"] .souvenir-ticket {transition: transform 220ms cubic-bezier(.2,.8,.2,1),filter 220ms ease;will-change:auto}
+  .world[data-motion="on"] .memory-card:hover,
+  .world[data-motion="on"] .draw-stage .card-inner:hover,
+  .world[data-motion="on"] .souvenir-ticket:hover {transform:translateY(-3px);filter:brightness(1.035)}
+}
+.world .memory-card:focus-visible,
+.world .draw-stage .card-inner:focus-visible,
+.world .souvenir-ticket:focus-visible {outline:2px solid #5087a5;outline-offset:3px}
+@media (prefers-reduced-motion:reduce) {
+  .world .memory-card,.world .draw-stage .card-inner,.world .souvenir-ticket {transition:none!important;animation:none!important}
+}
+.world[data-motion="off"] .memory-card,
+.world[data-motion="off"] .draw-stage .card-inner,
+.world[data-motion="off"] .souvenir-ticket {transition:none!important;animation:none!important}
