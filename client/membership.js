@@ -23,7 +23,7 @@
   const identity=document.querySelector('.ticket-readable dd');if(identity&&current)identity.textContent=verified?'已认证岛民':'访客 · 未核验';const image=document.querySelector('#ticket-image');if(image&&verified)image.alt=image.alt.replace('访客 · 未核验','已认证岛民');
  }
  async function update(){if(applying)return;const mark=++revision;reflect();if(!ownToken())return;try{const result=await api('membership');if(mark!==revision)return;current=result;reflect()}catch(e){if(mark!==revision)return;current=null;reflect();if(location.pathname.endsWith('/verify.html'))document.querySelector('#membershipApplication')?.append(el('p',e.message))}}
- document.addEventListener('click',event=>{const link=event.target.closest('a[href$="#membershipApplication"]');if(!link)return;event.preventDefault();if(location.pathname.endsWith('/passport.html'))openMembershipDialog();else location.href=new URL('passport.html#membershipApplication',location.href).href});document.addEventListener('buzhi:passport-issued',()=>{autoOpen=true;openMembershipDialog()});document.addEventListener('buzhi:render',update);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update,{once:true});else update();
+ document.addEventListener('click',event=>{const link=event.target.closest('a[href$="#membershipApplication"]');if(!link)return;event.preventDefault();if(location.pathname.endsWith('/passport.html'))openMembershipDialog();else location.href=new URL('passport.html#membershipApplication',location.href).href});document.addEventListener('buzhi:render',update);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update,{once:true});else update();
 })();
 
 
