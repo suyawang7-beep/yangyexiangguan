@@ -363,7 +363,7 @@
     const hiddenCount = Math.max(0, 50 - visibleCount);
     const rarityCounts = CARDS.reduce((counts, card) => { counts[card.rarity] = (counts[card.rarity] || 0) + 1; return counts; }, { UR: 0, SSR: 0, SR: 0, R: 0, N: 0 });
     const firstPoolCount = rarityCounts.SSR + rarityCounts.SR;
-    const percent = count => visibleCount ? `${(count / visibleCount * 100).toFixed(2).replace(/\\.?0+$/, '')}%` : '—';
+    const percent = count => visibleCount ? `${(count / visibleCount * 100).toFixed(2).replace(/\.?0+$/, '')}%` : '—';
     const poolLabel = poolReady ? `生日回忆卡池 · ${visibleCount} 张` : '正在读取卡池…';
     const firstDescription = poolReady ? `首次抽卡从公开的${rarityCounts.SSR}张SSR与${rarityCounts.SR}张SR中抽取，每张概率为1/${firstPoolCount}。把第一份相遇，留得特别一点。` : '正在读取公开卡池与概率…';
     const normalDescription = poolReady ? `UR、SSR、SR、R、N，当前公开${visibleCount}张卡片，剩余${hiddenCount}张待开放。正常卡池每张概率均为1/${visibleCount}。` : '正在读取公开卡池与概率…';
