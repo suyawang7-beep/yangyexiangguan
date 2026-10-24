@@ -59,7 +59,20 @@ const CARDS=[...Array.from({length:1},(_,i)=>({id:'UR-'+(i+1),rarity:'UR'})),...
   ...Array.from({length:2},(_,i)=>({id:'SR-'+(i+5),rarity:'SR'})),
   ...Array.from({length:5},(_,i)=>({id:'R-'+(i+5),rarity:'R'})),
   ...Array.from({length:6},(_,i)=>({id:'N-'+(i+6),rarity:'N'})),
-  ...Array.from({length:14},(_,i)=>({id:'LOCK-'+String(i+33).padStart(2,'0'),rarity:'N'})),
+  {id:'LOCK-33',rarity:'UR',name:'星屿回响'},
+  {id:'LOCK-34',rarity:'SSR',name:'月潮来信'},
+  {id:'LOCK-35',rarity:'SSR',name:'银砂誓约'},
+  {id:'LOCK-36',rarity:'SR',name:'晨雾花园'},
+  {id:'LOCK-37',rarity:'SR',name:'潮汐星愿'},
+  {id:'LOCK-38',rarity:'SR',name:'鲸落之歌'},
+  {id:'LOCK-39',rarity:'R',name:'落日航线'},
+  {id:'LOCK-40',rarity:'R',name:'雾海旅人'},
+  {id:'LOCK-41',rarity:'R',name:'蓝夜灯塔'},
+  {id:'LOCK-42',rarity:'R',name:'云端邮戳'},
+  {id:'LOCK-43',rarity:'N',name:'海盐汽水'},
+  {id:'LOCK-44',rarity:'N',name:'风铃岛屿'},
+  {id:'LOCK-45',rarity:'N',name:'浮光拾贝'},
+  {id:'LOCK-46',rarity:'N',name:'归航之日'},
   ...Array.from({length:4},(_,i)=>({id:'LOCK-'+String(i+47).padStart(2,'0'),rarity:'N',unreleased:true}))];
 const CARD_TITLES=['岛屿与永恒','许愿的瞬间','与你共赴星海','海风来信','今日晴朗','雪啾旧梦','岛上的花','贝壳耳语','停靠的心愿','漂流的旋律','一片新绿','浪花一朵','小岛邮戳','口袋星光','来客留名','晚安小啾'];
 const OFFICIAL_OC=[['oc-official-caicai','菜菜','不吱岛的共同岛主，也是这场生日庆典的主角。与吱吱一起欢迎每一位登岛的朋友。',-200],['oc-official-zhizhi','吱吱','不吱岛的共同岛主，与菜菜一起筹备庆典，收藏岛上每一份相遇与故事。',-199]];
@@ -67,7 +80,7 @@ for(const [id,name,description,sort] of OFFICIAL_OC)db.prepare('INSERT OR IGNORE
 function listOc(publicOnly=false){const rows=db.prepare('SELECT id,name,description,sort_order AS sortOrder,hidden,updated_at AS updatedAt FROM oc_profiles '+(publicOnly?'WHERE hidden=0 ':'')+'ORDER BY sort_order ASC,id ASC').all();return rows.map(r=>({...r,hidden:!!r.hidden,image:r.id==='oc-official-caicai'?'/assets/characters/caicai.webp':r.id==='oc-official-zhizhi'?'/assets/characters/zhizhi.webp':'/assets/oc/'+r.id+'.webp'}))}
 function saveOc(b){const id=b.id?String(b.id):'oc-'+rand(9);if(!/^oc-[A-Za-z0-9_-]{8,30}$/.test(id))throw error(400,'OC 编号无效');const name=String(b.name||'').trim(),description=String(b.description||'').trim(),sortOrder=Number(b.sortOrder??0);if(!name||name.length>60||description.length>2000||!Number.isSafeInteger(sortOrder)||Math.abs(sortOrder)>100000)throw error(400,'OC 资料格式不正确');const hidden=b.hidden===true?1:0;db.prepare('INSERT INTO oc_profiles(id,name,description,sort_order,hidden,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,description=excluded.description,sort_order=excluded.sort_order,hidden=excluded.hidden,updated_at=excluded.updated_at').run(id,name,description,sortOrder,hidden,now());auditAdmin('oc.save',{id,hidden});return {id}}
 if(!db.prepare('PRAGMA table_info(card_profiles)').all().some(c=>c.name==='oc_id_2'))db.exec('ALTER TABLE card_profiles ADD COLUMN oc_id_2 TEXT');
-function getCards(){const profiles=new Map(db.prepare('SELECT card_id,name,story,oc_id,oc_id_2 FROM card_profiles').all().map(r=>[r.card_id,r]));return CARDS.map((c,i)=>({...c,unreleased:!!c.unreleased,previewId:'BZ-'+String(i+1).padStart(2,'0'),name:profiles.get(c.id)?.name||CARD_TITLES[i]||(c.unreleased?'未公开卡面':'星海回忆 '+String(i+1).padStart(2,'0')),story:profiles.has(c.id)?profiles.get(c.id).story:null,characters:[profiles.get(c.id)?.oc_id,profiles.get(c.id)?.oc_id_2].filter(Boolean).map(id=>db.prepare('SELECT name FROM oc_profiles WHERE id=?').get(id)?.name).filter(Boolean).join('、')||null,ocId:profiles.get(c.id)?.oc_id||null,ocId2:profiles.get(c.id)?.oc_id_2||null,image:'/assets/cards/'+c.id+'.webp'}))}
+function getCards(){const profiles=new Map(db.prepare('SELECT card_id,name,story,oc_id,oc_id_2 FROM card_profiles').all().map(r=>[r.card_id,r]));return CARDS.map((c,i)=>({...c,unreleased:!!c.unreleased,previewId:'BZ-'+String(i+1).padStart(2,'0'),name:profiles.get(c.id)?.name||c.name||CARD_TITLES[i]||(c.unreleased?'未公开卡面':'星海回忆 '+String(i+1).padStart(2,'0')),story:profiles.has(c.id)?profiles.get(c.id).story:null,characters:[profiles.get(c.id)?.oc_id,profiles.get(c.id)?.oc_id_2].filter(Boolean).map(id=>db.prepare('SELECT name FROM oc_profiles WHERE id=?').get(id)?.name).filter(Boolean).join('、')||null,ocId:profiles.get(c.id)?.oc_id||null,ocId2:profiles.get(c.id)?.oc_id_2||null,image:'/assets/cards/'+c.id+'.webp'}))}
 function saveCard(b){if(Object.keys(b).some(k=>!['cardId','name','story','ocId','ocId2'].includes(k)))throw error(400,'只能编辑卡片资料');const id=String(b.cardId||'');if(!CARDS.some(c=>c.id===id))throw error(400,'卡片编号无效');const name=String(b.name||'').trim(),story=String(b.story||'').trim(),ocId=b.ocId?String(b.ocId):null,ocId2=b.ocId2?String(b.ocId2):null;if(!name||name.length>80||story.length>3000)throw error(400,'卡片资料格式不正确');if(ocId&&!db.prepare('SELECT id FROM oc_profiles WHERE id=?').get(ocId))throw error(400,'关联人物不存在');if(ocId2&&!db.prepare('SELECT id FROM oc_profiles WHERE id=?').get(ocId2))throw error(400,'第二位关联人物不存在');if(ocId2&&!ocId)throw error(400,'请先设置第一位人物');if(ocId&&ocId===ocId2)throw error(400,'两个人物位置不能选择同一人物');db.prepare('INSERT INTO card_profiles(card_id,name,story,oc_id,oc_id_2,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(card_id) DO UPDATE SET name=excluded.name,story=excluded.story,oc_id=excluded.oc_id,oc_id_2=excluded.oc_id_2,updated_at=excluded.updated_at').run(id,name,story,ocId,ocId2,now());auditAdmin('card.save',{id,ocId});return {id}}
 
 const sha=s=>createHash('sha256').update(String(s)).digest('hex'),rand=n=>randomBytes(n).toString('base64url'),now=()=>new Date().toISOString(),day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
