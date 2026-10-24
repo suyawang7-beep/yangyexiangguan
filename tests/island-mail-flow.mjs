@@ -13,7 +13,7 @@ const folder=mkdtempSync(join(tmpdir(),'buzhi-inbox-')),dbPath=join(folder,'isol
 const admin='isolated-inbox-admin-000000000000000000',port=55000+Math.floor(Math.random()*500),base='http://127.0.0.1:'+port;
 let server,db,a,b,visitor,logs='';
 async function api(path,body,token,origin=base){const response=await fetch(origin+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});return {status:response.status,data:await response.json()}}
-async function start(){server=spawn(process.execPath,['server/index.mjs'],{env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:dbPath,ASSET_DIR:join(folder,'assets'),ADMIN_TOKEN:admin},stdio:['ignore','ignore','pipe']});server.stderr.on('data',x=>logs+=x);for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)return}catch{}await new Promise(r=>setTimeout(r,100))}throw Error(logs)}
+async function start(){server=spawn(process.execPath,['server/index.mjs'],{env:{...process.env,NODE_ENV:'test',BUZHI_TEST_COIN_REDEMPTION_CODE:'ISOLATED-COIN-1314-CODE',HOST:'127.0.0.1',PORT:String(port),DB_PATH:dbPath,ASSET_DIR:join(folder,'assets'),ADMIN_TOKEN:admin},stdio:['ignore','ignore','pipe']});server.stderr.on('data',x=>logs+=x);for(let i=0;i<100;i++){try{if((await fetch(base+'/health')).ok)return}catch{}await new Promise(r=>setTimeout(r,100))}throw Error(logs)}
 async function stop(){if(server?.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}}
 async function account(nickname,verified=true){const r=await api('register',{nickname,password:'isolated-inbox-password-2026'});assert.equal(r.status,200);if(verified)await verifyAccount(base,admin,r.data);return r.data}
 function gift(userId=a.id,extra={}){return {userId,title:'海风礼物',message:'生日快乐',kind:'coins',amount:75,requestId:randomUUID(),...extra}}
@@ -112,4 +112,40 @@ test('two independent server processes racing on SQLite can credit one gift only
   assert(replies.every(r=>r.status===200));assert.equal(replies.filter(r=>r.data.claimed).length,1);assert.equal(await coins(a.token),initial+75);
   assert.equal(db.prepare("SELECT count(*) n FROM ledger WHERE user_id=? AND reason='岛民信箱：双进程金币测试'").get(a.id).n,1);
  }finally{if(other.exitCode===null){const done=new Promise(r=>other.once('exit',r));other.kill();await done}}
+});
+
+
+test('131.4 coin redemption is verified-only, one-per-islander, atomic, and capped at 40 uses',async()=>{
+ const code='ISOLATED-COIN-1314-CODE';
+ assert.equal((await api('redeem-coin-code',{code})).status,401);
+ assert.equal((await api('redeem-coin-code',{code},visitor.token)).status,403);
+ const initialA=await coins(a.token);
+ const racing=await Promise.all(Array.from({length:12},()=>api('redeem-coin-code',{code},a.token)));
+ assert.equal(racing.filter(r=>r.status===200).length,1,JSON.stringify(racing.map(r=>r.status)));
+ assert.equal(racing.filter(r=>r.status===409).length,11);
+ const success=racing.find(r=>r.status===200).data;
+ assert.equal(success.amount,131.4);
+ assert.equal(success.remainingUses,39);
+ assert.equal(success.profile.coins,initialA+131.4);
+ assert.equal(await coins(a.token),initialA+131.4);
+ assert.equal(db.prepare("SELECT count(*) n FROM ledger WHERE user_id=? AND reason='金币兑换码奖励 island-coin-1314-40'").get(a.id).n,1);
+ assert.equal((await api('redeem-coin-code',{code},a.token)).status,409);
+ const initialB=await coins(b.token);
+ const second=await api('redeem-coin-code',{code},b.token);
+ assert.equal(second.status,200,JSON.stringify(second.data));
+ assert.equal(second.data.amount,131.4);
+ assert.equal(second.data.remainingUses,38);
+ assert.equal(await coins(b.token),initialB+131.4);
+ const campaign=db.prepare("SELECT redeemed_count FROM coin_redemption_campaigns WHERE id='island-coin-1314-40'").get();
+ assert.equal(campaign.redeemed_count,2);
+ db.prepare("UPDATE coin_redemption_campaigns SET redeemed_count=40 WHERE id='island-coin-1314-40'").run();
+ try{
+  const c=await account('兑换码满额测试');
+  const before=await coins(c.token);
+  const full=await api('redeem-coin-code',{code},c.token);
+  assert.equal(full.status,409);
+  assert.match(full.data.error,/40次/);
+  assert.equal(await coins(c.token),before);
+  assert.equal(db.prepare("SELECT count(*) n FROM coin_redemption_claims WHERE campaign_id='island-coin-1314-40' AND user_id=?").get(c.id).n,0);
+ }finally{db.prepare("UPDATE coin_redemption_campaigns SET redeemed_count=2 WHERE id='island-coin-1314-40'").run()}
 });
