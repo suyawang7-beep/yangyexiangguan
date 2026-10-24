@@ -40,10 +40,10 @@ async function api(path,body,token){
   assert.equal(await page.locator('#journal-journey time').count(),4,'registration, latest approval, first checkin and first draw use stored timestamps');
   const times=await page.locator('#journal-journey time').evaluateAll(nodes=>nodes.map(n=>n.dateTime));assert(times.includes(before.created_at));assert(times.includes(before.draws[0].created_at));
   assert(!await page.locator('#journal-journey').innerText().then(t=>t.includes('首次认证')),'does not invent first-ever certification');
-  assert.equal(await page.locator('#island-mail-list article:visible').count(),3);
+  assert.equal(await page.locator('#island-mail-list article:visible').count(),width<=680?1:3);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),width+': no horizontal overflow');
   const boxes=await page.evaluate(()=>Object.fromEntries(['journal-identity','journal-welcome','island-mail-panel','journal-collection'].map(id=>{const b=document.getElementById(id).getBoundingClientRect();return [id,{x:b.x,y:b.y,right:b.right,bottom:b.bottom}]})));
-  if(width<=680){assert(boxes['journal-identity'].y<boxes['journal-welcome'].y,'mobile identity first');assert(boxes['island-mail-panel'].bottom<=boxes['journal-collection'].y,'mobile mail before collection');assert(boxes['island-mail-panel'].y<960,'mail starts within initial mobile screen');}
+  if(width<=680){assert(await page.locator('#journal-welcome').isHidden(),'mobile welcome merged into identity');assert(boxes['island-mail-panel'].bottom<=boxes['journal-collection'].y,'mobile mail before collection');assert(boxes['island-mail-panel'].y<960,'mail starts within initial mobile screen');}
   if(width>=1100){assert(boxes['journal-welcome'].right<=boxes['journal-identity'].x,'desktop asymmetric opening');assert(Math.abs(boxes['island-mail-panel'].y-boxes['journal-collection'].y)<2,'desktop mail and collection share a row');}
   assert.deepEqual(writes,[],'opening the journal cannot mutate rewards');
   await page.locator('#journal-collection').scrollIntoViewIfNeeded();
@@ -52,11 +52,11 @@ async function api(path,body,token){
   await page.screenshot({path:'test-results/resident-journal/resident-'+width+'.png',fullPage:true});
   if(width===390){
    await page.locator('#island-mail-list article button').first().click();await page.waitForFunction(()=>document.querySelector('#island-items-list').textContent.includes('海边拾到的贝壳'));
-   await page.locator('#island-mail-list article button').first().click();await page.waitForFunction(n=>document.querySelector('#journal-coins').textContent===String(n),before.coins+7);
+   await page.locator('#mail-stack-toggle').click();await page.locator('#island-mail-list article button').first().click();await page.waitForFunction(n=>document.querySelector('#journal-coins').textContent===String(n),before.coins+7);
    assert.equal((await api('me',undefined,account.token)).coins,before.coins+7);
    assert.equal(await page.locator('#island-mail-list img').count(),0,'mail remains literal text');
-   await page.locator('#mail-stack-toggle').click();assert.equal(await page.locator('#island-mail-list article:visible').count(),6);
-   await page.locator('[data-tab="works"]').click();await page.locator('#title').fill('小岛日记');await page.locator('#body').fill('只存在于一次性本地数据库的故事。');await page.locator('[data-status="draft"]').click();await page.locator('#work-list').getByText('小岛日记',{exact:true}).waitFor();
+   assert.equal(await page.locator('#island-mail-list article:visible').count(),6);
+   await page.locator('#journal-desk-fold>summary').click();await page.locator('[data-tab="works"]').click();await page.locator('#title').fill('小岛日记');await page.locator('#body').fill('只存在于一次性本地数据库的故事。');await page.locator('[data-status="draft"]').click();await page.locator('#work-list').getByText('小岛日记',{exact:true}).waitFor();
    assert.equal((await api('resident',undefined,account.token)).works[0].title,'小岛日记');
    const now=await api('me',undefined,account.token);for(const key of ['tasks','checkins','draws','bonuses'])assert.deepEqual(now[key],before[key],key+' unchanged');
    await page.emulateMedia({reducedMotion:'reduce'});assert(await page.locator('#journal-collection').evaluate(el=>getComputedStyle(el).animationName==='none'));
@@ -67,7 +67,7 @@ async function api(path,body,token){
  const context=await browser.newContext({viewport:{width:320,height:844}});await context.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),empty.token);const p=await context.newPage();
  await p.goto(base+'/resident.html',{waitUntil:'networkidle'});assert.equal(await p.locator('#journal-owned').innerText(),'0');assert.equal(await p.locator('.journal-memory').count(),0);assert.equal(await p.locator('#journal-journey time').count(),2);assert.match(await p.locator('#journal-collection').innerText(),/第一张|等待/);
  await p.route('**/api/catalog',r=>r.fulfill({status:503,json:{error:'暂不可用'}}));await p.reload({waitUntil:'networkidle'});assert.match(await p.locator('#journal-collection').innerText(),/暂时|重试/);assert.equal(await p.locator('#journal-total').innerText(),'—','failed catalog must not invent total');await p.unroute('**/api/catalog');await p.locator('#journal-retry').click();await p.waitForFunction(()=>document.querySelector('#journal-total').textContent==='60');
- await p.route('**/api/me',async r=>{const response=await r.fetch(),data=await response.json();data.nickname='<img src=x onerror=alert(1)>'.repeat(4);await r.fulfill({json:data})});await p.reload({waitUntil:'networkidle'});assert.equal(await p.locator('#journal-identity img').count(),0);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'hostile/long nickname remains contained');await context.close();
+ await p.route('**/api/me',async r=>{const response=await r.fetch(),data=await response.json();data.nickname='<img src=x onerror=alert(1)>'.repeat(4);await r.fulfill({json:data})});await p.reload({waitUntil:'networkidle'});assert.equal(await p.locator('#journal-identity img').count(),1,'only the safe bundled island illustration');assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'hostile/long nickname remains contained');await context.close();
  for(const verified of [false,null]){const c=await browser.newContext();if(verified===false){const visitor=await api('register',{nickname:'未认证',password:'journal-unverified-password'});await c.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),visitor.token)}const page=await c.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(base+'/resident.html',{waitUntil:'networkidle'});assert(await page.locator('#center').isHidden());assert(await page.locator('#entry').isVisible());assert.deepEqual(errors,[],'logged-out and unverified pages remain usable');await c.close()}
  // Extra isolated fixture records exercise duplicate ownership and the three-card stage.
  // These rows belong only to this temporary test database, never a live islander.

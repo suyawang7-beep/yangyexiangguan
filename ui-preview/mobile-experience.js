@@ -51,9 +51,9 @@
  }
  function mail(){
   const list=document.querySelector('#island-mail-list');if(!list||list.dataset.stackReady)return;list.dataset.stackReady='true';list.classList.add('sea-mail-stack');
-  const toggle=make('button','resident-btn sea-mail-toggle');toggle.type='button';toggle.id='mail-stack-toggle';toggle.setAttribute('aria-controls',list.id);list.after(toggle);let expanded=false;
-  function update(){const letters=[...list.querySelectorAll(':scope > article')];list.dataset.expanded=String(expanded);letters.forEach((letter,index)=>{letter.hidden=!expanded&&index>=3;letter.classList.add('sea-envelope')});toggle.hidden=letters.length<=3;toggle.setAttribute('aria-expanded',String(expanded));toggle.textContent=expanded?'收起来信':'展开全部来信（'+letters.length+'封）'}
-  toggle.onclick=()=>{expanded=!expanded;update()};document.querySelector('#island-mail-more')?.addEventListener('click',()=>{expanded=true;update()});new MutationObserver(update).observe(list,{childList:true});update();
+  const toggle=make('button','resident-btn sea-mail-toggle');toggle.type='button';toggle.id='mail-stack-toggle';toggle.setAttribute('aria-controls',list.id);list.after(toggle);let expanded=false;const compact=matchMedia('(max-width:680px)');
+  function update(){const letters=[...list.querySelectorAll(':scope > article')];list.dataset.expanded=String(expanded);letters.forEach((letter,index)=>{letter.hidden=!expanded&&index>=(compact.matches?1:3);letter.classList.add('sea-envelope')});toggle.hidden=letters.length<=(compact.matches?1:3);toggle.setAttribute('aria-expanded',String(expanded));toggle.textContent=expanded?'收起来信':'展开全部来信（'+letters.length+'封）'}
+  toggle.onclick=()=>{expanded=!expanded;update()};document.querySelector('#island-mail-more')?.addEventListener('click',()=>{expanded=true;update()});new MutationObserver(update).observe(list,{childList:true});compact.addEventListener('change',update);update();
  }
  function decorate(){guide();tabs();mail();document.querySelectorAll('body[data-page="guide"] .guide-map-heading h1,body[data-page="collection"] .page-heading h1,#island-mail-panel h2').forEach(n=>n.classList.add('sea-underlined'))}
  document.addEventListener('buzhi:gift-claimed',()=>{
