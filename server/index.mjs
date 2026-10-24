@@ -75,7 +75,7 @@ function saveCard(b){if(Object.keys(b).some(k=>!['cardId','name','rarity','story
 
 const sha=s=>createHash('sha256').update(String(s)).digest('hex'),rand=n=>randomBytes(n).toString('base64url'),now=()=>new Date().toISOString(),day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 // The one-off campaign's plaintext is intentionally not stored in source; only its SHA-256 hash is persisted.
-const COIN_CODE_CAMPAIGN_ID='island-coin-1314-40',COIN_CODE_HASH='1fafa63ba7335d42b6e695ff0b3cc6c41798ae37e94b0f486d0138f0a128b247';
+const COIN_CODE_CAMPAIGN_ID='island-coin-1314-40',COIN_CODE_HASH=process.env.NODE_ENV==='test'&&process.env.BUZHI_TEST_COIN_REDEMPTION_CODE?sha(String(process.env.BUZHI_TEST_COIN_REDEMPTION_CODE).trim().toUpperCase()):'1fafa63ba7335d42b6e695ff0b3cc6c41798ae37e94b0f486d0138f0a128b247';
 db.prepare('INSERT OR IGNORE INTO coin_redemption_campaigns(id,code_hash,amount_tenths,max_uses,redeemed_count,active,created_at) VALUES(?,?,1314,40,0,1,?)').run(COIN_CODE_CAMPAIGN_ID,COIN_CODE_HASH,now());
 const error=(status,message)=>Object.assign(new Error(message),{status});
 const eq=(a,b)=>{const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&timingSafeEqual(x,y)};
