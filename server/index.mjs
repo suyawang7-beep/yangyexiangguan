@@ -59,7 +59,8 @@ const CARDS=[...Array.from({length:1},(_,i)=>({id:'UR-'+(i+1),rarity:'UR'})),...
   ...Array.from({length:2},(_,i)=>({id:'SR-'+(i+5),rarity:'SR'})),
   ...Array.from({length:5},(_,i)=>({id:'R-'+(i+5),rarity:'R'})),
   ...Array.from({length:6},(_,i)=>({id:'N-'+(i+6),rarity:'N'})),
-  ...Array.from({length:18},(_,i)=>({id:'LOCK-'+String(i+33).padStart(2,'0'),rarity:'N',unreleased:true}))];
+  ...Array.from({length:14},(_,i)=>({id:'LOCK-'+String(i+33).padStart(2,'0'),rarity:'N'})),
+  ...Array.from({length:4},(_,i)=>({id:'LOCK-'+String(i+47).padStart(2,'0'),rarity:'N',unreleased:true}))];
 const CARD_TITLES=['岛屿与永恒','许愿的瞬间','与你共赴星海','海风来信','今日晴朗','雪啾旧梦','岛上的花','贝壳耳语','停靠的心愿','漂流的旋律','一片新绿','浪花一朵','小岛邮戳','口袋星光','来客留名','晚安小啾'];
 const OFFICIAL_OC=[['oc-official-caicai','菜菜','不吱岛的共同岛主，也是这场生日庆典的主角。与吱吱一起欢迎每一位登岛的朋友。',-200],['oc-official-zhizhi','吱吱','不吱岛的共同岛主，与菜菜一起筹备庆典，收藏岛上每一份相遇与故事。',-199]];
 for(const [id,name,description,sort] of OFFICIAL_OC)db.prepare('INSERT OR IGNORE INTO oc_profiles(id,name,description,sort_order,hidden,updated_at) VALUES(?,?,?,?,0,?)').run(id,name,description,sort,new Date().toISOString());
