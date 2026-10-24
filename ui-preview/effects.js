@@ -557,7 +557,7 @@
       voyage.dataset.stop = active;
       pins.forEach(pin => pin.setAttribute('aria-pressed', String(Number(pin.dataset.mapStop) === active)));
       voyage.querySelectorAll('[data-guide-leader],[data-guide-anchor]').forEach(el=>el.dataset.active=String(Number(el.dataset.guideLeader||el.dataset.guideAnchor)===active));
-      placePins();panToActive(true);
+      placePins();panToActive(true);voyage.dispatchEvent(new CustomEvent('buzhi:guide-place',{detail:{index:active}}));
     }
     voyage.querySelector('#voyage-prev').onclick = () => select(active - 1);
     voyage.querySelector('#voyage-next').onclick = () => select(active + 1);

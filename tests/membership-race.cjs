@@ -10,7 +10,7 @@ const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..
  const draftPage=await browser.newPage();await draftPage.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),account.token);
  let releaseMe,meSeen;const meGate=new Promise(r=>releaseMe=r),meHeld=new Promise(r=>meSeen=r);
  await draftPage.route('**/api/me',async route=>{const response=await route.fetch();meSeen();await meGate;await route.fulfill({response});});
- await draftPage.goto(base+'/passport.html#membershipApplication',{waitUntil:'domcontentloaded'});await meHeld;await draftPage.locator('#membershipApplyForm').waitFor();
+ await draftPage.goto(base+'/passport.html',{waitUntil:'domcontentloaded'});await meHeld;await draftPage.locator('#openMembershipDialog').click();await draftPage.locator('#membershipApplyForm').waitFor();
  await draftPage.locator('#douyinId').fill('draft_before_profile');await draftPage.locator('#membershipNote').fill('账号资料稍后返回时也要保留这段输入');
  releaseMe();await draftPage.locator('#public-id').waitFor();
  assert.equal(await draftPage.locator('#douyinId').inputValue(),'draft_before_profile','Late account render must preserve certification input');

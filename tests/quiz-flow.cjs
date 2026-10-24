@@ -54,7 +54,7 @@ async function account(name,verified=true){const r=await api('register',{nicknam
   for(let i=0;i<5;i++){const field=page.locator('#quiz-question');const id=await field.getAttribute('data-question-id');await field.locator('input[value="'+correct.get(id)+'"]').check();if(i<4)await page.locator('#quiz-next').click()}
   // Back/next retain selected answers.
   await page.locator('#quiz-previous').click();assert.equal(await page.locator('#quiz-question input:checked').count(),1);await page.locator('#quiz-next').click();
-  await page.locator('#quiz-submit').click();await page.locator('#quiz-result').getByText(/5.*5/).waitFor();assert.equal(await coin(u.token),beginCoins+25);assert.equal(await page.locator('#quiz-feedback article').count(),5);
+  await page.locator('#quiz-submit').click();await page.locator('#quiz-result').getByRole('heading',{name:/你答对了\s*5\s*\/\s*5/}).waitFor();assert.equal(await coin(u.token),beginCoins+25);assert.equal(await page.locator('#quiz-feedback article').count(),5);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await page.screenshot({path:'test-results/daily-quiz-'+width+'.png',fullPage:true});
   await page.locator('#quiz-close').click();await page.reload({waitUntil:'networkidle'});await page.locator('[data-task=quiz]').click();await page.locator('#quiz-result').waitFor();assert.equal(await coin(u.token),beginCoins+25);assert.equal(await page.locator('#quiz-submit').count(),0);assert.deepEqual(errors,[]);await context.close();
  }
