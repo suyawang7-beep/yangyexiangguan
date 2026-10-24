@@ -26,19 +26,19 @@ html[data-sea-hidden=true] .sea-underlined:after,html[data-sea-hidden=true] .sea
 
 /* Sixty-card release: subtle, accessible card feedback with no homepage redesign. */
 @media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
-  .world[data-motion="on"] .collection-card,
-  .world[data-motion="on"] .draw-card,
+  .world[data-motion="on"] .memory-card,
+  .world[data-motion="on"] .draw-stage .card-inner,
   .world[data-motion="on"] .souvenir-ticket {transition: transform 220ms cubic-bezier(.2,.8,.2,1),filter 220ms ease;will-change:auto}
-  .world[data-motion="on"] .collection-card:hover,
-  .world[data-motion="on"] .draw-card:hover,
+  .world[data-motion="on"] .memory-card:hover,
+  .world[data-motion="on"] .draw-stage .card-inner:hover,
   .world[data-motion="on"] .souvenir-ticket:hover {transform:translateY(-3px);filter:brightness(1.035)}
 }
-.world .collection-card:focus-visible,
-.world .draw-card:focus-visible,
+.world .memory-card:focus-visible,
+.world .draw-stage .card-inner:focus-visible,
 .world .souvenir-ticket:focus-visible {outline:2px solid #5087a5;outline-offset:3px}
 @media (prefers-reduced-motion:reduce) {
-  .world .collection-card,.world .draw-card,.world .souvenir-ticket {transition:none!important;animation:none!important}
+  .world .memory-card,.world .draw-stage .card-inner,.world .souvenir-ticket {transition:none!important;animation:none!important}
 }
-.world[data-motion="off"] .collection-card,
-.world[data-motion="off"] .draw-card,
+.world[data-motion="off"] .memory-card,
+.world[data-motion="off"] .draw-stage .card-inner,
 .world[data-motion="off"] .souvenir-ticket {transition:none!important;animation:none!important}
