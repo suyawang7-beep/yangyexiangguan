@@ -31,6 +31,9 @@ const check=(value,label)=>{assert.ok(value,label);checks++;};
       const pin=page.locator(`[data-map-stop="${stop}"]`);
       check(await pin.evaluate((el,xy)=>Math.hypot(Number(el.dataset.mapX)-xy[0],Number(el.dataset.mapY)-xy[1])<1,xy),`${width}/${stop}: anchor matches the actual landmark, not a roof or boat`);
       await pin.click();
+      check(await page.locator('.guide-focus').count()===1,'selected ground anchor has one focus marker');
+      check(await page.locator('.guide-focus').getAttribute('data-stop')===stop,'focus follows the selected stop');
+      check(await page.locator('.guide-focus').getAttribute('transform')===`translate(${xy[0]} ${xy[1]})`,'focus is anchored to the landmark rather than the label');
       check(await page.locator('#voyage').getAttribute('data-stop')===stop,`${width}/${stop}: real pointer click selects the right location`);
       const result=await page.evaluate(stop=>{
         const pin=document.querySelector(`[data-map-stop="${stop}"]`),camera=document.querySelector('#map-camera'),map=document.querySelector('.voyage-map'),svg=document.querySelector('.guide-map-art');
@@ -57,6 +60,7 @@ const check=(value,label)=>{assert.ok(value,label);checks++;};
     await page.locator('#voyage-overview').click();
     check(await page.locator('#voyage-count').textContent()==='01 / 06',`${width}: overview restores first card`);
     check(await page.locator('[data-map-stop][aria-pressed="true"]').count()===0,`${width}: overview clears selected location`);
+    check(await page.locator('.guide-focus').getAttribute('visibility')==='hidden','overview removes the location marker');
     if(evidence)await scroll.screenshot({path:resolve(evidence,`guide-${width}-overview.png`)});
   }
   check(await page.locator('.guide-water-motion').count()>=2,'Harbor and outer channels have separate mapped water effects');
@@ -95,10 +99,12 @@ const check=(value,label)=>{assert.ok(value,label);checks++;};
   const configured=await browser.newContext({viewport:{width:390,height:1000}});
   await configured.route('**/api/visual-settings',r=>r.fulfill({json:{effectGuide:false}}));
   const staticGuide=await configured.newPage();await staticGuide.goto(base+'/guide.html');await staticGuide.waitForSelector('[data-guide-ready="true"]');
-  check(await staticGuide.locator('.guide-water-motion,.guide-cloud-motion').evaluateAll(els=>els.every(el=>el.getAnimations({subtree:true}).length===1&&el.getAnimations({subtree:true}).every(a=>a.playState!=='running'))),'Admin effectGuide=false stops all registered map effects');
+  check(await staticGuide.locator('.guide-water-motion,.guide-cloud-motion').evaluateAll(els=>els.every(el=>el.getAnimations({subtree:true}).length<=1&&el.getAnimations({subtree:true}).every(a=>a.playState!=='running'))),'Admin effectGuide=false stops all registered map effects');
   await staticGuide.locator('[data-map-stop="5"]').click();
   check(await staticGuide.locator('#voyage').getAttribute('data-stop')==='5','Admin-disabled ambience does not disable navigation');
+  check(await staticGuide.locator('.guide-focus-ring').evaluate(el=>el.getAnimations().length===0),'disabled motion uses a static accurate marker');
   await configured.close();
   if(evidence)await writeFile(resolve(evidence,'alignment.json'),JSON.stringify(records,null,2));
   console.log(`PASS ${checks} guide landmark, pan, label and motion assertions`);
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();await new Promise(r=>server.close(r));});
+

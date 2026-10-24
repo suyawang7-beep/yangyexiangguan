@@ -954,6 +954,7 @@
           <g class="guide-water-motion" data-guide-feature="channels" clip-path="url(#guide-channel-water)" aria-hidden="true"><g class="guide-motion-ink"><path d="M230 295q30 8 65-3M1005 176q35 8 70-3M1150 598q33 9 65-4M1450 625q38 8 78-3"/></g></g>
           <g class="guide-cloud-motion" data-guide-feature="mountain-mist" clip-path="url(#guide-mountain-mist)" aria-hidden="true"><g class="guide-motion-ink"><path d="M803 213c19-15 39-13 52-2 19-7 43 7 50 21 21-1 30 9 51 15l-24 16c-24-10-41-12-53-24-26 3-49-8-63-4Z M951 264c15-9 30-6 41 3 18-2 39 8 54 20l-17 12c-24-11-50-16-70-19Z"/></g></g>
           <g class="guide-landmarks pencil-map-callouts" aria-hidden="true">${stops.slice(1).map(([,,,,,x,y,,labelX,labelY],i)=>`<line data-guide-leader="${i+1}" x1="${labelX}" y1="${labelY}" x2="${x}" y2="${y}"/><circle data-guide-anchor="${i+1}" cx="${x}" cy="${y}" r="5"/>`).join('')}</g>
+          <g class="guide-focus" aria-hidden="true" data-stop="0" visibility="hidden"><circle class="guide-focus-glow" r="24"/><circle class="guide-focus-ring" r="14"/><circle class="guide-focus-dot" r="5"/></g>
         </g></svg>
         <div class="map-pins" role="group" aria-label="主岛地点">${stops.slice(1).map(([name,,,,,x,y,motif,labelX,labelY],i)=>`<button class="island-map-pin" type="button" data-map-stop="${i+1}" data-map-x="${x}" data-map-y="${y}" data-label-x="${labelX}" data-label-y="${labelY}" aria-label="查看${name}" aria-pressed="false">${icon(motif)}<span>${name}</span></button>`).join('')}</div>
       </div></div>
@@ -999,11 +1000,12 @@
   renderShell();
   if(LIVE)liveInit();else renderPage();
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261020-guide-milestone2', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261024-guide-focus1', document.currentScript.src).href;
   document.body.append(effectsScript);
   const pencilScript=document.createElement('script');
   pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;
   document.body.append(pencilScript);
 })();
+
 
 
