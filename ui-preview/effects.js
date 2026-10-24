@@ -119,6 +119,7 @@
     document.querySelectorAll('.guide-water-motion,.guide-cloud-motion').forEach(el => {
       if (ambientItems.has(el)) return;
       const water=el.classList.contains('guide-water-motion');
+      if(water)return;
       const ink=el.querySelector('.guide-motion-ink')||el;
       const harbor=el.dataset.guideFeature==='harbor';
       const frames=water?[{strokeDashoffset:0,opacity:.12},{strokeDashoffset:harbor?-36:-48,opacity:.32}]:[{transform:'translateX(-3px)',opacity:.1},{transform:'translateX(3px)',opacity:.18}];
@@ -518,7 +519,22 @@
     const entries = Array.from(voyage.querySelector('#voyage-stops').content.querySelectorAll('[data-guide-entry]'));
     const pins = Array.from(voyage.querySelectorAll('[data-map-stop]'));
     const motion = () => enabled() && allowedMode('effectGuide');
-    let active = 0, unsubscribe;
+    let active = 0, unsubscribe, focusAnimation;
+    const focus=voyage.querySelector('.guide-focus');
+    function updateFocus(animate=false){
+      if(!focus)return;
+      focusAnimation?.cancel();
+      const pin=pins.find(pin=>Number(pin.dataset.mapStop)===active);
+      focus.dataset.stop=String(active);
+      focus.setAttribute('visibility',pin?'visible':'hidden');
+      if(!pin)return;
+      focus.setAttribute('transform',`translate(${pin.dataset.mapX} ${pin.dataset.mapY})`);
+      if(animate&&motion())focusAnimation=focus.querySelector('.guide-focus-ring').animate([
+        {transform:'scale(.65)',opacity:0},
+        {transform:'scale(1)',opacity:.65,offset:.2},
+        {transform:'scale(1.9)',opacity:0}
+      ],{duration:800,easing:'cubic-bezier(.2,.7,.2,1)',iterations:1});
+    }
     // Artwork, leader lines and ground anchors always use the same fixed viewBox.
     // Navigation pans the viewport, never the picture underneath HTML labels.
     camera.setAttribute('transform','translate(0 0)');
@@ -557,7 +573,7 @@
       voyage.dataset.stop = active;
       pins.forEach(pin => pin.setAttribute('aria-pressed', String(Number(pin.dataset.mapStop) === active)));
       voyage.querySelectorAll('[data-guide-leader],[data-guide-anchor]').forEach(el=>el.dataset.active=String(Number(el.dataset.guideLeader||el.dataset.guideAnchor)===active));
-      placePins();panToActive(true);
+      updateFocus(true);placePins();panToActive(true);
     }
     voyage.querySelector('#voyage-prev').onclick = () => select(active - 1);
     voyage.querySelector('#voyage-next').onclick = () => select(active + 1);
@@ -565,7 +581,7 @@
     pins.forEach(pin => { pin.onclick = () => select(Number(pin.dataset.mapStop)); });
     const resize=new ResizeObserver(()=>{if(!voyage.isConnected){resize.disconnect();return;}placePins();panToActive();});
     resize.observe(stage);resize.observe(map);
-    unsubscribe=subscribe(()=>{if(!voyage.isConnected){resize.disconnect();unsubscribe?.();return;}if(!motion())panToActive();});
+    unsubscribe=subscribe(()=>{if(!voyage.isConnected){resize.disconnect();focusAnimation?.cancel();unsubscribe?.();return;}if(!motion()){focusAnimation?.cancel();panToActive();}});
     document.fonts.ready.then(()=>{if(voyage.isConnected){placePins();panToActive();}});
     voyage.dataset.guideReady = 'true'; select(0);
   }
