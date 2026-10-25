@@ -1,0 +1,45 @@
+/* Sea-breeze fusion workshop: accessible, lightweight motion. */
+.sea-fusion{margin:18px 0 25px;overflow:hidden;border-radius:24px;background:linear-gradient(145deg,rgba(244,252,255,.95),rgba(211,237,248,.84));border:1px solid rgba(116,169,197,.37)}
+.sea-fusion-launch{list-style:none;display:flex;align-items:center;gap:14px;cursor:pointer;padding:17px 22px;color:#315d76}
+.sea-fusion-launch::-webkit-details-marker{display:none}
+.sea-fusion-launch strong{display:block;font-size:1.1rem}.sea-fusion-launch small{display:block;opacity:.75;margin-top:4px}
+.sea-fusion-shell{font-size:2rem;filter:drop-shadow(0 4px 7px #669bb545);transform-origin:50% 85%;animation:fusion-shell-bob 4.4s ease-in-out infinite}
+.sea-fusion-badge{margin-left:auto;font-size:.8rem;white-space:nowrap;border-radius:99px;padding:7px 11px;background:#ffffffa8;border:1px solid #9dcddd}
+.sea-fusion-chevron{font-size:1.5rem;transition:transform .25s}
+.sea-fusion[open] .sea-fusion-chevron{transform:rotate(180deg)}
+.sea-fusion[open] .sea-fusion-interior{animation:fusion-enter .35s ease both}
+.sea-fusion-interior{border-top:1px dashed #a7cddd;padding:20px 24px 25px}
+.sea-fusion-stage{display:flex;justify-content:center;align-items:center;gap:24px;min-height:94px;margin:0 auto 12px;color:#669fba}
+.sea-fusion-card{display:grid;place-items:center;width:55px;height:75px;border:2px solid #8ec0d3;border-radius:12px;background:linear-gradient(150deg,#fff,#d9f3fc);box-shadow:0 6px 16px #397ca22b;font-size:1.5rem;animation:fusion-card-idle 3.6s ease-in-out infinite}
+.sea-fusion-card:last-child{animation-delay:-1.8s}
+.sea-fusion-vortex{font-size:2.4rem;animation:fusion-star-pulse 2.7s ease-in-out infinite}
+.sea-fusion form .filter-controls{display:flex;gap:14px;flex-wrap:wrap;margin:17px 0}
+.sea-fusion form label{flex:1 1 180px;font-size:.88rem;color:#365b71}
+.sea-fusion select{display:block;width:100%;min-width:0;margin-top:6px;padding:10px;border:1px solid #b8d6e7;border-radius:12px;background:#fff;color:#31576f}
+.sea-fusion-done{color:#55788e}
+.sea-fusion-reveal{border:0;border-radius:26px;padding:32px 38px;width:min(430px,calc(100vw - 28px));text-align:center;background:linear-gradient(160deg,#fffefb,#e2f5fd 75%,#e8e5fb);color:#315c74;box-shadow:0 22px 80px #173f5c6b}
+.sea-fusion-reveal::backdrop{background:rgba(7,21,39,.83);backdrop-filter:blur(6px)}
+.sea-fusion-animation{height:154px;display:flex;align-items:center;justify-content:center;gap:0;overflow:hidden}
+.fusion-float-card{display:grid;place-items:center;width:76px;height:106px;border:2px solid #81bcd3;border-radius:15px;background:#fff9;box-shadow:0 10px 26px #4898b44d;font-size:2rem;animation:fusion-merge-left 1.15s ease both}
+.fusion-float-card:last-child{animation-name:fusion-merge-right}
+.fusion-splash{font-size:3rem;color:#6eaec9;animation:fusion-flash 1.15s ease both}
+.fusion-reveal-label{font-size:.9rem;letter-spacing:.1em;color:#688da5}
+.sea-fusion-reveal h2{font-size:1.6rem;margin:12px 0}
+.fusion-new-rarity{display:inline-block;padding:7px 20px;margin:0 0 20px;border-radius:99px;background:#ffffffe0;font-weight:700;color:#487ea5}
+@keyframes fusion-shell-bob{50%{transform:translateY(-4px) rotate(5deg)}}
+@keyframes fusion-enter{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fusion-card-idle{50%{transform:translateY(-6px) rotate(4deg)}}
+@keyframes fusion-star-pulse{50%{transform:scale(1.2);opacity:.5}}
+@keyframes fusion-merge-left{0%{transform:translateX(-38px) rotate(-10deg);opacity:1}55%{transform:translateX(45px) rotate(12deg);opacity:1}75%{transform:translateX(56px) scale(.55);opacity:0}100%{transform:translateX(56px) scale(.2);opacity:0}}
+@keyframes fusion-merge-right{0%{transform:translateX(38px) rotate(10deg);opacity:1}55%{transform:translateX(-45px) rotate(-12deg);opacity:1}75%{transform:translateX(-56px) scale(.55);opacity:0}100%{transform:translateX(-56px) scale(.2);opacity:0}}
+@keyframes fusion-flash{0%,35%{transform:scale(.4);opacity:0}65%{transform:scale(1.8);opacity:1}100%{transform:scale(1);opacity:1}}
+@media(max-width:540px){.sea-fusion-launch{padding:14px 12px;gap:8px;flex-wrap:wrap}.sea-fusion-launch strong{font-size:1rem}.sea-fusion-launch small{font-size:.72rem}.sea-fusion-badge{font-size:.72rem;padding:5px 7px}.sea-fusion-interior{padding:17px 14px}.sea-fusion-chevron{display:none}}
+@media(prefers-reduced-motion:reduce){.sea-fusion *, .sea-fusion-reveal *{animation:none!important;transition:none!important}}
+
+/* Darken the scene only during the server-confirmed fusion transition. */
+.sea-fusion-veil{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;background:rgba(7,21,39,.78);backdrop-filter:blur(5px);animation:fusion-dim-in .3s ease both;color:#f7fbff;pointer-events:auto}
+.sea-fusion-veil-content{display:flex;align-items:center;flex-direction:column;gap:18px;max-width:90vw;padding:30px;text-align:center;font-size:1.04rem;letter-spacing:.06em;text-shadow:0 0 18px #b4ecff}
+.sea-fusion-veil-stars{display:block;font-size:3.5rem;letter-spacing:.26em;color:#d7f5ff;filter:drop-shadow(0 0 18px #8fe5ff);animation:fusion-star-glow 1.7s ease-in-out infinite alternate}
+@keyframes fusion-dim-in{from{background:rgba(7,21,39,0);opacity:0}to{background:rgba(7,21,39,.78);opacity:1}}
+@keyframes fusion-star-glow{from{transform:scale(.94);opacity:.6}to{transform:scale(1.06);opacity:1}}
+@media(prefers-reduced-motion:reduce){.sea-fusion-veil,.sea-fusion-veil-stars{animation:none!important}.sea-fusion-veil{backdrop-filter:none}}

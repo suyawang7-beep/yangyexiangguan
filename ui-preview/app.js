@@ -262,6 +262,18 @@
       entry.quantity++;state.collection[id]=entry;
       state.history.push({id:'server-'+index,cardId:id,rarity:item.rarity,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
     }
+    if(profile.inventory){
+      for(const [previewId,item] of Object.entries(state.collection)){item.quantity=0;}
+      for(const [cardId,quantity] of Object.entries(profile.inventory)){
+        const found=liveCatalog.find(c=>c.id===cardId);if(!found||quantity<=0)continue;
+        const key=found.previewId,firstAt=state.collection[key]?.firstAt||Date.now();
+        state.collection[key]={quantity,firstAt};
+      }
+      for(const fusion of profile.fusions||[]){
+        const found=liveCatalog.find(c=>c.id===fusion.result);
+        if(found)state.history.unshift({id:'fusion-'+fusion.at+'-'+fusion.result,cardId:found.previewId,rarity:fusion.rarity,at:Date.parse(fusion.at),fusion:true});
+      }
+    }
     renderPage();state.pendingMilestones=[];
   }
   async function liveInit(){
@@ -388,11 +400,28 @@
   }
 
   const filters = { ownership: 'all', rarity: 'all', search: '' };
+
+  function fusionMarkup(){
+    const used=Math.min(3,Number(latestLiveProfile?.fusionDaily?.used||0)),remain=3-used;
+    const valid=CARDS.filter(c=>['N','R','SR'].includes(c.rarity)&&(state.collection[c.id]?.quantity||0)>0);
+    const options=valid.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'（'+c.rarity+' · '+(state.collection[c.id]?.quantity||0)+'张）</option>').join('');
+    return '<details class="glass sea-fusion" id="sea-fusion"><summary class="sea-fusion-launch"><span class="sea-fusion-shell" aria-hidden="true">🐚</span><span><strong>海风融卡坊</strong><small>两张回忆，凝成一张新的相遇</small></span><span class="sea-fusion-badge">'+(LIVE?'今日剩余 '+remain+'/3 次':'每日3次')+'</span><span class="sea-fusion-chevron" aria-hidden="true">⌄</span></summary><div class="sea-fusion-interior"><div class="sea-fusion-stage" aria-hidden="true"><span class="sea-fusion-card">✦</span><span class="sea-fusion-vortex">✧</span><span class="sea-fusion-card">✦</span></div><p class="small muted">每天最多融合3次，次日北京时间00:00刷新。消耗2张同等级材料卡，随机获得1张卡（可能与材料同级或降级）。N→N/SR/SSR/UR；R→N/R/SSR/UR；SR→N/R/SR/SSR/UR。</p>'+
+    (!LIVE?'<p class="small muted">正式网站登录后可使用融卡。</p>':!liveToken?'<p class="small">请先登录岛民通行证。</p>':!remain?'<p class="sea-fusion-done">今天的海风已经歇息啦，明天再来融合回忆 ♡</p>':valid.length?'<form id="card-fusion-form"><div class="filter-controls"><label>第一张卡<select required name="first"><option value="">选择卡片</option>'+options+'</select></label><label>第二张卡<select required name="second"><option value="">选择卡片</option>'+options+'</select></label></div><p id="fusion-message" class="small muted" role="status">两张卡必须同等级；相同卡片需要持有至少2张。</p><button class="btn primary" type="submit">✦ 开始融卡</button></form>':'<p class="small muted">目前没有可用于融合的N、R或SR卡。</p>')+'</div></details>';
+  }
+  function showFusionReveal(card){
+    const previous=document.querySelector('#fusion-reveal');previous?.remove();
+    const overlay=document.createElement('dialog');overlay.id='fusion-reveal';overlay.className='sea-fusion-reveal';
+    overlay.innerHTML='<div class="sea-fusion-animation" aria-hidden="true"><span class="fusion-float-card">✦</span><span class="fusion-splash">✧</span><span class="fusion-float-card">✦</span></div><p class="fusion-reveal-label">海风送来的新回忆</p><h2>'+esc(card.name)+'</h2><p class="fusion-new-rarity">'+esc(card.rarity)+'</p><button class="btn primary" type="button">收下这张回忆 ♡</button>';
+    document.body.append(overlay);
+    overlay.querySelector('button').onclick=()=>overlay.close();
+    overlay.addEventListener('close',()=>overlay.remove(),{once:true});
+    overlay.showModal();
+  }
   function renderCollection() {
     const title = heading('05', 'Keep the moments that matter', '回忆收藏室', '不是每一个瞬间都会重来，但我们可以把它好好收起来。');
     const owned = Object.values(state.collection).filter((entry) => entry.quantity > 0).length;
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
-    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
+    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div>${fusionMarkup()}<div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
       return card ? `<div class="history-row"><span class="rarity">${esc(entry.rarity||card.rarity)}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
@@ -800,6 +829,37 @@
   }
   function bindCollection() {
     fillCollection();
+    const fusionForm=document.querySelector('#card-fusion-form');
+    if(fusionForm){
+      let inflight=false;
+      fusionForm.onsubmit=async event=>{
+        event.preventDefault();if(inflight)return;
+        const first=fusionForm.elements.first.value,second=fusionForm.elements.second.value;
+        const firstCard=CARDS.find(c=>c.id===first),secondCard=CARDS.find(c=>c.id===second);
+        const info=fusionForm.querySelector('#fusion-message');
+        if(!firstCard||!secondCard||firstCard.rarity!==secondCard.rarity){info.textContent='请选择两张同等级卡片';return}
+        if((state.collection[first]?.quantity||0)<(first===second?2:1)||(state.collection[second]?.quantity||0)<(first===second?2:1)){info.textContent='材料数量不足';return}
+        if(!window.confirm('确认消耗这两张'+firstCard.rarity+'卡进行随机融合吗？此操作不可撤销。'))return;
+        const originalToken=liveToken,requestId=crypto.randomUUID();
+        inflight=true;fusionForm.querySelector('button[type="submit"]').disabled=true;info.textContent='海风正在融合回忆…';
+        const veil=document.createElement('div');veil.className='sea-fusion-veil';veil.setAttribute('role','status');veil.setAttribute('aria-live','polite');
+        veil.innerHTML='<div class="sea-fusion-veil-content"><span class="sea-fusion-veil-stars" aria-hidden="true">✧ ✦ ✧</span><span>海风正在融合回忆…</span></div>';
+        document.body.append(veil);
+        try{
+          const a=liveCatalog.find(c=>c.previewId===first),b=liveCatalog.find(c=>c.previewId===second);
+          if(!a||!b)throw Error('卡牌目录未同步，请刷新页面');
+          const result=await liveApi('fuse',{first:a.id,second:b.id,requestId});
+          if(liveToken!==originalToken)return;
+          takeProfile(result.profile);
+          const outcome=liveCatalog.find(c=>c.id===result.card.id);
+          veil.remove();showFusionReveal({name:outcome?.name||result.card.id,rarity:result.card.rarity});
+        }catch(error){
+          if(!fusionForm.isConnected)return;
+          info.textContent=error.status?'融合失败：'+error.message:'结果可能已写入，请刷新收藏核对后再操作，避免重复融合。';
+          fusionForm.querySelector('button[type="submit"]').disabled=true;
+        }finally{veil.remove();inflight=false}
+      };
+    }
     document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
       filters.ownership = button.dataset.filter;
       document.querySelectorAll('[data-filter]').forEach((tab) => tab.setAttribute('aria-pressed', String(tab === button)));

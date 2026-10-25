@@ -8,6 +8,7 @@ import {listVisitors} from './visitors.mjs';
 import {createMaintenance} from './maintenance.mjs';
 import {assetHelp} from './asset-help.mjs';
 import {TODAY_CARDS} from './card-release.mjs';
+import {PLANNED_SIXTY_CARDS} from './card-expansion-planned.mjs';
 import http from 'node:http';
 import {createOperations,streamBackup} from './operations.mjs';
 import {activityPhase,validateActivity} from './activity.mjs';
@@ -40,6 +41,7 @@ const schema=[
 'CREATE TABLE IF NOT EXISTS bonuses(user_id TEXT NOT NULL REFERENCES users(id),threshold INTEGER NOT NULL,PRIMARY KEY(user_id,threshold))',
 'CREATE TABLE IF NOT EXISTS checkins(user_id TEXT NOT NULL REFERENCES users(id),day TEXT NOT NULL,PRIMARY KEY(user_id,day))',
 'CREATE TABLE IF NOT EXISTS draws(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id TEXT NOT NULL REFERENCES users(id),card_id TEXT NOT NULL,rarity TEXT NOT NULL,created_at TEXT NOT NULL)',
+'CREATE TABLE IF NOT EXISTS card_fusions(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id TEXT NOT NULL REFERENCES users(id),request_id TEXT NOT NULL,source_a TEXT NOT NULL,source_b TEXT NOT NULL,result_card_id TEXT NOT NULL,result_rarity TEXT NOT NULL,created_at TEXT NOT NULL,UNIQUE(user_id,request_id))',
 'CREATE TABLE IF NOT EXISTS announcements(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,body TEXT NOT NULL,published INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)',
 'CREATE TABLE IF NOT EXISTS admin_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,action TEXT NOT NULL,details TEXT NOT NULL,created_at TEXT NOT NULL)',
 'CREATE TABLE IF NOT EXISTS visual_settings(key TEXT PRIMARY KEY,enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),updated_at TEXT NOT NULL)',
@@ -62,7 +64,7 @@ const CARDS=[...Array.from({length:1},(_,i)=>({id:'UR-'+(i+1),rarity:'UR'})),...
   ...Array.from({length:2},(_,i)=>({id:'SR-'+(i+5),rarity:'SR'})),
   ...Array.from({length:5},(_,i)=>({id:'R-'+(i+5),rarity:'R'})),
   ...Array.from({length:6},(_,i)=>({id:'N-'+(i+6),rarity:'N'})),
-  ...Array.from({length:18},(_,i)=>{const id='LOCK-'+String(i+33).padStart(2,'0');return TODAY_CARDS.find(c=>c.id===id)||{id,rarity:'N',unreleased:true}})];
+  ...Array.from({length:28},(_,i)=>{const id='LOCK-'+String(i+33).padStart(2,'0');return TODAY_CARDS.find(c=>c.id===id)||PLANNED_SIXTY_CARDS.find(c=>c.id===id)||{id,rarity:'N',unreleased:true}})];
 const CARD_TITLES=['岛屿与永恒','许愿的瞬间','与你共赴星海','海风来信','今日晴朗','雪啾旧梦','岛上的花','贝壳耳语','停靠的心愿','漂流的旋律','一片新绿','浪花一朵','小岛邮戳','口袋星光','来客留名','晚安小啾'];
 const OFFICIAL_OC=[['oc-official-caicai','菜菜','不吱岛的共同岛主，也是这场生日庆典的主角。与吱吱一起欢迎每一位登岛的朋友。',-200],['oc-official-zhizhi','吱吱','不吱岛的共同岛主，与菜菜一起筹备庆典，收藏岛上每一份相遇与故事。',-199]];
 for(const [id,name,description,sort] of OFFICIAL_OC)db.prepare('INSERT OR IGNORE INTO oc_profiles(id,name,description,sort_order,hidden,updated_at) VALUES(?,?,?,?,0,?)').run(id,name,description,sort,new Date().toISOString());
@@ -70,7 +72,7 @@ function listOc(publicOnly=false){const rows=db.prepare('SELECT id,name,descript
 function saveOc(b){const id=b.id?String(b.id):'oc-'+rand(9);if(!/^oc-[A-Za-z0-9_-]{8,30}$/.test(id))throw error(400,'OC 编号无效');const name=String(b.name||'').trim(),description=String(b.description||'').trim(),sortOrder=Number(b.sortOrder??0);if(!name||name.length>60||description.length>2000||!Number.isSafeInteger(sortOrder)||Math.abs(sortOrder)>100000)throw error(400,'OC 资料格式不正确');const hidden=b.hidden===true?1:0;db.prepare('INSERT INTO oc_profiles(id,name,description,sort_order,hidden,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,description=excluded.description,sort_order=excluded.sort_order,hidden=excluded.hidden,updated_at=excluded.updated_at').run(id,name,description,sortOrder,hidden,now());auditAdmin('oc.save',{id,hidden});return {id}}
 if(!db.prepare('PRAGMA table_info(card_profiles)').all().some(c=>c.name==='oc_id_2'))db.exec('ALTER TABLE card_profiles ADD COLUMN oc_id_2 TEXT');
 if(!db.prepare('PRAGMA table_info(card_profiles)').all().some(c=>c.name==='rarity'))db.exec('ALTER TABLE card_profiles ADD COLUMN rarity TEXT');
-function getCards(){const profiles=new Map(db.prepare('SELECT card_id,name,story,oc_id,oc_id_2,rarity FROM card_profiles').all().map(r=>[r.card_id,r]));return CARDS.map((c,i)=>({...c,rarity:profiles.get(c.id)?.rarity||c.rarity,unreleased:!!c.unreleased,previewId:'BZ-'+String(i+1).padStart(2,'0'),name:profiles.get(c.id)?.name||c.name||CARD_TITLES[i]||(c.unreleased?'未公开卡面':'星海回忆 '+String(i+1).padStart(2,'0')),story:profiles.has(c.id)?profiles.get(c.id).story:null,characters:[profiles.get(c.id)?.oc_id,profiles.get(c.id)?.oc_id_2].filter(Boolean).map(id=>db.prepare('SELECT name FROM oc_profiles WHERE id=?').get(id)?.name).filter(Boolean).join('、')||null,ocId:profiles.get(c.id)?.oc_id||null,ocId2:profiles.get(c.id)?.oc_id_2||null,image:'/assets/cards/'+c.id+'.webp'}))}
+function getCards(){const profiles=new Map(db.prepare('SELECT card_id,name,story,oc_id,oc_id_2,rarity FROM card_profiles').all().map(r=>[r.card_id,r]));return CARDS.map((c,i)=>({...c,rarity:profiles.get(c.id)?.rarity||c.rarity,unreleased:!!c.unreleased,previewId:'BZ-'+String(i+1).padStart(2,'0'),name:profiles.get(c.id)?.name||c.name||CARD_TITLES[i]||(c.unreleased?'未公开卡面':'星海回忆 '+String(i+1).padStart(2,'0')),story:profiles.has(c.id)?profiles.get(c.id).story:(c.story||null),characters:[profiles.get(c.id)?.oc_id,profiles.get(c.id)?.oc_id_2].filter(Boolean).map(id=>db.prepare('SELECT name FROM oc_profiles WHERE id=?').get(id)?.name).filter(Boolean).join('、')||null,ocId:profiles.get(c.id)?.oc_id||null,ocId2:profiles.get(c.id)?.oc_id_2||null,image:'/assets/cards/'+c.id+'.webp'}))}
 function saveCard(b){
  if(Object.keys(b).some(k=>!['cardId','name','story','ocId','ocId2','rarity'].includes(k)))throw error(400,'只能编辑卡片资料');
  const id=String(b.cardId||'');if(!CARDS.some(c=>c.id===id))throw error(400,'卡片编号无效');
@@ -157,7 +159,40 @@ function resetIslanderKey(b){const id=String(b.userId||''),confirmed=b.confirmed
 function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nickname,g.amount,g.reason,g.created_at AS createdAt FROM admin_coin_grants g JOIN users u ON u.id=g.user_id ORDER BY g.created_at DESC LIMIT 100').all()}
 function session(id){const token=rand(36);db.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').run(sha(token),id,Date.now()+43200000);return token}
 function completedTaskCount(id){return db.prepare("SELECT COUNT(DISTINCT CASE WHEN task_id='letter' OR task_id LIKE 'letter:%' THEN 'letter' WHEN task_id='quiz' OR task_id LIKE 'quiz:%' THEN 'quiz' ELSE task_id END) AS n FROM tasks WHERE user_id=? AND task_id<>'report'").get(id).n}
-function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,quiz:quiz.status(id),status:membership.get(id).status==='verified'?'islander':'visitor',membership:membership.get(id),taskProgress:{completed:completedTaskCount(id)},coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id).filter(x=>(!x.startsWith('letter:')||x==='letter:'+day())&&(!x.startsWith('quiz:')||x==='quiz:'+day())),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id)}}
+
+const FUSION_RARITIES={N:['N','SR','SSR','UR'],R:['N','R','SSR','UR'],SR:['N','R','SR','SSR','UR']};
+function cardInventory(id){
+ const owned=new Map();
+ for(const item of db.prepare('SELECT card_id FROM draws WHERE user_id=?').all(id))owned.set(item.card_id,(owned.get(item.card_id)||0)+1);
+ const history=db.prepare('SELECT source_a,source_b,result_card_id FROM card_fusions WHERE user_id=? ORDER BY id').all(id);
+ for(const h of history){for(const key of [h.source_a,h.source_b])owned.set(key,(owned.get(key)||0)-1);owned.set(h.result_card_id,(owned.get(h.result_card_id)||0)+1)}
+ return Object.fromEntries([...owned].filter(([,count])=>count>0));
+}
+function dailyFusionCount(id){return db.prepare("SELECT COUNT(*) AS n FROM card_fusions WHERE user_id=? AND date(created_at,'+8 hours')=date('now','+8 hours')").get(id).n}
+function fuseCards(id,b){
+ membership.requireVerified(id);
+ const first=String(b?.first||''),second=String(b?.second||''),requestId=String(b?.requestId||'');
+ if(!/^[a-f0-9-]{20,80}$/i.test(requestId))throw error(400,'融卡请求编号无效');
+ return tx(()=>{
+  const previous=db.prepare('SELECT source_a,source_b,result_card_id,result_rarity,created_at FROM card_fusions WHERE user_id=? AND request_id=?').get(id,requestId);
+  if(previous){
+   if(previous.source_a!==first||previous.source_b!==second)throw error(409,'同一融卡请求不能更换材料');
+   return {card:{id:previous.result_card_id,rarity:previous.result_rarity},profile:state(id),alreadyCompleted:true};
+  }
+  if(dailyFusionCount(id)>=3)throw error(409,'今天的3次融卡机会已用完，明天00:00（北京时间）刷新');
+  const cards=getCards().filter(c=>!c.unreleased),byId=new Map(cards.map(c=>[c.id,c]));
+  const a=byId.get(first),z=byId.get(second);
+  if(!a||!z||a.rarity!==z.rarity||!Object.hasOwn(FUSION_RARITIES,a.rarity))throw error(400,'请选择两张同等级的N、R或SR卡');
+  const owned=cardInventory(id),required=first===second?2:1;
+  if((owned[first]||0)<required||(owned[second]||0)<(first===second?required:1))throw error(409,'材料卡数量不足，请刷新收藏后重试');
+  const options=cards.filter(c=>FUSION_RARITIES[a.rarity].includes(c.rarity));
+  if(!options.length)throw error(409,'当前没有符合融卡规则的公开卡片');
+  const card=options[randomInt(options.length)],createdAt=now();
+  db.prepare('INSERT INTO card_fusions(user_id,request_id,source_a,source_b,result_card_id,result_rarity,created_at) VALUES(?,?,?,?,?,?,?)').run(id,requestId,first,second,card.id,card.rarity,createdAt);
+  return {card:{id:card.id,rarity:card.rarity},profile:state(id),alreadyCompleted:false};
+ });
+}
+function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,quiz:quiz.status(id),status:membership.get(id).status==='verified'?'islander':'visitor',membership:membership.get(id),taskProgress:{completed:completedTaskCount(id)},coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id).filter(x=>(!x.startsWith('letter:')||x==='letter:'+day())&&(!x.startsWith('quiz:')||x==='quiz:'+day())),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id),inventory:cardInventory(id),fusionDaily:{used:dailyFusionCount(id),limit:3,timezone:'Asia/Shanghai'},fusions:db.prepare('SELECT source_a AS first,source_b AS second,result_card_id AS result, result_rarity AS rarity,created_at AS at FROM card_fusions WHERE user_id=? ORDER BY id DESC LIMIT 50').all(id)}}
 function getActivity(){const row=db.prepare('SELECT starts_at,ends_at FROM activity_settings WHERE id=1').get();const settings={startsAt:row?.starts_at??null,endsAt:row?.ends_at??null};const at=Date.now();return {...settings,timezone:'Asia/Shanghai',phase:activityPhase(settings,at),serverTime:new Date(at).toISOString()}}
 function requireActiveActivity(){const phase=getActivity().phase;if(phase!=='active')throw error(403,phase==='upcoming'?'活动尚未开始，暂不能登记、兑奖、签到或抽卡':'活动已结束，已有账户和收藏仍可查看')}
 function saveActivity(payload){let settings;try{settings=validateActivity(payload)}catch(e){throw error(400,e.message)}return tx(()=>{db.prepare('INSERT INTO activity_settings(id,starts_at,ends_at,updated_at) VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET starts_at=excluded.starts_at,ends_at=excluded.ends_at,updated_at=excluded.updated_at').run(settings.startsAt,settings.endsAt,now());auditAdmin('activity.update',settings);return getActivity()})}
@@ -281,7 +316,7 @@ if(ext==='.mp4'){
 }
 res.writeHead(200,headers);return res.end(body);
 }
-if(req.method==='GET'&&/^\/assets\/(characters|cards|decor|oc)\/[a-zA-Z0-9_-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);try{assetPath(name)}catch{throw error(404,'素材不存在')}const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(fileURLToPath(new URL('..',import.meta.url)),'.'+path);if(!existsSync(file))throw error(404,'素材尚未上传');const body=readFileSync(file);res.writeHead(200,{'content-type':'image/webp','cache-control':'no-store, max-age=0','x-content-type-options':'nosniff'});return res.end(body)}if(req.method==='GET'&&path.startsWith('/admin/')&&ADMIN_SCRIPTS.has(path.slice(7))){const body=readFileSync(new URL('../admin/'+path.slice(7),import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}if((path==='/admin'||(path.startsWith('/admin/')&&ADMIN_PAGES.has(path.slice(7))))&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path.startsWith('/api/admin/'))admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:path==='/api/resident/work'?24000:8192):{};let data;
+if(req.method==='GET'&&/^\/assets\/(characters|cards|decor|oc)\/[a-zA-Z0-9_-]+\.webp$/.test(path)){const name=path.slice('/assets/'.length);try{assetPath(name)}catch{throw error(404,'素材不存在')}const uploaded=assetPath(name);const file=existsSync(uploaded)?uploaded:resolve(fileURLToPath(new URL('..',import.meta.url)),'.'+path);if(!existsSync(file)&&PLANNED_SIXTY_CARDS.some(c=>c.id+'.webp'===name.slice('cards/'.length))){const id=name.slice('cards/'.length,-5);const card=getCards().find(c=>c.id===id);const shades={UR:['#d9a94c','#fff2bc'],SSR:['#c28d4b','#fff3d4'],SR:['#9072ba','#f2e9ff'],R:['#699fc5','#ecf8ff'],N:['#76a698','#edf9f3']};const [stroke,pale]=shades[card.rarity]||shades.N;const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="840" viewBox="0 0 600 840"><defs><linearGradient id="sea" x2="0" y2="1"><stop stop-color="${pale}"/><stop offset="1" stop-color="#e0f0fa"/></linearGradient></defs><rect width="600" height="840" rx="30" fill="url(#sea)"/><rect x="22" y="22" width="556" height="796" rx="24" fill="none" stroke="${stroke}" stroke-width="9"/><circle cx="300" cy="325" r="120" fill="none" stroke="${stroke}" stroke-opacity=".38" stroke-width="6"/><path d="M220 330 Q300 245 380 330 Q300 420 220 330 M130 540 Q220 500 300 540 T470 540" fill="none" stroke="${stroke}" stroke-width="7" stroke-linecap="round"/><text x="300" y="135" font-size="40" fill="#476a80" text-anchor="middle">BUZHI ISLAND</text><text x="300" y="670" font-size="58" font-weight="bold" fill="#31536b" text-anchor="middle">${id}</text><text x="300" y="732" font-size="32" fill="#476a80" text-anchor="middle">${card.rarity} · PLACEHOLDER</text></svg>`;res.writeHead(200,{'content-type':'image/svg+xml; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(svg)}if(!existsSync(file))throw error(404,'素材尚未上传');const body=readFileSync(file);res.writeHead(200,{'content-type':'image/webp','cache-control':'no-store, max-age=0','x-content-type-options':'nosniff'});return res.end(body)}if(req.method==='GET'&&path.startsWith('/admin/')&&ADMIN_SCRIPTS.has(path.slice(7))){const body=readFileSync(new URL('../admin/'+path.slice(7),import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}if((path==='/admin'||(path.startsWith('/admin/')&&ADMIN_PAGES.has(path.slice(7))))&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(ADMIN_HTML)}if((path==='/'||path==='/index.html')&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(SITE_HTML)}if(path==='/health'&&req.method==='GET')return send(res,200,{ok:true});if(!path.startsWith('/api/'))throw error(404,'未找到');if(path.startsWith('/api/admin/'))admin(req);if(req.method==='POST'&&!String(req.headers['content-type']||'').startsWith('application/json'))throw error(415,'请使用 JSON');const b=req.method==='POST'?await readBody(req,path==='/api/admin/assets/upload'?5600000:path==='/api/resident/work'?24000:8192):{};let data;
 if(path==='/api/register'&&req.method==='POST')data=register(b);
 else if(path==='/api/login'&&req.method==='POST')data=login(b);
 else if(path==='/api/recovery/request'&&req.method==='POST')data=accountRecovery.request(b,req.socket.remoteAddress);
@@ -318,6 +353,7 @@ else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/redeem-coin-code'&&req.method==='POST')data=redeemCoinCode(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
+else if(path==='/api/fuse'&&req.method==='POST')data=fuseCards(auth(req),b);
 else if(path==='/api/messages'&&req.method==='GET')data={items:messageBoard.publicRows(),accepting:getActivity().phase==='active'};
 else if(path==='/api/messages'&&req.method==='POST'){requireActiveActivity();data=messageBoard.submit(auth(req),b)}
 else if(path==='/api/admin/task-writings'&&req.method==='GET'){admin(req);data=listTaskWritings(db,new URL(req.url,'http://localhost').searchParams)}

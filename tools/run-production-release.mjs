@@ -10,7 +10,20 @@ if(!matches.some(s=>'SHA256:'+createHash('sha256').update(Buffer.from(s.trim().s
 const options=['-i','C:/Users/A/.ssh/buzhi_codex','-o','BatchMode=yes','-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','HostKeyAlgorithms=ssh-ed25519','-o','KexAlgorithms=curve25519-sha256','-o','ConnectTimeout=15','-o','UserKnownHostsFile='+known];
 const ssh=(command,input)=>{const r=spawnSync('C:/Windows/System32/OpenSSH/ssh.exe',[...options,'ubuntu@'+host,command],{input,encoding:'utf8',maxBuffer:8*1024*1024});process.stdout.write(r.stdout||'');process.stderr.write(r.stderr||'');if(r.error)throw r.error;if(r.status!==0)throw Error('SSH operation failed: '+r.status)};
 const [mode,revision,folder,snapshot]=process.argv.slice(2);
-if(mode==='--backup')ssh('sudo -n bash -s -- --approved-production',readFileSync(new URL('../deploy/tencent/backup-production.sh',import.meta.url)));
+if(mode==='--stop'){
+ if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('Expected current revision required');
+ ssh('sudo -n python3 - '+revision,`import pathlib,subprocess,sys,urllib.request
+service='buzhi-production.service'
+expected=sys.argv[1]
+assert pathlib.Path('/opt/buzhi-production/current').resolve().name=='unified-'+expected,'Current release changed'
+with urllib.request.urlopen('http://127.0.0.1:14179/health',timeout=5) as response:
+ assert response.status==200 and response.headers['x-buzhi-revision']==expected,'Running release changed'
+subprocess.run(['systemctl','stop',service],check=True)
+assert subprocess.check_output(['systemctl','show',service,'--property=ActiveState','--value'],text=True).strip()=='inactive'
+print('Approved production stop completed for '+expected)
+`);
+}
+else if(mode==='--backup')ssh('sudo -n bash -s -- --approved-production',readFileSync(new URL('../deploy/tencent/backup-production.sh',import.meta.url)));
 else if(['--upload','--deploy'].includes(mode)){
  if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('Full revision required');
  const source=resolve(folder),manifest=JSON.parse(readFileSync(join(source,'manifest.json'),'utf8'));
@@ -30,4 +43,4 @@ else if(['--upload','--deploy'].includes(mode)){
   if(!/^\d{8}T\d{6}Z-\d+$/.test(snapshot||''))throw Error('Verified snapshot identifier required');
   ssh('sudo -n python3 - '+[revision,manifest.archiveSha256,hash(join(source,'manifest.json')),snapshot].join(' '),readFileSync(new URL('../deploy/tencent/deploy-unified-release.py',import.meta.url)));
  }
-}else throw Error('Use --backup, --upload REV FOLDER, or --deploy REV FOLDER VERIFIED_SNAPSHOT');
+}else throw Error('Use --stop EXPECTED_REV, --backup, --upload REV FOLDER, or --deploy REV FOLDER VERIFIED_SNAPSHOT');
