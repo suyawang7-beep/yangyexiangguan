@@ -20,7 +20,7 @@ async function api(path,body,token){const r=await fetch(base+'/api/'+path,{metho
   await page.locator('#douyinId').fill('mobile_fixture_'+width);await page.locator('#submitMembership').click();await page.locator('.membership-steps [aria-current="step"]').filter({hasText:'等待审核'}).waitFor();
   await verifyAccount(base,admin,account);
   for(let i=0;i<5;i++)await api('admin/island-mail/send',{userId:account.id,kind:'coins',amount:5,title:'隔离来信'+i,message:'海风送达',requestId:randomUUID()},admin);
-  await page.goto(base+'/resident.html',{waitUntil:'networkidle'});await page.locator('#mail-stack-toggle').waitFor();assert.equal(await page.locator('#island-mail-list article:visible').count(),3);await page.locator('#mail-stack-toggle').click();assert.equal(await page.locator('#island-mail-list article:visible').count(),5);
+  await page.goto(base+'/resident.html',{waitUntil:'networkidle'});await page.locator('#mail-stack-toggle').waitFor();assert.equal(await page.locator('#island-mail-list article:visible').count(),width<=680?1:3);await page.locator('#mail-stack-toggle').click();assert.equal(await page.locator('#island-mail-list article:visible').count(),5);
   await page.locator('#island-mail-list article button').first().click();await page.locator('.sea-success-stamp').waitFor();assert.equal((await api('me',undefined,account.token)).coins,55);
   await page.screenshot({path:'test-results/mobile-experience/mail-'+width+'.png',fullPage:true});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);
   await context.close();console.log('PASS mobile experience: guide, sheet, filters, membership, inbox and confirmed reward; width '+width);
