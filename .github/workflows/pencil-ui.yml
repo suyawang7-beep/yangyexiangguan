@@ -34,6 +34,7 @@ jobs:
         env:
           RESIDENT_EVIDENCE_DIR: ${{ runner.temp }}/resident-evidence
       - run: node tests/resident-production.cjs
+      - run: node tests/resident-journal.cjs
       - run: node tests/guide-alignment.cjs
         env:
           GUIDE_EVIDENCE_DIR: ${{ runner.temp }}/guide-evidence
@@ -59,3 +60,8 @@ jobs:
         with:
           name: guide-alignment-evidence
           path: ${{ runner.temp }}/guide-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resident-journal-evidence
+          path: test-results/resident-journal
