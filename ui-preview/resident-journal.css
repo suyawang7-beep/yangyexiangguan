@@ -56,8 +56,8 @@ body[data-page="resident"][data-motion="off"] :is(.resident-btn,.resident-tabs b
   opacity:.85}
  .resident-hero::after{content:"";position:absolute;right:70px;bottom:93px;width:27px;height:100px;pointer-events:none;z-index:-1;clip-path:polygon(37% 0,63% 0,63% 12%,93% 18%,83% 29%,75% 29%,88% 100%,12% 100%,25% 29%,17% 29%,7% 18%,37% 12%);background:linear-gradient(90deg,#a2c6d1 0 25%,#fcfdf7 25% 75%,#83afc3 75%);filter:drop-shadow(0 4px 1px #426f7c30)}
  .resident-hero .resident-sticker.shell{right:12px;top:36px;width:92px;opacity:.7}
- .resident-hero .resident-sticker.wave{right:150px;bottom:40px;width:67px;opacity:.7}
- .resident-hero .resident-sticker.star{right:190px;top:55px;width:33px}
+ .resident-hero .resident-sticker.wave{right:115px;bottom:40px;width:62px;opacity:.7}
+ .resident-hero .resident-sticker.star{right:130px;top:55px;width:30px}
  .resident-note{right:22px;bottom:14px;font-size:14px}
  .journal-opening{gap:22px}
  .journal-identity{background:linear-gradient(155deg,#fffefaeb,#edf8faf0);border-color:#d4e7e7}
