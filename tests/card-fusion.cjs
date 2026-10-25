@@ -44,10 +44,19 @@ async function request(path,body,token){
   const depleted=await request('fuse',{...payload,requestId:randomUUID()},user.token);
   assert.equal(depleted.status,409,'depleted materials cannot be reused');
  }
+ const quota=(await request('me',undefined,user.token)).data.fusionDaily;
+ assert.deepEqual({used:quota.used,limit:quota.limit},{used:3,limit:3});
+ const extra=new DatabaseSync(dbPath);
+ for(let j=0;j<2;j++)extra.prepare('INSERT INTO draws(user_id,card_id,rarity,created_at) VALUES(?,?,?,?)').run(user.id,input[2].id,input[2].rarity,new Date().toISOString());
+ extra.close();
+ const fourth=await request('fuse',{first:input[2].id,second:input[2].id,requestId:randomUUID()},user.token);
+ assert.equal(fourth.status,409,'fourth daily fusion must be denied even when cards exist');
+ assert.match(fourth.data.error,/3次/);
  const after=(await request('me',undefined,user.token)).data;
- assert.deepEqual(after.draws,before.draws,'draw history must remain immutable');
+ assert.equal(after.draws.length,before.draws.length+2,'fusion must not rewrite historical draws');
+ assert.deepEqual(after.draws.slice(2),before.draws,'historical draw rows must stay unchanged');
  assert.deepEqual(after.ledger,before.ledger,'no unexpected coin changes');
  assert.equal(after.fusions.length,3);
- assert.equal(Object.values(after.inventory).reduce((a,b)=>a+b,0),3);
+ assert.equal(Object.values(after.inventory).reduce((a,b)=>a+b,0),5);
  console.log('PASS fusion rarity exclusions, inventory, transaction, idempotency and immutable history');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{if(server.exitCode===null){const ended=new Promise(resolve=>server.once('exit',resolve));server.kill();await ended}rmSync(folder,{recursive:true,force:true})});
