@@ -842,6 +842,9 @@
         if(!window.confirm('确认消耗这两张'+firstCard.rarity+'卡进行随机融合吗？此操作不可撤销。'))return;
         const originalToken=liveToken,requestId=crypto.randomUUID();
         inflight=true;fusionForm.querySelector('button[type="submit"]').disabled=true;info.textContent='海风正在融合回忆…';
+        const veil=document.createElement('div');veil.className='sea-fusion-veil';veil.setAttribute('role','status');veil.setAttribute('aria-live','polite');
+        veil.innerHTML='<div class="sea-fusion-veil-content"><span class="sea-fusion-veil-stars" aria-hidden="true">✧ ✦ ✧</span><span>海风正在融合回忆…</span></div>';
+        document.body.append(veil);
         try{
           const a=liveCatalog.find(c=>c.previewId===first),b=liveCatalog.find(c=>c.previewId===second);
           if(!a||!b)throw Error('卡牌目录未同步，请刷新页面');
@@ -849,12 +852,12 @@
           if(liveToken!==originalToken)return;
           takeProfile(result.profile);
           const outcome=liveCatalog.find(c=>c.id===result.card.id);
-          showFusionReveal({name:outcome?.name||result.card.id,rarity:result.card.rarity});
+          veil.remove();showFusionReveal({name:outcome?.name||result.card.id,rarity:result.card.rarity});
         }catch(error){
           if(!fusionForm.isConnected)return;
           info.textContent=error.status?'融合失败：'+error.message:'结果可能已写入，请刷新收藏核对后再操作，避免重复融合。';
           fusionForm.querySelector('button[type="submit"]').disabled=true;
-        }finally{inflight=false}
+        }finally{veil.remove();inflight=false}
       };
     }
     document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
