@@ -18,7 +18,7 @@ async function userPage(account,width=1440,reducedMotion='no-preference'){
 }
 async function visit(page,path){await page.goto(base+path,{waitUntil:'networkidle'});await page.locator('[data-effects-ready="true"]').waitFor()}
 async function write(page,task){await page.locator('[data-task="'+task+'"]').click();await page.locator('#task-writing').fill('这是只用于独立测试数据库的十五字以上真诚生日来信');const done=page.waitForResponse(r=>r.url().endsWith('/api/task-writing')&&r.request().method()==='POST');await page.locator('#task-code-form button[type=submit]').click();const r=await done;assert.equal(r.status(),200);await page.locator('#task-dialog').waitFor({state:'hidden'});return r.json()}
-async function redeem(page,a,task){const code=(await api('admin/codes',{taskId:task,count:1},admin)).data.codes[0];if(task==='creative'){assert.equal((await api('redeem',{taskId:task,code},a.token)).status,200);await visit(page,'/office.html');return}await page.locator('[data-task="'+task+'"]').click();await page.locator('#task-code').fill(code);const done=page.waitForResponse(r=>r.url().endsWith('/api/redeem'));await page.locator('#task-code-form button[type=submit]').click();assert.equal((await done).status(),200);await page.locator('#task-dialog').waitFor({state:'hidden'})}
+async function redeem(page,a,task){const code=(await api('admin/codes',{taskId:task,count:1},admin)).data.codes[0];if(['creative','support','commission'].includes(task)){assert.equal((await api('redeem',{taskId:task,code},a.token)).status,200);await visit(page,'/office.html');return}await page.locator('[data-task="'+task+'"]').click();await page.locator('#task-code').fill(code);const done=page.waitForResponse(r=>r.url().endsWith('/api/redeem'));await page.locator('#task-code-form button[type=submit]').click();assert.equal((await done).status(),200);await page.locator('#task-dialog').waitFor({state:'hidden'})}
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 function records(){return Object.fromEntries(['users','ledger','tasks','task_writings','bonuses','checkins','draws'].map(t=>[t,db.prepare('SELECT * FROM '+t+' ORDER BY rowid').all()]))}
 (async()=>{try{
@@ -43,7 +43,7 @@ function records(){return Object.fromEntries(['users','ledger','tasks','task_wri
   assert.equal((await api('admin/assets/upload',{name:slot,base64:'AAAA'})).status,403);
   assert.equal((await api('assets-manifest')).data.assets[slot],true);const catalog=(await api('catalog')).data;assert.equal(catalog.cards.length,60,'The active 60-card catalog remains independent of memorial artwork');assert(!catalog.cards.some(card=>/memorial/i.test(card.id)||card.image===slot),'Memorial never enters the draw pool');await context.close();
  });
- for(const width of [1440,390])await check('real milestone 3/6 celebration, once only, width '+width,async()=>{
+ for(const width of [1440,390])await check('milestone 3 celebration and preserved legacy milestone 6 reward, width '+width,async()=>{
   const a=await account('肥啾里程碑'+width),{page,context}=await userPage(a,width);await visit(page,'/office.html');
   assert.equal(await page.locator('.bird-journey').getAttribute('aria-valuenow'),'0');assert.equal(await page.locator('[data-milestone-celebration]').count(),0);
   for(const task of ['letter:2000-01-01','letter:2000-01-02','quiz'])db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(a.id,task,new Date().toISOString());await visit(page,'/office.html');assert.equal(await page.locator('.bird-journey').getAttribute('aria-valuenow'),'2');
@@ -53,7 +53,7 @@ function records(){return Object.fromEntries(['users','ledger','tasks','task_wri
   mkdirSync(resolve('test-results'),{recursive:true});await page.screenshot({path:resolve('test-results','milestone-'+width+'.png'),fullPage:true});await surprise.waitFor({state:'detached',timeout:6000});
   await page.reload({waitUntil:'networkidle'});assert.equal(await page.locator('[data-milestone-celebration]').count(),0,'Reload never replays an old reward');
   for(const task of ['creative','support','commission'])await redeem(page,a,task);
-  await page.locator('[data-milestone-celebration="6"]').waitFor({timeout:5000});const last=(await api('me',undefined,a.token)).data;assert.equal(last.taskProgress.completed,6);assert.deepEqual(last.bonuses,[3,6]);assert.equal(last.coins,225,'Effects never mint an extra reward');
+  assert.equal(await page.locator('[data-milestone-celebration="6"]').count(),0,'Imported legacy task rewards do not replay a new celebration');const last=(await api('me',undefined,a.token)).data;assert.equal(last.taskProgress.completed,6);assert.deepEqual(last.bonuses,[3,6]);assert.equal(last.coins,225,'Effects never mint an extra reward');
   await page.reload({waitUntil:'networkidle'});assert.equal(await page.locator('[data-milestone-celebration]').count(),0);
   await context.close();
  });

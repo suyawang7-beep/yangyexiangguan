@@ -169,8 +169,7 @@
     {id:'memory',title:'岛屿回忆',text:'写下一段相遇与回忆，不少于15字；完成后领取25金币',reward:25,motif:'mail'},
     {id:'quiz',title:'默契小测',text:'每天更新5题，答对至少3题领取25金币；点击直接答题',reward:25,motif:'star'},
     {id:'creative',title:'创作展投稿',text:'完成投稿后领取代码',reward:25,motif:'cards'},
-    {id:'support',title:'直播应援',text:'每位岛民只能领取一次，完成应援后领取代码',reward:25,motif:'music'},
-    {id:'commission',title:'临时委托',text:'接受岛主发布的活动委托',reward:25,motif:'bird'}
+    {id:'commission',title:'临时委托',text:'输入金币兑换码领取131.4金币，每码最多40位岛民，每人限兑一次',reward:131.4,motif:'bird'}
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
   let liveCatalog=[];
@@ -335,9 +334,9 @@
     const title = heading('02', 'Little tasks, little happiness', '岛民事务所', '庆典由每一位岛民一起完成。做一点小事，领取金币，也留下一份参与的证明。');
     if (!state.passport) return title + needPassport();
     return title + `<div class="office-layout"><div>${!state.demoIslander ? `<div class="info-note" style="margin:0 0 20px"><strong>岛主发放一次性任务完成代码</strong><br>${LIVE ? '已登录不等于已核验岛民。请完成对应活动后，填写岛主私信发放的代码，奖励以服务器记录为准。' : `若想体验任务界面，可开启本地演示；这不会取得任何正式岛民资格。<br><button class="btn text" id="demo-islander" type="button">试用岛民任务演示 ${icon('arrow')}</button>`}</div>` : ''}<div class="info-note" style="margin-bottom:14px">🎨 创作展投稿已迁往 <a href="resident.html"><strong>岛民个人中心 · 创作工坊 ↗</strong></a>。历史完成记录及已领金币不受影响；新作品暂进入待审流程。</div><div class="task-list">${TASKS.filter(task => task.id !== 'arrival' && task.id !== 'creative').map((task) => {
-      const completed = LIVE&&task.id==='quiz'?state.quizRewarded:state.tasks.includes(task.id);
+      const completed = LIVE&&task.id==='commission'?false:LIVE&&task.id==='quiz'?state.quizRewarded:state.tasks.includes(task.id);
       const locked = task.id !== 'arrival' && !state.demoIslander;
-      return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed&&!(LIVE&&task.id==='quiz') ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : LIVE&&task.id==='quiz' ? (completed?'查看今日答题':'开始答题') : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : '输入完成代码'}</button>`}</div></article>`;
+      return `<article class="glass task-card ${completed ? 'completed' : ''}"><span class="task-icon">${icon(task.motif)}</span><div><h3>${task.title}</h3><p>${task.text}</p><span class="task-reward">${task.reward ? `+${task.reward} 金币` : '免费报到 · 计入不同任务'}</span></div><div class="task-action">${completed&&!(LIVE&&task.id==='quiz') ? '<span class="pill success">✓ 已完成</span>' : `<button type="button" class="btn ${locked ? '' : 'reward'}" data-task="${task.id}" ${locked ? 'disabled' : ''}>${locked ? '待岛民核验' : LIVE&&task.id==='quiz' ? (completed?'查看今日答题':'开始答题') : task.id === 'arrival' ? '立即报到' : ['letter','memory'].includes(task.id) ? '写下心意' : LIVE&&task.id==='commission' ? '兑换金币' : '输入完成代码'}</button>`}</div></article>`;
     }).join('')}</div></div><aside class="office-sidebar"><section class="glass sidebar-card"><h3>把参与连成星光</h3><p class="small muted">完成不同正式任务可获得阶段奖励；首次报到不计入，同一种每日任务只算一次。</p><div class="progress-track" data-completed="${formalTaskCount()}" data-account="${esc(state.passport?.id||'demo')}" data-new-bonuses="${(state.pendingMilestones||[]).join(',')}"><span style="width:${Math.min(formalTaskCount() / 9 * 100, 100)}%"></span></div>${[3, 6, 9].map((n) => `<div class="milestone"><strong>${n}</strong><p>个不同任务<br>额外 +25 金币${n === 9 ? ' · 待新增任务' : ''}</p>${state.bonuses.includes(n) ? '<span class="done">已入账</span>' : icon('star')}</div>`).join('')}</section><section class="glass sidebar-card"><h3>金币小账本</h3>${ledgerMarkup()}</section></aside></div><dialog class="detail-dialog" id="task-dialog" aria-labelledby="task-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="关闭">${icon('close')}</button><h2 id="task-dialog-title">提交完成代码</h2><form id="task-code-form"><p id="task-dialog-tip" class="small muted">请填写岛主私信发放的一次性完成代码。</p><div id="task-writing-wrap" hidden><label for="task-writing">写下你的心意（不少于15字）</label><textarea id="task-writing" maxlength="2000" rows="6" placeholder="在这里写下想说的话…"></textarea><p id="task-writing-count" class="small muted">0 / 15 字</p></div><div class="form-field" id="task-code-wrap"><label for="task-code">完成代码</label><input id="task-code" name="code" autocomplete="off" placeholder="输入完成代码" required aria-describedby="task-code-message"></div><p id="task-code-message" class="small" role="status"></p><button type="submit" class="btn primary full">确认完成并领取</button></form></dialog>`;
   }
 
@@ -801,9 +800,26 @@
     const writing=dialog.querySelector('#task-writing'),count=dialog.querySelector('#task-writing-count'),tip=dialog.querySelector('#task-dialog-tip');
     const updateCount=()=>{const length=Array.from(writing.value.trim().replace(/\s/g,'')).length;count.textContent=length+' / 15 字';count.style.color=length>=15?'#16876a':''};
     writing.addEventListener('input',updateCount);
-    document.querySelectorAll('[data-task]').forEach(button=>{button.onclick=()=>{task=TASKS.find(t=>t.id===button.dataset.task);if(!task||task.id==='arrival')return;if(task.id==='quiz'){openLiveQuiz();return}const isWriting=task.id==='letter'||task.id==='memory';dialog.querySelector('#task-dialog-title').textContent=task.title;dialog.querySelector('#task-writing-wrap').hidden=!isWriting;dialog.querySelector('#task-code-wrap').hidden=isWriting;dialog.querySelector('#task-code').required=!isWriting;dialog.querySelector('#task-code').value='';writing.value='';updateCount();tip.textContent=isWriting?'至少填写15个非空白字符，提交后自动获得25金币。':'请填写岛主私信发放的一次性完成代码。';dialog.showModal()}});
+    document.querySelectorAll('[data-task]').forEach(button=>{button.onclick=()=>{
+      task=TASKS.find(t=>t.id===button.dataset.task);if(!task||task.id==='arrival')return;if(task.id==='quiz'){openLiveQuiz();return}
+      const isWriting=task.id==='letter'||task.id==='memory';dialog.querySelector('#task-dialog-title').textContent=task.title;
+      dialog.querySelector('#task-writing-wrap').hidden=!isWriting;dialog.querySelector('#task-code-wrap').hidden=isWriting;
+      dialog.querySelector('#task-code').required=!isWriting;dialog.querySelector('#task-code').value='';writing.value='';updateCount();
+      tip.textContent=isWriting?'至少填写15个非空白字符，提交后自动获得25金币。':task.id==='commission'?'输入岛主发放的金币兑换码：131.4金币，最多40位已认证岛民，每人限兑一次。':'请填写岛主私信发放的一次性完成代码。';
+      dialog.querySelector('button[type="submit"]').disabled=false;dialog.showModal();
+    }});
     dialog.querySelector('[data-close-dialog]')?.addEventListener('click',()=>dialog.close());
-    dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory';const content=writing.value.trim();if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}const submit=e.submitter;if(submit)submit.disabled=true;try{const profile=await liveApi(writingTask?'task-writing':'redeem',writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});dialog.close();takeProfile(profile,{celebrate:true});toast('任务完成，25金币已到账！')}catch(err){toast(err.message);if(submit)submit.disabled=false}});
+    dialog.querySelector('#task-code-form')?.addEventListener('submit',async e=>{
+      e.preventDefault();if(!task)return;const writingTask=task.id==='letter'||task.id==='memory',commission=task.id==='commission',content=writing.value.trim(),token=liveToken;
+      if(writingTask&&Array.from(content.replace(/\s/g,'')).length<15){toast('内容不少于15个字哦');return}
+      const submit=e.submitter;if(submit)submit.disabled=true;
+      try{
+        const result=await liveApi(commission?'redeem-coin-code':writingTask?'task-writing':'redeem',commission?{code:dialog.querySelector('#task-code').value.trim()}:writingTask?{taskId:task.id,content}:{taskId:task.id,code:dialog.querySelector('#task-code').value.trim()});
+        if(token!==liveToken)return;
+        dialog.close();takeProfile(commission?result.profile:result,{celebrate:!commission});
+        toast(commission?'兑换成功！'+Number(result.amount).toFixed(1)+'金币已到账，剩余'+result.remainingUses+'个名额。':'任务完成，25金币已到账！');
+      }catch(err){if(token===liveToken)toast(err.message);if(submit)submit.disabled=false}
+    });
   }
   function bindLiveCheckin(){
     document.querySelector('#checkin-button')?.addEventListener('click',async()=>{try{takeProfile(await liveApi('checkin',{}));toast('今日签到成功，10 金币已保存')}catch(err){toast(err.message)}});
