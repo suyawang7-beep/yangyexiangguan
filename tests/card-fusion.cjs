@@ -8,7 +8,7 @@ const {randomUUID}=require('node:crypto');
 const assert=require('node:assert/strict');
 const {verifyAccount}=require('./helpers/membership.cjs');
 const folder=mkdtempSync(join(tmpdir(),'buzhi-card-fusion-'));
-const dbPath=join(folder,'test.sqlite'),port=49000+Math.floor(Math.random()*800),base='http://127.0.0.1:'+port;
+const dbPath=join(folder,'test.sqlite'),port=48000+Math.floor(Math.random()*900),base='http://127.0.0.1:'+port;
 const admin='card-fusion-test-admin-20261025-very-long';
 const server=spawn(process.execPath,['server/index.mjs'],{cwd:join(__dirname,'..'),env:{...process.env,HOST:'127.0.0.1',PORT:String(port),DB_PATH:dbPath,ASSET_DIR:join(folder,'assets'),ADMIN_TOKEN:admin},stdio:['ignore','ignore','pipe']});
 let stderr='';server.stderr.on('data',c=>stderr+=c);
