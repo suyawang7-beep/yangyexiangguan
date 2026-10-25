@@ -66,7 +66,7 @@ body[data-page="resident"][data-motion="off"] :is(.resident-btn,.resident-tabs b
  .journal-stats{gap:12px}
  .journal-stats dd{font-size:23px}
  .journal-main-grid{gap:28px}
- .journal-mail{border-color:#f5e9d7;box-shadow:0 16px 34px #85735d16;transform:translateY(2px)}
+ .journal-mail{border-color:#f5e9d7;box-shadow:0 16px 34px #85735d16}
  .journal-collection{border-color:#d1e7e7;background:linear-gradient(160deg,#f0f9fb 5%,#e1eff2 100%);box-shadow:0 12px 28px #4d809c12}
  .journal-memory-stage{position:relative}
  .journal-memory-stage::after{content:"";position:absolute;left:12%;right:12%;bottom:15px;height:12px;border-radius:50%;background:#52737b22;filter:blur(9px);pointer-events:none}
