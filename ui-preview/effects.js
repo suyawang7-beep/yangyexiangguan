@@ -321,6 +321,7 @@
 
   function installExhibit() {
     const grid = document.querySelector('#collection-grid'); if (!grid) return;
+    const gallery=document.body.dataset.collectionGallery==='true';
     const controls = document.createElement('div'); controls.className = 'appreciation-toolbar';
     controls.innerHTML = `<span class="exhibit-mode-label">${'<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v15H4zM8 2v6m8-6v6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'} 回忆展馆</span><div class="filter-tabs" aria-label="收藏展示方式">${[['grid','collectionGrid','网格'],['fan','collectionFan','扇形展开'],['circle','collectionRing','圆环欣赏']].filter(([,key])=>allowedMode(key)).map(([mode,,label])=>'<button type="button" data-layout="'+mode+'" aria-pressed="false">'+label+'</button>').join('')}</div>`;
     grid.before(controls);
@@ -329,16 +330,25 @@
     exhibit.innerHTML = '<div class="exhibit-sparkle" aria-hidden="true">✦</div><div class="exhibit-caption"><span id="exhibit-title">生日回忆</span><small>拖动切换 · 点击卡片查看详情</small></div><div class="exhibit-cards"></div><div class="exhibit-controls"><button class="btn" type="button" data-exhibit-prev aria-label="上一张卡">←</button><span class="mono" data-exhibit-count></span><button class="btn" type="button" data-exhibit-next aria-label="下一张卡">→</button></div>';
     controls.after(exhibit);
     const holder = exhibit.querySelector('.exhibit-cards');
+    let information,storyButton;
+    if(gallery){
+      information=document.createElement('aside');information.id='collection-selected-info';information.innerHTML='<div><span class="gallery-current-label">正在欣赏</span><p><span data-selected-rarity></span><span data-selected-characters></span></p><small data-selected-ownership></small></div><button type="button" class="btn" id="collection-view-story">查看这段故事 ↗</button>';exhibit.append(information);storyButton=information.querySelector('button');
+      storyButton.onclick=()=>{const card=cards[selected];if(card){card.click();document.querySelector('#card-detail')?.addEventListener('close',()=>storyButton.focus(),{once:true})}};
+      const label=document.createElement('div');label.className='gallery-grid-heading';label.innerHTML='<h2>所有回忆，都在这里</h2><p>按卡名、角色或稀有度，找到想看的那一张。</p>';grid.before(label);
+    }
     let mode = allowedMode('collectionFan')?'fan':allowedMode('collectionGrid')?'grid':'circle', selected = 0, cards = [], drag = null, dragged = false;
     function layout() {
       const n = cards.length;
       exhibit.dataset.layout = mode;
       if (!n) {
+        exhibit.querySelector('#exhibit-title').textContent='暂无符合条件的回忆';
         if(!holder.querySelector('.exhibit-empty')){
           const empty=document.createElement('div');empty.className='exhibit-empty';
           empty.textContent=grid.querySelector('.collection-empty')?.textContent||'没有找到这份回忆，换个筛选条件试试。';holder.replaceChildren(empty);
         }
-        exhibit.querySelector('[data-exhibit-count]').textContent = '00 / 00'; return;
+        exhibit.querySelector('[data-exhibit-count]').textContent = '00 / 00';
+        if(information){information.querySelector('[data-selected-rarity]').textContent='暂无卡片';information.querySelector('[data-selected-characters]').textContent='';information.querySelector('[data-selected-ownership]').textContent='换个筛选条件，继续寻找回忆';storyButton.disabled=true}
+        return;
       }
       selected = wrap(selected, n);
       const width = exhibit.clientWidth; const small = width < 600;
@@ -362,13 +372,14 @@
       });
       exhibit.querySelector('[data-exhibit-count]').textContent = `${String(selected + 1).padStart(2, '0')} / ${String(n).padStart(2, '0')}`;
       exhibit.querySelector('#exhibit-title').textContent = cards[selected].querySelector('.card-title').textContent;
+      if(information){const card=cards[selected];information.querySelector('[data-selected-rarity]').textContent=card.dataset.rarity;information.querySelector('[data-selected-characters]').textContent=card.dataset.characters||'不吱岛';information.querySelector('[data-selected-ownership]').textContent=card.classList.contains('locked')?'等待与你相遇':('已收藏 '+(card.querySelector('.quantity')?.textContent.replace('×','').trim()||'1')+' 张');storyButton.disabled=false}
     }
     function rebuild() {
       holder.replaceChildren(...Array.from(grid.querySelectorAll('.memory-card')).map((card) => card.cloneNode(true)));
       cards = Array.from(holder.querySelectorAll('.memory-card')); selected = Math.min(selected, cards.length - 1); layout();
     }
     function choose(next) {
-      mode = next; grid.hidden = mode !== 'grid'; exhibit.hidden = mode === 'grid';
+      mode = next; grid.hidden = mode !== 'grid'&&!gallery; exhibit.hidden = mode === 'grid';
       controls.querySelectorAll('[data-layout]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.layout === mode)));
       if (mode !== 'grid') { rebuild(); layout(); }
     }
