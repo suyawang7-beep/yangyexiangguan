@@ -32,7 +32,7 @@ async function api(path,body,token){
   assert(await page.evaluate(()=>window.__BUZHI_PRODUCTION__));
   assert(await page.locator('#hello').textContent().then(s=>s.includes('本地美化验收')));
   assert(await page.locator('#motion-toggle').isVisible());
-  await page.locator('#title').fill('隔离数据库里的海风');await page.locator('#body').fill('此作品只存在于自动清理的本地测试数据库，不会写入正式小岛。');
+  await page.locator('#journal-desk-fold>summary').click();await page.locator('#title').fill('隔离数据库里的海风');await page.locator('#body').fill('此作品只存在于自动清理的本地测试数据库，不会写入正式小岛。');
   await page.locator('[data-status="draft"]').click();await page.waitForFunction(()=>document.querySelector('#work-list').textContent.includes('隔离数据库里的海风'));
   assert.equal((await api('resident',undefined,account.token)).works[0].status,'draft');
   const stateAfter=await api('me',undefined,account.token);

@@ -262,6 +262,18 @@
       entry.quantity++;state.collection[id]=entry;
       state.history.push({id:'server-'+index,cardId:id,rarity:item.rarity,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
     }
+    if(profile.inventory){
+      for(const [previewId,item] of Object.entries(state.collection)){item.quantity=0;}
+      for(const [cardId,quantity] of Object.entries(profile.inventory)){
+        const found=liveCatalog.find(c=>c.id===cardId);if(!found||quantity<=0)continue;
+        const key=found.previewId,firstAt=state.collection[key]?.firstAt||Date.now();
+        state.collection[key]={quantity,firstAt};
+      }
+      for(const fusion of profile.fusions||[]){
+        const found=liveCatalog.find(c=>c.id===fusion.result);
+        if(found)state.history.unshift({id:'fusion-'+fusion.at+'-'+fusion.result,cardId:found.previewId,rarity:fusion.rarity,at:Date.parse(fusion.at),fusion:true});
+      }
+    }
     renderPage();state.pendingMilestones=[];
   }
   async function liveInit(){
@@ -388,11 +400,19 @@
   }
 
   const filters = { ownership: 'all', rarity: 'all', search: '' };
+
+  function fusionMarkup(){
+    if(!LIVE)return '<section class="glass" style="padding:24px"><h2>✦ 海风融卡坊</h2><p>正式岛民可在登录后选择两张同等级卡片进行融合。演示模式不消耗卡片。</p></section>';
+    const valid=CARDS.filter(c=>['N','R','SR'].includes(c.rarity)&&(state.collection[c.id]?.quantity||0)>0);
+    const options=valid.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'（'+c.rarity+' · '+(state.collection[c.id]?.quantity||0)+'张）</option>').join('');
+    return '<section class="glass" style="padding:clamp(18px,4vw,32px);margin:24px 0" aria-labelledby="fusion-heading"><h2 id="fusion-heading">✦ 海风融卡坊</h2><p class="small muted">选择两张同等级的N、R或SR卡，随机得到一张更高等级卡。N不出R；R不出SR；SR出SSR或UR。两张材料卡会被消耗，抽卡历史仍保留。</p>'+
+    (!liveToken?'<p class="small">请先通过岛民通行证登录后融卡。</p>':valid.length?'<form id="card-fusion-form"><div class="filter-controls"><label>第一张材料卡 <select required name="first"><option value="">请选择</option>'+options+'</select></label><label>第二张材料卡 <select required name="second"><option value="">请选择</option>'+options+'</select></label></div><p id="fusion-message" role="status" class="small muted">仅能使用实际持有的卡片；同一张卡选择两次需要拥有至少2张。</p><button type="submit" class="btn primary">确认融合两张卡</button></form>':'<p class="small muted">目前没有可用的N、R、SR材料卡。</p>')+'</section>';
+  }
   function renderCollection() {
     const title = heading('05', 'Keep the moments that matter', '回忆收藏室', '不是每一个瞬间都会重来，但我们可以把它好好收起来。');
     const owned = Object.values(state.collection).filter((entry) => entry.quantity > 0).length;
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
-    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
+    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p>${fusionMarkup()}<div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
       return card ? `<div class="history-row"><span class="rarity">${esc(entry.rarity||card.rarity)}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
@@ -800,6 +820,34 @@
   }
   function bindCollection() {
     fillCollection();
+    const fusionForm=document.querySelector('#card-fusion-form');
+    if(fusionForm){
+      let inflight=false;
+      fusionForm.onsubmit=async event=>{
+        event.preventDefault();if(inflight)return;
+        const first=fusionForm.elements.first.value,second=fusionForm.elements.second.value;
+        const firstCard=CARDS.find(c=>c.id===first),secondCard=CARDS.find(c=>c.id===second);
+        const info=fusionForm.querySelector('#fusion-message');
+        if(!firstCard||!secondCard||firstCard.rarity!==secondCard.rarity){info.textContent='请选择两张同等级卡片';return}
+        if((state.collection[first]?.quantity||0)<(first===second?2:1)||(state.collection[second]?.quantity||0)<(first===second?2:1)){info.textContent='材料数量不足';return}
+        if(!window.confirm('确认消耗这两张'+firstCard.rarity+'卡进行随机融合吗？此操作不可撤销。'))return;
+        const originalToken=liveToken,requestId=crypto.randomUUID();
+        inflight=true;fusionForm.querySelector('button[type="submit"]').disabled=true;info.textContent='海风正在融合回忆…';
+        try{
+          const a=liveCatalog.find(c=>c.previewId===first),b=liveCatalog.find(c=>c.previewId===second);
+          if(!a||!b)throw Error('卡牌目录未同步，请刷新页面');
+          const result=await liveApi('fuse',{first:a.id,second:b.id,requestId});
+          if(liveToken!==originalToken)return;
+          takeProfile(result.profile);
+          const outcome=liveCatalog.find(c=>c.id===result.card.id);
+          toast('融卡成功！获得 '+(outcome?.name||result.card.id)+'（'+result.card.rarity+'）');
+        }catch(error){
+          if(!fusionForm.isConnected)return;
+          info.textContent=error.status?'融合失败：'+error.message:'结果可能已写入，请刷新收藏核对后再操作，避免重复融合。';
+          fusionForm.querySelector('button[type="submit"]').disabled=true;
+        }finally{inflight=false}
+      };
+    }
     document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
       filters.ownership = button.dataset.filter;
       document.querySelectorAll('[data-filter]').forEach((tab) => tab.setAttribute('aria-pressed', String(tab === button)));
