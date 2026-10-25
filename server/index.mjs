@@ -170,7 +170,6 @@ function cardInventory(id){
 }
 function fuseCards(id,b){
  membership.requireVerified(id);
- requireActiveActivity();
  const first=String(b?.first||''),second=String(b?.second||''),requestId=String(b?.requestId||'');
  if(!/^[a-f0-9-]{20,80}$/i.test(requestId))throw error(400,'融卡请求编号无效');
  return tx(()=>{
