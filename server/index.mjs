@@ -160,7 +160,7 @@ function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nick
 function session(id){const token=rand(36);db.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').run(sha(token),id,Date.now()+43200000);return token}
 function completedTaskCount(id){return db.prepare("SELECT COUNT(DISTINCT CASE WHEN task_id='letter' OR task_id LIKE 'letter:%' THEN 'letter' WHEN task_id='quiz' OR task_id LIKE 'quiz:%' THEN 'quiz' ELSE task_id END) AS n FROM tasks WHERE user_id=? AND task_id<>'report'").get(id).n}
 
-const FUSION_RARITIES={N:['SR','SSR','UR'],R:['SSR','UR'],SR:['SSR','UR']};
+const FUSION_RARITIES={N:['N','SR','SSR','UR'],R:['N','R','SSR','UR'],SR:['N','R','SR','SSR','UR']};
 function cardInventory(id){
  const owned=new Map();
  for(const item of db.prepare('SELECT card_id FROM draws WHERE user_id=?').all(id))owned.set(item.card_id,(owned.get(item.card_id)||0)+1);
