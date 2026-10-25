@@ -41,3 +41,33 @@ body[data-page="resident"][data-motion="on"] :is(.resident-btn,.resident-tabs bu
 }
 @media(prefers-reduced-motion:reduce){body[data-page="resident"] :is(.resident-btn,.resident-tabs button,.journal-memory,.journal-checkin){transition:none!important}body[data-page="resident"] .journal-memory:hover{transform:none}}
 body[data-page="resident"][data-motion="off"] :is(.resident-btn,.resident-tabs button,.journal-memory){transition:none;animation:none}
+
+/* Second visual pass: seaside composition and distinct journal material hierarchy.
+   Desktop-only decoration; no external image requests, no data or interaction changes. */
+@media (min-width:1101px){
+ .resident-hero{position:relative;isolation:isolate;overflow:hidden;background:
+  radial-gradient(ellipse at 87% 77%,#83b6c49e 0 9%,transparent 10%),
+  linear-gradient(177deg,transparent 0 71%,#d9eef1a0 71% 74%,transparent 75%),
+  linear-gradient(171deg,#f9fdfd 4%,#f1faff 56%,#c8e6ed 100%)}
+ .resident-hero::before{content:"";position:absolute;right:-14px;bottom:1px;width:270px;height:112px;pointer-events:none;z-index:-1;background:
+  radial-gradient(ellipse at 55% 111%,#86b7a4 0 28%,transparent 29%),
+  radial-gradient(ellipse at 44% 113%,#97c4b4 0 42%,transparent 43%),
+  radial-gradient(ellipse at 49% 125%,#e5d5af 0 53%,transparent 54%);
+  opacity:.85}
+ .resident-hero::after{content:"";position:absolute;right:70px;bottom:93px;width:27px;height:100px;pointer-events:none;z-index:-1;clip-path:polygon(37% 0,63% 0,63% 12%,93% 18%,83% 29%,75% 29%,88% 100%,12% 100%,25% 29%,17% 29%,7% 18%,37% 12%);background:linear-gradient(90deg,#a2c6d1 0 25%,#fcfdf7 25% 75%,#83afc3 75%);filter:drop-shadow(0 4px 1px #426f7c30)}
+ .resident-hero .resident-sticker.shell{right:12px;top:36px;width:92px;opacity:.7}
+ .resident-hero .resident-sticker.wave{right:150px;bottom:40px;width:67px;opacity:.7}
+ .resident-hero .resident-sticker.star{right:190px;top:55px;width:33px}
+ .resident-note{right:22px;bottom:14px;font-size:14px}
+ .journal-opening{gap:22px}
+ .journal-identity{background:linear-gradient(155deg,#fffefaeb,#edf8faf0);border-color:#d4e7e7}
+ .journal-avatar{flex-basis:76px;width:76px;height:83px;border-radius:23px 23px 29px 29px;box-shadow:0 5px 0 #a7cbd348}
+ .journal-identity h2{font-size:25px}
+ .journal-stats{gap:12px}
+ .journal-stats dd{font-size:23px}
+ .journal-main-grid{gap:28px}
+ .journal-mail{border-color:#f5e9d7;box-shadow:0 16px 34px #85735d16;transform:translateY(2px)}
+ .journal-collection{border-color:#d1e7e7;background:linear-gradient(160deg,#f0f9fb 5%,#e1eff2 100%);box-shadow:0 12px 28px #4d809c12}
+ .journal-memory-stage{position:relative}
+ .journal-memory-stage::after{content:"";position:absolute;left:12%;right:12%;bottom:15px;height:12px;border-radius:50%;background:#52737b22;filter:blur(9px);pointer-events:none}
+}
