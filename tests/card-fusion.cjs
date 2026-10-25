@@ -26,7 +26,7 @@ async function request(path,body,token){
  const catalog=await request('catalog');assert.equal(catalog.status,200);
  const byRarity=Object.groupBy(catalog.data.cards,c=>c.rarity);
  for(const rarity of ['N','R','SR','SSR','UR'])assert((byRarity[rarity]||[]).length>0,'Missing '+rarity);
- const input=['N','R','SR'].map(rarity=>byRarity[rarity][0]);
+ const input=['SR','R','N'].map(rarity=>byRarity[rarity][0]);
  const db=new DatabaseSync(dbPath);
  for(const card of input)for(let j=0;j<2;j++)db.prepare('INSERT INTO draws(user_id,card_id,rarity,created_at) VALUES(?,?,?,?)').run(user.id,card.id,card.rarity,new Date().toISOString());
  db.close();
