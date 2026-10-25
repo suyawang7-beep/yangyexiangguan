@@ -35,6 +35,7 @@ jobs:
           RESIDENT_EVIDENCE_DIR: ${{ runner.temp }}/resident-evidence
       - run: node tests/resident-production.cjs
       - run: node tests/resident-journal.cjs
+      - run: node tests/card-fusion.cjs
       - run: node tests/guide-alignment.cjs
         env:
           GUIDE_EVIDENCE_DIR: ${{ runner.temp }}/guide-evidence
