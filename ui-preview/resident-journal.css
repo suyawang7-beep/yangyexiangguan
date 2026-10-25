@@ -100,3 +100,31 @@ body[data-page="resident"][data-motion="off"] :is(.resident-btn,.resident-tabs b
  .journal-mail,.journal-collection,.journal-identity{border-color:#5b7f8e}
  .journal-memory figure{border-color:#527586}
 }
+
+/* Visual pass 3: responsive reading rhythm and accessible focus. */
+@media(min-width:1101px){
+ .journal-opening{align-items:stretch}
+ .resident-hero h1{max-width:11em;text-wrap:balance}
+ .journal-identity{box-shadow:0 12px 25px #527d8810}
+ .journal-mail .journal-section-head,.journal-collection .journal-section-head{min-height:42px}
+ .journal-mail .sea-envelope:focus-within{border-color:#6c9ba9!important;box-shadow:0 0 0 3px #d8eaf0}
+ .journal-memory figure{transition:box-shadow 180ms ease}
+ .journal-memory:focus-visible figure{box-shadow:0 0 0 3px #6b9bab,0 10px 24px #345a731c}
+}
+@media(min-width:681px) and (max-width:900px){
+ .journal-opening{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .journal-main-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .resident-hero h1{font-size:clamp(29px,4vw,35px);white-space:normal}
+ .journal-person{align-items:flex-start}
+ .journal-avatar{flex-basis:52px;width:52px;height:58px;font-size:26px}
+ .journal-memory{margin-inline:-10px}
+ .journal-memory-stage{min-height:240px}
+}
+@media(max-width:680px){
+ .journal-letter-body[open]>summary:after{transform:rotate(180deg)}
+ .journal-mobile-fold[open]>summary{border-bottom:1px solid #dbe8e9}
+ .journal-memory:focus-visible{outline:3px solid #416e84;outline-offset:5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .journal-memory figure,.journal-letter-body>summary:after{transition:none!important}
+}
