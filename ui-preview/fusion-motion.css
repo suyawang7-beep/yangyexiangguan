@@ -18,7 +18,7 @@
 .sea-fusion select{display:block;width:100%;min-width:0;margin-top:6px;padding:10px;border:1px solid #b8d6e7;border-radius:12px;background:#fff;color:#31576f}
 .sea-fusion-done{color:#55788e}
 .sea-fusion-reveal{border:0;border-radius:26px;padding:32px 38px;width:min(430px,calc(100vw - 28px));text-align:center;background:linear-gradient(160deg,#fffefb,#e2f5fd 75%,#e8e5fb);color:#315c74;box-shadow:0 22px 80px #173f5c6b}
-.sea-fusion-reveal::backdrop{background:#113c58a8;backdrop-filter:blur(4px)}
+.sea-fusion-reveal::backdrop{background:rgba(7,21,39,.83);backdrop-filter:blur(6px)}
 .sea-fusion-animation{height:154px;display:flex;align-items:center;justify-content:center;gap:0;overflow:hidden}
 .fusion-float-card{display:grid;place-items:center;width:76px;height:106px;border:2px solid #81bcd3;border-radius:15px;background:#fff9;box-shadow:0 10px 26px #4898b44d;font-size:2rem;animation:fusion-merge-left 1.15s ease both}
 .fusion-float-card:last-child{animation-name:fusion-merge-right}
@@ -35,3 +35,11 @@
 @keyframes fusion-flash{0%,35%{transform:scale(.4);opacity:0}65%{transform:scale(1.8);opacity:1}100%{transform:scale(1);opacity:1}}
 @media(max-width:540px){.sea-fusion-launch{padding:14px 12px;gap:8px;flex-wrap:wrap}.sea-fusion-launch strong{font-size:1rem}.sea-fusion-launch small{font-size:.72rem}.sea-fusion-badge{font-size:.72rem;padding:5px 7px}.sea-fusion-interior{padding:17px 14px}.sea-fusion-chevron{display:none}}
 @media(prefers-reduced-motion:reduce){.sea-fusion *, .sea-fusion-reveal *{animation:none!important;transition:none!important}}
+
+/* Darken the scene only during the server-confirmed fusion transition. */
+.sea-fusion-veil{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;background:rgba(7,21,39,.78);backdrop-filter:blur(5px);animation:fusion-dim-in .3s ease both;color:#f7fbff;pointer-events:auto}
+.sea-fusion-veil-content{display:flex;align-items:center;flex-direction:column;gap:18px;max-width:90vw;padding:30px;text-align:center;font-size:1.04rem;letter-spacing:.06em;text-shadow:0 0 18px #b4ecff}
+.sea-fusion-veil-stars{display:block;font-size:3.5rem;letter-spacing:.26em;color:#d7f5ff;filter:drop-shadow(0 0 18px #8fe5ff);animation:fusion-star-glow 1.7s ease-in-out infinite alternate}
+@keyframes fusion-dim-in{from{background:rgba(7,21,39,0);opacity:0}to{background:rgba(7,21,39,.78);opacity:1}}
+@keyframes fusion-star-glow{from{transform:scale(.94);opacity:.6}to{transform:scale(1.06);opacity:1}}
+@media(prefers-reduced-motion:reduce){.sea-fusion-veil,.sea-fusion-veil-stars{animation:none!important}.sea-fusion-veil{backdrop-filter:none}}
