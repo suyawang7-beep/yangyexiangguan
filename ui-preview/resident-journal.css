@@ -71,3 +71,32 @@ body[data-page="resident"][data-motion="off"] :is(.resident-btn,.resident-tabs b
  .journal-memory-stage{position:relative}
  .journal-memory-stage::after{content:"";position:absolute;left:12%;right:12%;bottom:15px;height:12px;border-radius:50%;background:#52737b22;filter:blur(9px);pointer-events:none}
 }
+
+/* Second-pass responsive polish. Keep the mobile one-letter layout unchanged. */
+@media (min-width:681px) and (max-width:1100px){
+ .resident-hero{position:relative;overflow:hidden;background:linear-gradient(166deg,#fafdfd 5%,#e5f4f8 72%,#d0eaf0 100%)}
+ .resident-hero::before{content:"";position:absolute;right:-18px;bottom:-20px;width:245px;height:98px;border-radius:55% 45% 0 0;background:linear-gradient(175deg,#b2d6cc,#92c0b4 72%,#d9d3ad 73%);opacity:.62;pointer-events:none}
+ .journal-identity h2{font-size:clamp(19px,2.2vw,24px)}
+ .journal-person{gap:11px}
+ .journal-stats{gap:10px}
+ .journal-stats dd{font-size:clamp(19px,2.5vw,24px)}
+ .journal-mail .sea-envelope{padding:13px 14px}
+}
+@media (max-width:680px){
+ .journal-identity{background:linear-gradient(145deg,#ffffffed,#e7f5f9e8);border:1px solid #d8e8ea}
+ .journal-collection{background:linear-gradient(160deg,#f2fbfb,#e4f1f4);border-color:#d8e9e9}
+ .journal-mail{background:#fffdf7;border-color:#f3e7d6}
+ .journal-memory figure{box-shadow:0 7px 17px #416c8419}
+ .journal-person h2,.journal-memory figcaption{overflow-wrap:anywhere}
+}
+@media (max-width:359px){
+ .journal-stats{gap:8px}
+ .journal-stats dd{font-size:19px}
+ .journal-person{max-width:100%}
+ .journal-collection-footer{gap:3px}
+ .journal-memory-stage{padding-inline:5px}
+}
+@media (prefers-contrast:more){
+ .journal-mail,.journal-collection,.journal-identity{border-color:#5b7f8e}
+ .journal-memory figure{border-color:#527586}
+}
