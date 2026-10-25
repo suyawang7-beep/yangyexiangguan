@@ -156,7 +156,7 @@
   }
   function cardMarkup(card, { owned = true, quantity = 0, interactive = false } = {}) {
     const tag = interactive ? 'button' : 'div';
-    return `<${tag} ${interactive ? `type="button" data-card="${card.id}" aria-label="${esc(card.name)}，${card.rarity}，${owned ? `已拥有${quantity}张` : '未获得'}"` : ''} class="memory-card ${owned ? '' : 'locked'}" data-rarity="${card.rarity}">
+    return `<${tag} ${interactive ? `type="button" data-card="${card.id}" aria-label="${esc(card.name)}，${card.rarity}，${owned ? `已拥有${quantity}张` : '未获得'}"` : ''} class="memory-card ${owned ? '' : 'locked'}" data-rarity="${card.rarity}" data-characters="${esc(card.characters||'不吱岛')}">
       ${quantity ? `<span class="quantity">× ${quantity}</span>` : ''}<div class="card-inner"><div class="card-topline"><span class="card-number">${card.id} / 2026</span><span class="rarity">${card.rarity}</span></div><div class="card-picture">${cardPicture(card)}</div><div class="card-nameplate"><span class="card-crest" aria-hidden="true">✧</span><div class="card-title">${esc(card.name)}</div><p class="card-subtitle">BUZHI · CELESTIAL ARCHIVE</p></div><div class="card-bottomline"><span>${owned ? 'BIRTHDAY COLLECTION' : '等待相遇'}</span><span>10.20 ✦</span></div></div></${tag}>`;
   }
   function ledgerMarkup() {
@@ -392,7 +392,9 @@
     const title = heading('05', 'Keep the moments that matter', '回忆收藏室', '不是每一个瞬间都会重来，但我们可以把它好好收起来。');
     const owned = Object.values(state.collection).filter((entry) => entry.quantity > 0).length;
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
-    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
+    const collectionReady=!LIVE||(liveCatalogReady&&(!liveToken||latestLiveProfileToken===liveToken&&!!latestLiveProfile));
+    const progress=collectionReady?Math.round(owned/Math.max(1,CARDS.length)*100):null;
+    return title + `<section class="glass collection-summary"><div><strong>${collectionReady?owned:'…'}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${collectionReady?total:'…'}</strong><span>张珍藏卡片</span></div><div class="collection-progress-wrap"><div class="collection-progress-label"><span>回忆收藏进度</span><span>${progress===null?'正在读取':progress+'%'}</span></div><div id="collection-progress" role="progressbar" aria-label="回忆收藏进度" aria-valuemin="0" aria-valuemax="100" ${progress===null?'aria-busy="true"':`aria-valuenow="${progress}" aria-valuetext="${owned} / ${CARDS.length} 种回忆"`}><span style="width:${progress||0}%"></span></div></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div><div class="collection-results-row"><p id="collection-results" role="status" aria-live="polite">正在整理回忆…</p><button type="button" class="btn" id="collection-clear-filters">重置筛选</button></div><div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
       return card ? `<div class="history-row"><span class="rarity">${esc(entry.rarity||card.rarity)}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
@@ -400,13 +402,14 @@
 
   function fillCollection() {
     const grid = document.querySelector('#collection-grid');
-    if(LIVE&&!liveCatalogReady){grid.innerHTML='<p class="info-note" role="status">'+(liveCatalogFailed?'暂时无法读取收藏目录，请刷新重试。已有卡片仍安全保存。':'正在读取收藏目录，已有卡片仍安全保存。')+'</p>';return}
+    if(LIVE&&!liveCatalogReady){document.querySelector('#collection-results').textContent=liveCatalogFailed?'目录暂时不可用':'正在读取回忆目录';grid.innerHTML='<p class="info-note" role="status">'+(liveCatalogFailed?'暂时无法读取收藏目录，请刷新重试。已有卡片仍安全保存。':'正在读取收藏目录，已有卡片仍安全保存。')+'</p>';return}
     const cards = CARDS.filter((card) => {
       const quantity = state.collection[card.id]?.quantity || 0;
       return (filters.ownership === 'all' || (filters.ownership === 'owned' ? quantity > 0 : quantity === 0))
         && (filters.rarity === 'all' || filters.rarity === card.rarity)
         && (!filters.search || `${card.name} ${card.characters}`.toLowerCase().includes(filters.search.toLowerCase()));
     });
+    document.querySelector('#collection-results').textContent='找到 '+cards.length+' 段回忆';
     grid.innerHTML = cards.length ? cards.map((card) => cardMarkup(card, { owned: Boolean(state.collection[card.id]), quantity: state.collection[card.id]?.quantity || 0, interactive: true })).join('') : `<div class="glass collection-empty">${filters.ownership === 'owned' && !state.history.length ? '你的收藏室还在等第一张卡。去肥啾邮局寄出一份期待吧。' : '暂时没有找到这份回忆，换个条件试试看。'}</div>`;
   }
 
@@ -799,7 +802,10 @@
     });
   }
   function bindCollection() {
+    document.querySelector('#card-search').value=filters.search;
+    document.querySelector('#rarity-filter').value=filters.rarity;
     fillCollection();
+    document.querySelector('#collection-clear-filters').onclick=()=>{filters.ownership='all';filters.rarity='all';filters.search='';document.querySelector('#card-search').value='';document.querySelector('#rarity-filter').value='all';document.querySelector('[data-filter="all"]').click()};
     document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
       filters.ownership = button.dataset.filter;
       document.querySelectorAll('[data-filter]').forEach((tab) => tab.setAttribute('aria-pressed', String(tab === button)));
@@ -1000,7 +1006,7 @@
   const touchStyle=document.createElement('link');touchStyle.rel='stylesheet';touchStyle.href=new URL('mobile-experience.css?v=20261024',document.currentScript.src).href;document.head.append(touchStyle);
   const touchScript=document.createElement('script');touchScript.src=new URL('mobile-experience.js?v=20261024',document.currentScript.src).href;document.body.append(touchScript);
   const effectsScript = document.createElement('script');
-  effectsScript.src = new URL('effects.js?v=20261020-guide-milestone2', document.currentScript.src).href;
+  effectsScript.src = new URL('effects.js?v=20261025-gallery1', document.currentScript.src).href;
   document.body.append(effectsScript);
   const pencilScript=document.createElement('script');
   pencilScript.src=new URL('pencil-case.js?v=20261020-pencil1',document.currentScript.src).href;
