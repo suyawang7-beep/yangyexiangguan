@@ -981,6 +981,7 @@
     if (PAGE === 'passport') installPassportTabs();
     updateWallet();
     document.dispatchEvent(new CustomEvent('buzhi:render'));
+    if(PAGE==='collection')document.dispatchEvent(new CustomEvent('buzhi:collection-data',{detail:{catalogReady:!LIVE||liveCatalogReady,error:liveCatalogFailed,profileReady:!LIVE||!liveToken||!!latestLiveProfile,signedIn:!!liveToken,cards:(!LIVE||liveCatalogReady?CARDS.filter(c=>!LIVE||liveCatalog.some(item=>item.previewId===c.id)):[]).map(c=>({...c,image:LIVE?assetUrl('cards/'+liveCatalog.find(item=>item.previewId===c.id).id+'.webp'):'assets/island.svg',quantity:Number(state.collection[c.id]?.quantity)||0})),history:state.history}}));
     if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/buzhi-archipelago-soft-palette-draft.png':'assets/island.svg'}});
     if(LIVE){refreshLiveNotices();refreshManagedArtwork()};
   }
