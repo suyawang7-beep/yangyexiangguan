@@ -35,9 +35,9 @@ async function request(path,body,token){
   const requestId=randomUUID();
   const payload={first:card.id,second:card.id,requestId};
   const a=await request('fuse',payload,user.token);assert.equal(a.status,200,JSON.stringify(a.data));
-  const expected={N:['SR','SSR','UR'],R:['SSR','UR'],SR:['SSR','UR']}[card.rarity];
+  const expected={N:['N','SR','SSR','UR'],R:['N','R','SSR','UR'],SR:['N','R','SR','SSR','UR']}[card.rarity];
   assert(expected.includes(a.data.card.rarity),'result rarity '+a.data.card.rarity+' from '+card.rarity);
-  assert.equal(a.data.profile.inventory[card.id]||0,0,'both materials consumed');
+  assert.equal(a.data.profile.inventory[card.id]||0,a.data.card.id===card.id?1:0,'both materials consumed; same-card reward allowed');
   const duplicate=await request('fuse',payload,user.token);assert.equal(duplicate.status,200);
   assert.equal(duplicate.data.alreadyCompleted,true);
   assert.deepEqual(duplicate.data.profile.inventory,a.data.profile.inventory,'retries cannot duplicate rewards');
