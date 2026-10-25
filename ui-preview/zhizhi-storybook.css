@@ -1,0 +1,50 @@
+/* Zhizhi birthday storybook: isolated homepage-only visual layer. */
+body[data-page="home"] .zz-story{--zz-ink:#294f65;--zz-muted:#68869a;max-width:1180px;margin:0 auto 65px;color:var(--zz-ink);font-family:inherit;position:relative}
+.zz-story *{box-sizing:border-box}
+.zz-story .zz-stage{min-height:690px;position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;padding:80px clamp(22px,5vw,78px) 115px;border-radius:44px;overflow:hidden;background:radial-gradient(ellipse at 68% 35%,#fefeff 0%,#eaf4fa 40%,#d4eaf3 75%,#c4e1ee 100%);box-shadow:0 22px 65px #345b751c;border:1px solid #fff9}
+.zz-story .zz-stage::before{content:"";position:absolute;inset:16px;border:1px solid #ffffffb7;border-radius:36px;pointer-events:none}
+.zz-story .zz-kicker{font-size:12px;letter-spacing:.26em;font-weight:700;color:#709cb5}
+.zz-story .zz-intro{z-index:2;align-self:start;padding-top:95px}
+.zz-story .zz-intro h1{font-size:clamp(66px,8.6vw,122px);line-height:1.05;letter-spacing:.1em;margin:18px 0 14px;color:#3f7292;font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",serif;text-shadow:0 4px 18px #fff9}
+.zz-story .zz-intro p{font-size:17px;line-height:2;max-width:330px;color:#547a90}
+.zz-story .zz-script{font-family:Georgia,serif;font-style:italic;letter-spacing:.12em;color:#76a7be;font-size:15px}
+.zz-story .zz-primary,.zz-story .zz-secondary{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:14px 25px;font:inherit;font-size:15px;text-decoration:none;cursor:pointer;transition:transform .2s,background .2s}
+.zz-story .zz-primary{background:#477c9d;color:white;border:1px solid #477c9d;box-shadow:0 9px 20px #43759225}
+.zz-story .zz-secondary{background:#ffffffc9;color:#3e7192;border:1px solid #b3d0df}
+.zz-story .zz-primary:hover,.zz-story .zz-secondary:hover{transform:translateY(-2px)}
+.zz-story .zz-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.zz-story .zz-scene{height:480px;position:relative;display:grid;place-items:center;z-index:1}
+.zz-story .zz-orbit{position:absolute;inset:35px 8px;border:1px solid #a4c8da5c;border-radius:48% 52% 49% 51%;transform:rotate(-17deg)}
+.zz-story .zz-orbit::before,.zz-story .zz-orbit::after{content:"";position:absolute;width:9px;height:9px;background:#82b8d6;border-radius:50%;box-shadow:0 0 0 7px #fff7}
+.zz-story .zz-orbit::before{top:13%;left:12%}.zz-story .zz-orbit::after{bottom:10%;right:12%}
+.zz-story .zz-portrait{position:relative;width:min(310px,85%);height:410px;border-radius:150px 150px 32px 32px;background:linear-gradient(160deg,#fffdf6d9,#e0eff6db);border:7px solid #ffffffb8;box-shadow:0 20px 42px #5783a324;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:25px;color:#7095ac}
+.zz-story .zz-portrait strong{font-family:serif;font-size:19px;letter-spacing:.2em;color:#6c9ab1}
+.zz-story .zz-portrait span{font-size:13px;line-height:1.8;max-width:180px}
+.zz-story .zz-feather{position:absolute;right:2%;top:1%;font:italic 80px Georgia,serif;color:#a6cde1;opacity:.55;transform:rotate(-28deg);user-select:none}
+.zz-story .zz-twig{position:absolute;bottom:0;left:2%;width:130px;height:245px;border-left:2px solid #6ba4ae;transform:rotate(-17deg);transform-origin:bottom;opacity:.65}
+.zz-story .zz-twig span{position:absolute;border:1px solid #91b9d4;background:#a7d3e3;box-shadow:inset 4px 4px 5px #e2f3f6b8;border-radius:75% 15% 75% 30%;width:27px;height:42px}
+.zz-story .zz-twig span:nth-child(1){left:-21px;top:24px;transform:rotate(-35deg)}.zz-story .zz-twig span:nth-child(2){left:5px;top:76px;transform:rotate(45deg)}.zz-story .zz-twig span:nth-child(3){left:-21px;top:123px;transform:rotate(-35deg)}
+.zz-story .zz-caption{position:absolute;bottom:28px;left:0;right:0;text-align:center;color:#85a4b7;font-size:11px;letter-spacing:.17em}
+.zz-story .zz-scroll{position:absolute;bottom:58px;left:clamp(24px,5vw,78px);font-size:12px;letter-spacing:.18em;color:#729cb3}
+.zz-story .zz-letter-section{position:relative;margin:-64px auto 0;width:min(88%,910px);padding:42px clamp(25px,6vw,80px);background:#fffdf9f0;border:1px solid #fff;border-radius:20px;box-shadow:0 17px 42px #315b7721;display:grid;grid-template-columns:1fr auto;align-items:center;gap:22px;z-index:2;transform:rotate(-1deg)}
+.zz-story .zz-letter-section h2{font-family:serif;color:#3f7290;font-size:32px;margin:8px 0}.zz-story .zz-letter-section p{color:#7594a5;line-height:1.7;margin:0}
+.zz-story .zz-envelope{border:0;background:none;font-size:68px;cursor:pointer;line-height:1;filter:drop-shadow(0 10px 5px #749bb328);transition:transform .3s}
+.zz-story .zz-envelope:hover{transform:translateY(-9px) rotate(5deg)}
+.zz-story .zz-chapter{margin:100px 0 10px;text-align:center;color:#82a0b0;font-size:12px;letter-spacing:.25em}
+.zz-story .zz-activities{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
+.zz-story .zz-activity{background:#f9fcfdea;border:1px solid #fff;border-radius:24px;padding:36px;box-shadow:0 13px 35px #487a9620}
+.zz-story .zz-activity h2{font-family:serif;color:#376985;font-size:32px;margin:8px 0 10px}.zz-story .zz-activity p{line-height:1.8;color:#627e8d;margin:0 0 22px}.zz-story .zz-activity .zz-activity-tag{font-size:11px;letter-spacing:.18em;color:#8baabd}
+.zz-story .zz-activity:first-child{background:linear-gradient(135deg,#eff9fd,#dbedf6)}
+.zz-story .zz-status{display:inline-block;border:1px solid #c5d9e4;color:#6b879a;border-radius:99px;padding:9px 14px;font-size:13px}
+.zz-story .zz-foot{margin:48px 0;text-align:center;color:#7395a8;font-size:13px}
+.zz-story .zz-dialog{border:none;border-radius:20px;padding:0;max-width:min(530px,calc(100vw - 32px));box-shadow:0 25px 80px #163c5b66;background:#fffdf8}
+.zz-story .zz-dialog::backdrop{background:#254f6c80;backdrop-filter:blur(5px)}
+.zz-story .zz-paper{padding:45px clamp(22px,5vw,65px);text-align:center}
+.zz-story .zz-paper h2{font-family:serif;color:#386e8f;font-size:38px;margin:16px 0}
+.zz-story .zz-paper p{color:#64899e;line-height:2;font-size:16px}
+.zz-story .zz-paper button{margin-top:20px}
+.world[data-motion="on"] .zz-story .zz-twig{animation:zz-tree-breeze 9s ease-in-out infinite alternate;transform-origin:bottom}
+.world[data-motion="on"] .zz-story .zz-feather{animation:zz-feather-drift 11s ease-in-out infinite alternate}
+@keyframes zz-tree-breeze{from{transform:rotate(-17deg)}to{transform:rotate(-13deg)}}@keyframes zz-feather-drift{from{transform:translateY(0) rotate(-28deg)}to{transform:translateY(13px) rotate(-21deg)}}
+@media(max-width:760px){.zz-story .zz-stage{grid-template-columns:1fr;min-height:0;padding:28px 22px 104px;border-radius:25px}.zz-story .zz-intro{padding-top:28px;text-align:center;align-self:auto}.zz-story .zz-intro h1{font-size:clamp(57px,13vw,86px)}.zz-story .zz-intro p{margin:0 auto;font-size:15px}.zz-story .zz-actions{justify-content:center}.zz-story .zz-scene{height:360px}.zz-story .zz-portrait{height:310px;width:235px}.zz-story .zz-twig{height:145px;bottom:-10px}.zz-story .zz-feather{font-size:51px}.zz-story .zz-scroll{bottom:58px}.zz-story .zz-letter-section{margin:-55px auto 0;width:92%;padding:25px;grid-template-columns:1fr auto;transform:none}.zz-story .zz-letter-section h2{font-size:24px}.zz-story .zz-envelope{font-size:46px}.zz-story .zz-activities{grid-template-columns:1fr}.zz-story .zz-activity{padding:25px}.zz-story .zz-chapter{margin-top:65px}}
+@media(prefers-reduced-motion:reduce){.zz-story *{animation:none!important;transition:none!important}}
