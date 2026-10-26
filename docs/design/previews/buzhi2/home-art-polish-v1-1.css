@@ -1,0 +1,71 @@
+/* Homepage polish V1.1 built against codex/buzhi2-home-art-v1-20261027.
+   Load AFTER foundation.css and home-art.css. Does not modify state, routes, or account data. */
+body[data-page=home]{--ink:#284d75;--mute:#496d8c;--action:#456fac}
+body[data-page=home] .site:before{background-position:45% 15%;filter:saturate(1.04)}
+body[data-page=home] .brand{font-family:IslandHand,"STKaiti","KaiTi",serif;letter-spacing:.06em;font-size:clamp(30px,3.1vw,43px);text-shadow:0 2px 1px #fff,0 9px 25px #648aaa45}
+body[data-page=home] .masthead{padding-block:18px;background:linear-gradient(180deg,#eefaff5e,transparent)}
+body[data-page=home] .nav{background:#fafffff0;border:1px solid #fff;box-shadow:0 11px 30px #4d7faa2b;padding:5px 9px;border-radius:30px}
+body[data-page=home] .nav a{border-radius:20px;font-weight:550}
+body[data-page=home] .nav a:hover,body[data-page=home] .nav a[aria-current=page]{background:#e8eefce8;color:#31569a}
+body[data-page=home] .banner{max-width:720px;background:#f4faffdd;border:1px solid #fff;box-shadow:0 3px 12px #608db126}
+body[data-page=home] .home-birthday-scene h1{top:44px;left:57%;width:40%;color:#3658a0;text-shadow:0 2px 0 #fff,0 6px 23px #fffc}
+body[data-page=home] .hero-name{font-size:clamp(74px,7.6vw,117px);letter-spacing:.05em}
+body[data-page=home] .hero-season{letter-spacing:.12em}
+body[data-page=home] .hero-wish{border:1px solid #fff;box-shadow:0 7px 23px #5c8bb525;border-radius:9px 22px 9px 24px;background:linear-gradient(125deg,#fffef0e8,#edf7ffca);padding:13px 20px;line-height:1.9}
+body[data-page=home] .home-art-slot{left:-6%;width:73%;bottom:18px}
+body[data-page=home] .home-art-slot img{filter:drop-shadow(0 17px 18px #426e9940)}
+body[data-page=home] .home-birthday-desk{right:3.5%;width:42%;bottom:38px;transform:rotate(1deg)}
+body[data-page=home] .home-birthday-desk>.surface{background:linear-gradient(150deg,#fffdf4dd,#f7faffbd);backdrop-filter:blur(16px) saturate(1.17);border:2px solid #ffffffee;border-radius:9px 36px 11px 27px;padding:26px 28px 24px;box-shadow:7px 20px 42px #395c9139,inset 0 0 0 5px #ffffff4b}
+body[data-page=home] .home-birthday-desk>.surface:before{background:linear-gradient(90deg,#e9f8f6d9,#e5e9f8b8);width:100px;height:24px;top:-13px;left:40%;border:1px solid #fff6;box-shadow:0 3px 7px #6b91a22e}
+body[data-page=home] .home-birthday-desk>.surface:after{content:"✿";position:absolute;right:15px;top:8px;font:29px Georgia,serif;color:#9dbad9;pointer-events:none}
+body[data-page=home] .home-birthday-desk>.surface>.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#607fa0}
+body[data-page=home] .home-birthday-desk .tabs{border-bottom:1px dashed #abc6db;margin-top:12px}
+body[data-page=home] .home-birthday-desk .tabs .button{font-weight:650;min-height:48px;min-width:96px;border-radius:17px 17px 0 0}
+body[data-page=home] .home-birthday-desk .tabs [aria-selected=true]{color:#335c8d;background:linear-gradient(#eff8ff,#dcebf9);border-bottom:3px solid #6e9fc6}
+body[data-page=home] .home-birthday-desk h2{font-size:clamp(26px,2.5vw,35px);letter-spacing:.04em}
+body[data-page=home] .home-birthday-desk p{color:#42688a}
+body[data-page=home] .home-birthday-desk details{border-top:1px dashed #bfd2e1;margin-top:9px;padding-top:6px}
+body[data-page=home] .home-birthday-desk summary{color:#38689a;font-weight:700}
+body[data-page=home] .home-activities{gap:10px 12px;margin-top:18px}
+body[data-page=home] .home-activities a{position:relative;overflow:hidden;min-height:73px;border:1px solid #ffffffef;background:linear-gradient(130deg,#fafffff0,#eaf5f9d3);box-shadow:0 8px 17px #587f9e2b;border-radius:9px 23px 10px 23px;padding:13px 15px;transition:transform .18s ease,box-shadow .18s ease}
+body[data-page=home] .home-activities a:after{content:"✧";position:absolute;right:10px;top:6px;color:#8aadd4;font-size:19px;pointer-events:none}
+body[data-page=home] .home-activities a:nth-child(2){transform:rotate(1.5deg)}
+body[data-page=home] .home-activities a:nth-child(3){transform:rotate(-1.5deg)}
+body[data-page=home] .home-activities a:nth-child(4){transform:rotate(1deg)}
+body[data-page=home] .home-activities strong{font-size:15px;font-weight:750}
+body[data-page=home] .home-activities small{font-size:11px;margin-top:4px}
+@media(hover:hover){body[data-page=home] .home-activities a:hover{transform:translateY(-3px) rotate(0);box-shadow:0 12px 27px #476d9b42}}
+body[data-page=home] .douyin-link{border:1px solid #fff;background:linear-gradient(115deg,#fffef5eb,#e3f3fbe8);box-shadow:0 9px 20px #497ba637;border-radius:8px 24px 8px 22px;padding:11px 15px}
+body[data-page=home] .social-keepers>p{border:1px solid #fff;background:#fffcf2f0}
+body[data-page=home] .art-preview-note{border:1px solid #fff;background:#fffdf4d9}
+@media(max-width:1150px) and (min-width:761px){body[data-page=home] .home-art-slot{width:77%;left:-11%}body[data-page=home] .home-birthday-desk{width:46%;right:1%}}
+@media(max-width:760px){
+ body[data-page=home] .site:before{background-position:32% 35px}
+ body[data-page=home] .masthead{background:none}
+ body[data-page=home] .brand{font-size:29px}
+ body[data-page=home] .home-birthday{padding-top:420px}
+ body[data-page=home] .home-birthday-scene{height:420px}
+ body[data-page=home] .home-art-slot{left:-24%;bottom:9px;width:120%;height:321px}
+ body[data-page=home] .home-birthday-scene h1{top:37px;left:46%;width:54%}
+ body[data-page=home] .hero-name{font-size:clamp(58px,15vw,76px)}
+ body[data-page=home] .hero-season{font-size:clamp(27px,8vw,34px)}
+ body[data-page=home] .hero-wish{top:202px;width:48%;right:0;padding:8px 10px;font-size:12px;background:#fffcf0e8}
+ body[data-page=home] .home-birthday-desk{position:relative;width:100%;right:auto;bottom:auto;margin:15px 0 0;transform:none}
+ body[data-page=home] .home-birthday-desk>.surface{padding:20px 19px;border-radius:11px 30px 12px 23px}
+ body[data-page=home] .home-birthday-desk h2{font-size:28px}
+ body[data-page=home] .home-activities a:nth-child(n){transform:none}
+ body[data-page=home] .home-activities a{min-height:73px;padding:12px}
+ body[data-page=home] .social-keepers{bottom:0}
+}
+@media(max-width:375px){
+ body[data-page=home] .home-art-slot{left:-30%;width:125%}
+ body[data-page=home] .home-birthday-scene h1{left:44%;width:56%}
+ body[data-page=home] .hero-name{font-size:56px}
+ body[data-page=home] .hero-season{font-size:26px}
+ body[data-page=home] .hero-wish{top:189px;font-size:11px}
+ body[data-page=home] .home-activities{gap:8px}
+ body[data-page=home] .home-activities a{min-height:82px;padding:10px}
+ body[data-page=home] .home-activities strong{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){body[data-page=home] .home-activities a{transition:none!important}body[data-page=home] .home-activities a:hover{transform:none!important}}
+@supports not (backdrop-filter:blur(1px)){body[data-page=home] .home-birthday-desk>.surface{background:#fffdf5f2}}
