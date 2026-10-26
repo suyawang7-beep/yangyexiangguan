@@ -1,0 +1,142 @@
+@font-face{font-family:IslandRound;src:url('../assets/fonts/buzhi-rounded.woff2') format('woff2');font-display:swap}
+@font-face{font-family:IslandHand;src:url('../assets/fonts/buzhi-hand.woff2') format('woff2');font-display:swap}
+body[data-page=workshop],body[data-page=office]{--ink:#284c70;--mute:#466381;--line:#b6cfe4;--action:#3d67a7;font-family:IslandRound,'Microsoft YaHei',sans-serif;min-width:0;background-color:#e5f0f8;background-repeat:no-repeat;background-size:cover;background-position:50% 0;color:var(--ink)}
+body[data-page=workshop]{background-image:url('assets-v2/workshop-atelier-v1.webp')}
+body[data-page=office]{background-image:url('assets-v2/office-reception-v1.webp')}
+:is(body[data-page=workshop],body[data-page=office]) .site{max-width:1440px;padding:0 28px 45px}
+:is(body[data-page=workshop],body[data-page=office]) .masthead{padding:15px 0;gap:18px;border-bottom-color:#ffffffb0}
+:is(body[data-page=workshop],body[data-page=office]) .brand{font:34px/1.1 IslandHand,serif;color:#315a8b;text-shadow:0 2px 12px white}
+:is(body[data-page=workshop],body[data-page=office]) .brand small{font:10px/1.5 IslandRound,sans-serif;letter-spacing:.1em}
+:is(body[data-page=workshop],body[data-page=office]) .nav{gap:2px;background:#f9fdffb8;border:1px solid #fff;border-radius:7px;padding:4px;backdrop-filter:blur(14px)}
+:is(body[data-page=workshop],body[data-page=office]) .nav a{font-size:13px;padding:9px 10px}
+:is(body[data-page=workshop],body[data-page=office]) .nav a[aria-current=page]{background:#e2ebf8;color:#31538e}
+:is(body[data-page=workshop],body[data-page=office]) .controls{gap:5px}
+:is(body[data-page=workshop],body[data-page=office]) .controls .button{font-size:11px;min-height:38px;padding:7px 9px;background:#f6fbffbd;backdrop-filter:blur(10px);border-color:#fff}
+:is(body[data-page=workshop],body[data-page=office]) .auth-logout{display:none}
+:is(body[data-page=workshop],body[data-page=office]) .auth-status{font-size:11px;background:#f8fcffbd;padding:5px 7px;border-radius:12px}
+:is(body[data-page=workshop],body[data-page=office]) .banner{font-size:12px;padding:8px 12px;margin:10px 0;background:#f8fcffca;border-radius:4px;backdrop-filter:blur(13px)}
+:is(body[data-page=workshop],body[data-page=office]) .button{min-height:44px;border-radius:7px;touch-action:manipulation}
+:is(body[data-page=workshop],body[data-page=office]) .site-footer{font-size:11px;padding:13px;background:#f9fcffb8;backdrop-filter:blur(12px);border:1px solid #fff}
+:is(body[data-page=workshop],body[data-page=office]) :is(a,button,summary,input):focus-visible{outline:3px solid #315293;outline-offset:4px}
+:is(body[data-page=workshop],body[data-page=office]) h1,:is(body[data-page=workshop],body[data-page=office]) h2{font-family:IslandHand,serif;font-weight:400}
+.craft-world{max-width:1250px;padding-top:8px}
+.craft-stage-head{max-width:760px;padding:18px 25px;margin-bottom:22px;border:1px solid white;background:#f4faff9e;backdrop-filter:blur(12px);border-radius:5px 18px 6px 6px}
+.craft-stage-head h1{font-size:45px;margin:3px 0 8px}
+.craft-stage-head p{font-size:14px;line-height:1.8;margin:0}
+.craft-stage-head .eyebrow{font-size:10px;color:#4c6b92}
+.craft-layout{grid-template-columns:minmax(0,1.4fr) minmax(285px,.8fr);gap:25px;align-items:start}
+.craft-table{padding:25px 30px 22px;min-height:570px;background:#f5fbff66;border:1px solid #fff;border-radius:6px 24px 7px 7px;backdrop-filter:blur(5px);box-shadow:0 15px 38px #476b8f1a}
+.craft-desk h2{font-size:29px}
+.craft-desk>p{font-size:14px;line-height:1.8;background:#f8fcff9c;padding:8px 12px;border-radius:4px}
+.craft-slots{max-width:540px;margin:26px auto 30px;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);gap:18px}
+.craft-slot{min-height:186px;border:1px solid #faffff;border-radius:9px 9px 30px 9px;background:#f7fcff8f;box-shadow:inset 0 0 0 4px #d1e2f43d,0 9px 22px #47769c16;color:#355781;backdrop-filter:blur(8px);font-size:15px;line-height:1.8}
+.craft-result{background:#efedff91}
+.craft-sigil{color:#4f6e9c}
+.craft-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.craft-card{min-width:0;max-width:none;min-height:164px;gap:9px;justify-content:end;padding:15px 13px;border:1px solid #fff;border-radius:5px 12px 5px 5px;background:#f8fcffb8;backdrop-filter:blur(12px);box-shadow:0 7px 20px #3c64891c;touch-action:manipulation}
+.craft-card:nth-child(2){background:#f0ecffb8}
+.craft-card:nth-child(3){background:#e5f2f4b8}
+.craft-card strong{font-size:17px;font-weight:500}
+.craft-card small{color:#4c6691;font-size:12px}
+.craft-card span{font-size:12px;line-height:1.6}
+.craft-card[aria-pressed=true]{outline:3px solid #4c70ab;outline-offset:3px;background:#f7fcffe6}
+.craft-aside{gap:16px}
+.craft-rule-scroll,.craft-confirm{padding:23px;background:#fffdf4b5;border:1px solid white;border-radius:5px 18px 5px 5px;backdrop-filter:blur(16px);box-shadow:0 12px 28px #3f5e8218}
+.craft-rule-scroll h2,.craft-confirm h2{font-size:28px;margin:5px 0 10px}
+.craft-rule-scroll p,.craft-confirm p{font-size:14px;line-height:1.8}
+.craft-rule-scroll dl{gap:13px;padding-top:12px;border-top:1px solid #bcd2e6}
+.craft-confirm{background:#e8edffb8}
+.craft-confirm .button:disabled{opacity:1;color:#65778e;background:#e2e9f2;border-color:#b4c4d8;cursor:not-allowed}
+.craft-rules-fold>summary{padding:13px 16px;min-height:48px;cursor:pointer;background:#f8fcffbe;border:1px solid white;border-radius:5px;color:#385b86}
+.craft-rules-fold[open]>summary{border-radius:5px 15px 0 0}
+.craft-rules-fold[open] .craft-rule-scroll{border-top:0;border-radius:0 0 5px 5px}
+.office-world{max-width:1250px;padding-top:10px}
+.office-counter{position:relative;display:block;min-height:365px;padding:42px 38px;overflow:hidden;border-radius:5px 35px 8px 8px;background:#f9fcff24;border:1px solid #fff8;box-shadow:none}
+.office-copy{position:relative;z-index:2;max-width:54%;background:#f9fcffb5;backdrop-filter:blur(15px);padding:20px 24px;border:1px solid #fff;border-radius:5px}
+.office-copy h1{font-size:48px;margin:3px 0 11px}
+.office-copy .eyebrow{font-size:11px}
+.office-quote{font-size:18px}
+.office-copy .muted{font-size:13px;color:#46617f}
+.office-scene{position:absolute;right:-7%;bottom:-8%;width:59%;height:109%;min-height:0;padding:0;border:0;border-radius:0;background:none;display:block;pointer-events:none}
+.office-scene img{width:100%;height:100%;object-fit:contain;object-position:right bottom}
+.office-scene small{position:absolute;bottom:13%;right:20%;font-size:10px;padding:4px 8px;background:#f5fbffda;border-radius:3px;color:#486681}
+.office-stations{grid-template-columns:minmax(0,1.13fr) minmax(0,.87fr);gap:24px;margin:25px 0}
+.office-station{padding:25px 29px;border:1px solid #fff;backdrop-filter:blur(16px);box-shadow:0 12px 34px #3e64731a}
+.office-station h2{font-size:29px}
+.office-station p{font-size:14px;line-height:1.85}
+.office-stamp{font-size:11px;color:#4c6b89}
+.office-board{background:#fffdf1b8;border-radius:6px 17px 5px 5px;transform:rotate(-.5deg)}
+.office-paper{background:#fffdf794;border:1px solid #c2cfd9;border-radius:4px;padding:16px}
+.office-files{margin-top:32px;background:#dcebf6ad;border-radius:12px 5px 18px 5px}
+.office-drawer{background:#f8fcffa6;border-radius:4px;border-bottom:5px solid #abc6dc;padding:20px 15px;font-size:14px}
+.office-music{margin-left:24px;background:#eee8f8ad;border-radius:5px 17px 6px 5px}
+.office-bird{margin-top:19px;background:#ddf0ecb5;border-radius:17px 5px 5px 5px}
+.office-note-form input{background:#fbfdffda;border-radius:6px;font-size:16px;min-height:46px;border-color:#a6c2da}
+.office-note-form .button{font-size:14px;background:#f4f8ffbd}
+.office-choices{gap:10px}
+.office-choices label{padding:10px 8px;min-height:44px;border-bottom:1px solid #b9d3d9;font-size:14px}
+.office-choices input{margin-top:5px;accent-color:#5079a3;flex:none}
+.office-reaction{background:#f9fcffb0;border-radius:4px;padding:13px}
+.office-footer-note{font-size:13px;background:#f6fcffca;padding:12px 20px;border-radius:4px;color:#42617c;opacity:1}
+.office-switch[hidden],.office-station[hidden]{display:none!important}
+.office-switch{display:flex;gap:5px;padding:6px;background:#f7fcffc9;border:1px solid #fff;border-radius:6px;backdrop-filter:blur(14px)}
+.office-switch button{flex:1;min-width:0;min-height:52px;padding:8px 5px;font:12px/1.5 IslandRound,sans-serif;border:0;border-bottom:2px solid transparent;background:none;color:#476587;cursor:pointer}
+.office-switch button[aria-selected=true]{background:#edf3ff;border-bottom-color:#4c70ab;color:#274b80;border-radius:4px}
+@media(hover:hover) and (pointer:fine){.craft-card:hover{background:#f8fcffe6}.office-switch button:hover{background:#edf3ff}}
+@media(max-width:1100px) and (min-width:761px){
+:is(body[data-page=workshop],body[data-page=office]) .masthead{flex-wrap:wrap;gap:10px}
+:is(body[data-page=workshop],body[data-page=office]) .nav{order:3;width:100%;justify-content:center}
+.craft-layout{grid-template-columns:minmax(0,1fr) 300px;gap:15px}
+.craft-table{padding:22px 18px}.craft-card{padding:12px 9px}.craft-card strong{font-size:15px}
+}
+@media(max-width:760px){
+:is(body[data-page=workshop],body[data-page=office]) .site{padding:0 14px 80px}
+body[data-page=workshop],body[data-page=office]{background-size:auto 760px;background-position:42% 80px;background-color:#e5f0f8}
+:is(body[data-page=workshop],body[data-page=office]) .masthead{flex-wrap:nowrap;padding:13px 0;gap:8px}
+:is(body[data-page=workshop],body[data-page=office]) .brand{font-size:29px}
+:is(body[data-page=workshop],body[data-page=office]) .brand small{font-size:8px}
+:is(body[data-page=workshop],body[data-page=office]) .nav{display:none}
+:is(body[data-page=workshop],body[data-page=office]) .controls{flex-wrap:nowrap}
+:is(body[data-page=workshop],body[data-page=office]) .controls .button{font-size:11px;padding:7px 8px;min-height:40px}
+:is(body[data-page=workshop],body[data-page=office]) .auth-status{font-size:10px;padding:4px}
+:is(body[data-page=workshop],body[data-page=office]) .banner{font-size:11px;padding:7px 10px;line-height:1.65;margin:0 0 8px}
+:is(body[data-page=workshop],body[data-page=office]) .mobile-more{display:block;margin:0 0 12px;background:#f8fcffd9;border-radius:4px}
+:is(body[data-page=workshop],body[data-page=office]) .mobile-more summary{min-height:44px}
+:is(body[data-page=workshop],body[data-page=office]) .mobile-nav{display:grid;min-height:54px;padding-bottom:env(safe-area-inset-bottom);background:#f5fbffeb;backdrop-filter:blur(14px)}
+:is(body[data-page=workshop],body[data-page=office]) .mobile-nav a{font-size:12px;min-height:48px}
+.craft-world,.office-world{padding-top:0}
+.craft-stage-head{padding:17px 19px;margin-bottom:15px;border-radius:5px 18px 5px 5px;background:#f6fbffad}
+.craft-stage-head h1{font-size:33px;line-height:1.4}
+.craft-stage-head p{font-size:13px}
+.craft-layout{grid-template-columns:1fr;gap:14px}
+.craft-table{padding:18px 16px 15px;min-height:0;border-radius:5px 18px 5px 5px;background:#eff9ff80}
+.craft-desk h2{font-size:25px}
+.craft-desk>.eyebrow{font-size:11px}
+.craft-desk>p{font-size:13px;padding:8px 10px}
+.craft-slots{margin:16px 0 21px;gap:8px;grid-template-columns:minmax(0,1fr) 23px minmax(0,1fr)}
+.craft-slot{min-height:125px;padding:11px;font-size:14px;border-radius:6px 6px 22px 6px}
+.craft-cards{gap:8px;grid-template-columns:repeat(3,minmax(0,1fr));flex-direction:row}
+.craft-card{min-height:145px;padding:12px 8px;gap:7px;width:auto}
+.craft-card strong{font-size:14px;line-height:1.5}
+.craft-card small,.craft-card span{font-size:11px}
+.craft-rule-scroll,.craft-confirm{padding:19px}
+.craft-rule-scroll h2,.craft-confirm h2{font-size:25px}
+.craft-rule-scroll p,.craft-confirm p{font-size:13px}
+.craft-aside{gap:13px}
+.office-counter{min-height:375px;padding:20px 16px;border-radius:5px 25px 5px 5px;overflow:hidden}
+.office-copy{max-width:85%;padding:15px 18px;z-index:2;background:#f8fcffc4}
+.office-copy h1{font-size:35px}
+.office-quote{font-size:15px;line-height:1.8}
+.office-copy .muted{font-size:12px}
+.office-scene{height:230px;width:100%;right:-20%;bottom:-3%;z-index:1}
+.office-scene img{object-position:right bottom}
+.office-scene small{bottom:9%;right:21%;font-size:9px;max-width:150px}
+.office-switch{margin-top:17px}
+.office-stations{display:block;margin:12px 0 16px}
+.office-station{margin:0;padding:21px 20px;transform:none;border-radius:5px 17px 5px 5px;min-height:250px}
+.office-station h2{font-size:26px}
+.office-station p{font-size:14px}
+.office-footer-note{font-size:12px;margin:15px 0}
+}
+@supports not (backdrop-filter:blur(1px)){.craft-table,.craft-rule-scroll,.craft-confirm,.office-copy,.office-station{background:#f3f9fff0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

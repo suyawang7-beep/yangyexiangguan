@@ -109,3 +109,10 @@ body[data-page=home] .mobile-nav a{font-size:12px;min-height:48px}
 /* Keep the 320px viewport usable when a scrollbar consumes inline space. */
 body[data-page=home]{min-width:0}
 .home-activities a:nth-child(n+3){background:#f5fbffde;box-shadow:none;border-color:transparent}
+
+/* User confirmed translucent glass; water animation remains deferred. */
+body[data-page=home] .home-birthday-desk>.surface{background:#fffdf5ac;backdrop-filter:blur(18px) saturate(1.1)}
+body[data-page=home] .nav{background:#faffffb8;backdrop-filter:blur(14px)}
+body[data-page=home] .home-activities a{background:#f8fcffb8;backdrop-filter:blur(13px)}
+body[data-page=home] .hero-wish{background:#f2faffb8;backdrop-filter:blur(12px)}
+@supports not (backdrop-filter:blur(1px)){body[data-page=home] .home-birthday-desk>.surface{background:#fffdf5eb}}

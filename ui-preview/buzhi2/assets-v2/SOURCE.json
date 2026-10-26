@@ -23,6 +23,28 @@
       "bytes": 597392,
       "sha256": "e1990a6b816dc30b862d6a2ae75cd73f478b05b6b6b3fe137b8a8593b770a245",
       "source": "Built-in image_gen; generated from user-provided concept image; candidate, not approved final art"
+    },
+    {
+      "file": "workshop-atelier-v1.webp",
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 523238,
+      "sha256": "f555cfaf17a0ec713309af5955fc955ff03ea153726b7df7f36b227a6795cdc7",
+      "source": "Built-in image_gen; user concept reference; unapproved candidate"
+    },
+    {
+      "file": "office-reception-v1.webp",
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 481878,
+      "sha256": "d7bdfac3d2965a25c0f1a826fe0a49e0fda75637a1b0d5cbb5e5c0cf3727c6fa",
+      "source": "Built-in image_gen; user concept reference; unapproved candidate"
     }
   ],
   "method": "PNG to WebP encoding only; alpha preserved; no manual character edits"
