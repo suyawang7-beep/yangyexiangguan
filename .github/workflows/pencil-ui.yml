@@ -13,10 +13,11 @@ on:
       - 'tests/ambient-motion.cjs'
       - 'tests/collection-pocket-*.cjs'
       - 'tests/card-profile-loading.cjs'
+      - 'tests/account-collection-*.cjs'
       - '.github/workflows/pencil-ui.yml'
   pull_request:
     branches: [main]
-    paths: ['ui-preview/**', 'server/index.mjs', 'tests/pencil-*', 'tests/liquid-page-evidence.cjs', 'tests/resident-appearance.cjs', 'tests/resident-production.cjs', 'tests/guide-alignment.cjs', 'tests/ambient-motion.cjs', 'tests/collection-pocket-*.cjs', 'tests/card-profile-loading.cjs', '.github/workflows/pencil-ui.yml']
+    paths: ['ui-preview/**', 'server/index.mjs', 'tests/pencil-*', 'tests/liquid-page-evidence.cjs', 'tests/resident-appearance.cjs', 'tests/resident-production.cjs', 'tests/guide-alignment.cjs', 'tests/ambient-motion.cjs', 'tests/collection-pocket-*.cjs', 'tests/card-profile-loading.cjs', 'tests/account-collection-*.cjs', '.github/workflows/pencil-ui.yml']
   workflow_dispatch:
 jobs:
   browser:
@@ -41,6 +42,8 @@ jobs:
       - run: node tests/collection-pocket-view.cjs
       - run: node tests/collection-pocket-live.cjs
       - run: node tests/card-profile-loading.cjs
+      - run: node tests/account-collection-state.cjs
+      - run: node tests/account-collection-loading.cjs
       - run: node tests/guide-alignment.cjs
         env:
           GUIDE_EVIDENCE_DIR: ${{ runner.temp }}/guide-evidence
