@@ -1,0 +1,18 @@
+/* Buzhi Island home font pass. All fonts are already self-hosted in ui-preview/assets/fonts.
+   No third-party CDN; no artificial font URLs; preserves existing DOM and data. */
+@font-face{font-family:"Buzhi Rounded";src:url("../assets/fonts/buzhi-rounded.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Buzhi Hand";src:url("../assets/fonts/buzhi-hand.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Buzhi Notice";src:url("../assets/fonts/buzhi-notice.woff2") format("woff2");font-weight:900;font-display:swap}
+@font-face{font-family:"Buzhi Playful";src:url("../assets/fonts/buzhi-playful.woff2") format("woff2");font-weight:400;font-display:swap}
+body[data-page="home"]{font-family:"Buzhi Rounded","Microsoft YaHei",sans-serif}
+body[data-page="home"] button,body[data-page="home"] input,body[data-page="home"] select,body[data-page="home"] textarea{font-family:"Buzhi Rounded","Microsoft YaHei",sans-serif}
+body[data-page="home"] .brand{font-family:"Buzhi Playful","Buzhi Hand","Buzhi Rounded",sans-serif!important;font-size:clamp(29px,2.9vw,41px);letter-spacing:.025em}
+body[data-page="home"] .brand small{font-family:"Buzhi Rounded",sans-serif!important}
+body[data-page="home"] .hero-overline{font-family:"Buzhi Rounded",sans-serif;letter-spacing:.18em}
+body[data-page="home"] .hero-name,body[data-page="home"] .hero-season{font-family:"Buzhi Playful","Buzhi Notice","Buzhi Rounded",sans-serif;font-weight:400;line-height:1.16;text-shadow:0 2px 0 #fff,0 8px 21px #ffffffaa}
+body[data-page="home"] .home-birthday-desk h2{font-family:"Buzhi Hand","Buzhi Rounded",sans-serif;font-weight:400;line-height:1.4}
+body[data-page="home"] .home-activities strong{font-family:"Buzhi Rounded",sans-serif;font-weight:750}
+body[data-page="home"] .nav a,body[data-page="home"] .controls,body[data-page="home"] .banner,body[data-page="home"] .home-birthday-desk p{font-family:"Buzhi Rounded","Microsoft YaHei",sans-serif}
+body[data-page="home"] .home-birthday-desk .tabs .button{font-family:"Buzhi Rounded",sans-serif;font-weight:700}
+body[data-page="home"] .social-keepers{font-family:"Buzhi Rounded","Microsoft YaHei",sans-serif}
+@media(max-width:760px){body[data-page="home"] .brand{font-size:30px}body[data-page="home"] .hero-name{font-size:clamp(56px,15vw,73px)}body[data-page="home"] .hero-season{font-size:clamp(27px,8vw,34px)}}
