@@ -1,0 +1,63 @@
+/* V4.2 / 2026-10-27: office + home adaptation to latest integration foundation
+   Matching foundation.js SHA 3b15e13c and foundation.css SHA 298e382d.
+   Layer after engineering-organic-v3.css and engineering-art-v4-1.css.
+   Purely presentational, does not alter API, routes, data-card, forms, disabled operations. */
+:root{--v42-sea:#bce7f2;--v42-aqua:#75bed8;--v42-iris:#cfc7ed;--v42-paper:#fffcef;--v42-ink:#315c7a}
+body[data-page="office"] .office-world{position:relative;isolation:isolate;padding-bottom:70px}
+body[data-page="office"] .office-world::before{content:"";position:absolute;inset:0 -2% 3%;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at 86% 6%,#e9d3f3a3,transparent 35%),radial-gradient(ellipse at 4% 70%,#ddfbf5c2,transparent 33%),repeating-radial-gradient(ellipse at 55% 100%,transparent 0 90px,#ffffff31 93px 96px,transparent 99px 162px);border-radius:43% 57% 12% 12%/7% 9% 7% 7%}
+body[data-page="office"] .office-counter{position:relative;isolation:isolate;min-height:445px;padding:45px 6% 65px;overflow:visible;grid-template-columns:minmax(0,1.12fr) minmax(270px,.88fr);background:radial-gradient(ellipse at 80% 8%,#fffdf6e0,transparent 37%),linear-gradient(145deg,#b9e3ef,#9ccde7 57%,#d9d0ed);border:2px solid #fff;border-radius:49% 51% 29% 71% / 21% 27% 73% 79%;box-shadow:0 25px 65px #5283a132,inset 0 0 0 12px #ffffff25}
+body[data-page="office"] .office-counter::before{content:"";position:absolute;inset:17px;z-index:-1;border:1px dashed #ffffffa4;border-radius:inherit;pointer-events:none}
+body[data-page="office"] .office-counter::after{content:"✧";position:absolute;left:51%;top:5%;font:90px Georgia,serif;color:#fff9;transform:rotate(-16deg);pointer-events:none}
+body[data-page="office"] .office-copy{position:relative;z-index:2}
+body[data-page="office"] .office-copy h1{font-family:KaiTi,STKaiti,serif;font-weight:600;letter-spacing:.07em;font-size:clamp(39px,5vw,70px);text-shadow:0 3px 0 #fff7}
+body[data-page="office"] .office-quote{max-width:350px;background:#fffcf2d9;border:1px solid #fff;box-shadow:5px 9px 22px #5683ab23;padding:17px 20px;transform:rotate(-2deg);border-radius:8px 23px 11px 17px;font-family:KaiTi,STKaiti,serif;color:#3d6983}
+body[data-page="office"] .office-scene{position:relative;z-index:1;min-height:315px;margin:0 -10px 0 0;padding:36px 24px 20px;border:8px solid #ffffffa8;outline:1px solid #ffffffb5;border-radius:51% 49% 26% 74% / 45% 44% 56% 55%;background:radial-gradient(circle at 35% 26%,#fff,transparent 40%),linear-gradient(150deg,#c7eaf3,#c2cdeeba 70%,#f5d2e3);box-shadow:0 20px 35px #5b8aa83b,inset 0 0 0 5px #ffffff37;transform:rotate(3deg)}
+body[data-page="office"] .office-scene:before{content:"✿";position:absolute;top:-30px;right:0;font:64px Georgia,serif;color:#e4c4e9;text-shadow:2px 4px #fff8;pointer-events:none}
+body[data-page="office"] .office-scene:after{content:"";position:absolute;bottom:5%;left:-8%;width:55%;height:34px;border:7px solid #fff7;border-right:0;border-bottom:0;border-radius:70% 50% 0 0;transform:rotate(-16deg);pointer-events:none}
+body[data-page="office"] .office-stations{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:34px;padding:2px 2% 0;align-items:start}
+body[data-page="office"] .office-station{position:relative;isolation:isolate;padding:35px clamp(22px,3vw,40px) 37px;box-shadow:7px 14px 36px #5b86a22e;border:2px solid #ffffffea}
+body[data-page="office"] .office-station:before{position:absolute;top:-18px;right:13%;z-index:2;content:"";width:86px;height:23px;background:#fff5daac;transform:rotate(7deg);box-shadow:1px 3px 7px #64839922;pointer-events:none}
+body[data-page="office"] .office-station h2{font-family:KaiTi,STKaiti,serif;font-size:clamp(26px,2.7vw,36px);line-height:1.4}
+body[data-page="office"] .office-stamp{display:inline-flex;padding:6px 12px;border:1px dashed #a5b8bf;background:#fff9;font-size:11px;letter-spacing:2px;transform:rotate(-3deg)}
+body[data-page="office"] .office-board{transform:rotate(-1.5deg);margin-top:4px;border-radius:10px 39px 15px 32px;background:linear-gradient(148deg,#fffcef,#f5ecdd)}
+body[data-page="office"] .office-board:after{position:absolute;content:"✿";font:40px Georgia,serif;color:#a5cbd2;right:35px;bottom:24px;pointer-events:none}
+body[data-page="office"] .office-paper{border:1px solid #dacbb2;background:repeating-linear-gradient(to bottom,#fffdf7 0 28px,#d8e5ee 29px,#fffdf7 30px);padding:24px 23px;box-shadow:4px 8px 18px #7b8d9736;transform:rotate(.7deg);border-radius:3px 8px 5px 6px}
+body[data-page="office"] .office-files{transform:translateY(43px) rotate(2deg);border-radius:43px 9px 36px 12px;background:linear-gradient(140deg,#e9f4ff,#cadfec)}
+body[data-page="office"] .office-drawer{border:1px solid #fff;background:linear-gradient(#fff9,#fff7);border-bottom:11px solid #94b7d0;box-shadow:0 10px 18px #7aa3b02a;border-radius:12px 12px 34px 13px}
+body[data-page="office"] .office-music{margin:0 0 0 25px;transform:rotate(1.5deg);border-radius:9px 48px 14px 25px;background:linear-gradient(135deg,#f0e2f5,#e5eafd)}
+body[data-page="office"] .office-note-form{position:relative;padding:20px 16px;background:#fffdf5bd;border:1px solid #fff;border-radius:8px 20px 13px 13px}
+body[data-page="office"] .office-note-form label{font-weight:650}
+body[data-page="office"] .office-note-form input{border-radius:8px 14px 8px 14px;box-shadow:inset 0 2px 5px #809fa01a}
+body[data-page="office"] .office-note-form button{border:1px solid #fff;background:#cee5f2;color:#2e607d;font-weight:700}
+body[data-page="office"] .office-bird{transform:translateY(40px) rotate(-1.5deg);border-radius:48px 11px 23px 11px;background:linear-gradient(155deg,#ebf9f0,#d4e9eb)}
+body[data-page="office"] .office-choices{gap:12px}
+body[data-page="office"] .office-choices label{padding:12px 14px;min-height:46px;border:1px solid #ffffffdf;background:#ffffffa1;border-radius:14px 12px 22px 11px}
+body[data-page="office"] .office-choices input{accent-color:#477eaa;min-width:18px;min-height:18px;margin-top:3px}
+body[data-page="office"] .office-reaction{border:1px solid #fff;background:#fffbed}
+body[data-page="office"] .office-footer-note{clear:both;padding-top:38px;font-size:12px;line-height:1.9}
+body[data-page="home"] .home-birthday{isolation:isolate}
+body[data-page="home"] .home-art-slot{font-size:13px;line-height:1.9}
+body[data-page="home"] .social-keepers{filter:drop-shadow(0 4px 7px #5b87ad22)}
+@media(max-width:800px){
+ body[data-page="office"] .office-counter{grid-template-columns:1fr;gap:8px;min-height:0;padding:35px 24px 40px;border-radius:26% 17% 9% 9%/8% 12% 8% 8%}
+ body[data-page="office"] .office-scene{min-height:240px;width:min(90%,480px);margin:5px auto 0}
+ body[data-page="office"] .office-stations{grid-template-columns:1fr;gap:24px}
+ body[data-page="office"] .office-station{padding:27px 22px;border-radius:16px 30px 19px 27px}
+ body[data-page="office"] .office-board,body[data-page="office"] .office-files,body[data-page="office"] .office-music,body[data-page="office"] .office-bird{margin:0;transform:none}
+ body[data-page="office"] .office-footer-note{padding-top:6px}
+}
+@media(max-width:560px){
+ body[data-page="office"] .office-world{padding:5px 0 55px}
+ body[data-page="office"] .office-counter{padding:26px 17px 29px;border-radius:24% 17% 8% 8%/7% 10% 7% 7%}
+ body[data-page="office"] .office-copy h1{font-size:37px}
+ body[data-page="office"] .office-quote{padding:12px 15px;font-size:17px}
+ body[data-page="office"] .office-scene{min-height:200px;max-width:315px;margin:14px auto 0;padding:20px;border-width:5px}
+ body[data-page="office"] .office-stations{gap:19px;margin-top:21px;padding:0}
+ body[data-page="office"] .office-station{padding:25px 18px}
+ body[data-page="office"] .office-station h2{font-size:26px}
+ body[data-page="office"] .office-paper{padding:16px}
+ body[data-page="office"] .office-station:before{width:55px;height:16px;top:-10px}
+ body[data-page="office"] .office-music input{max-width:100%}
+ body[data-page="office"] .office-choices label{align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){body[data-page="office"] .office-scene,body[data-page="office"] .office-board,body[data-page="office"] .office-files,body[data-page="office"] .office-music,body[data-page="office"] .office-bird{transition:none!important}}
