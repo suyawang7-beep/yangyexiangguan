@@ -1,0 +1,542 @@
+{
+  "reviewDate": "2026-10-27",
+  "source": "user-provided ZIP snapshots; upstream revisions not verified",
+  "executedThirdPartyScripts": false,
+  "installedRuntimeDependencies": false,
+  "archives": [
+    {
+      "file": "stylekit-skill-main.zip",
+      "sha256": "93e3ca7f9fe0847dea3394b6f19aa2031f0537d4ec57732710dccce4884fb8d9",
+      "archiveBytes": 92861,
+      "expandedBytes": 310534,
+      "fileCount": 29,
+      "skillFiles": [
+        "stylekit-skill-main/SKILL.md"
+      ],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/stylekit-skill-main.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "gsap-skills-main.zip",
+      "sha256": "fa0e11747224f9e61e92f61987efc9850ac2665eb6444887e7f19aadcf2f4386",
+      "archiveBytes": 71013,
+      "expandedBytes": 145602,
+      "fileCount": 44,
+      "skillFiles": [
+        "gsap-skills-main/skills/gsap-core/SKILL.md",
+        "gsap-skills-main/skills/gsap-frameworks/SKILL.md",
+        "gsap-skills-main/skills/gsap-performance/SKILL.md",
+        "gsap-skills-main/skills/gsap-plugins/SKILL.md",
+        "gsap-skills-main/skills/gsap-react/SKILL.md",
+        "gsap-skills-main/skills/gsap-scrolltrigger/SKILL.md",
+        "gsap-skills-main/skills/gsap-timeline/SKILL.md",
+        "gsap-skills-main/skills/gsap-utils/SKILL.md"
+      ],
+      "symlinksNotExtracted": [
+        "gsap-skills-main/CLAUDE.md",
+        "gsap-skills-main/GEMINI.md"
+      ],
+      "localCopy": ".local/design-reference-archives/gsap-skills-main.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "InteractivePoints-master.zip",
+      "sha256": "f6f7e38bcdd3ec54f06a5b5b9ad36f2769ef83f6f18fa6ee898f7af34d8af271",
+      "archiveBytes": 858984,
+      "expandedBytes": 912416,
+      "fileCount": 23,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/InteractivePoints-master.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "StackMotionHoverEffects-master.zip",
+      "sha256": "37f381ccb8e4d293dc7faad6edb16634eb14f110e8239d5c185df4de06841d95",
+      "archiveBytes": 73821,
+      "expandedBytes": 152766,
+      "fileCount": 14,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/StackMotionHoverEffects-master.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "TooltipAnimations-master.zip",
+      "sha256": "c9c7671637ebaffd93e01927f03607607869c884e43345d986e44e53e73f6e79",
+      "archiveBytes": 37545,
+      "expandedBytes": 92078,
+      "fileCount": 12,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/TooltipAnimations-master.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "MenuHoverEffects-master.zip",
+      "sha256": "2c4ff8820d231d38f1c9d4d98165da154fa266d86d1ff57eb848b6d26a0f8611",
+      "archiveBytes": 53073,
+      "expandedBytes": 123370,
+      "fileCount": 31,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/MenuHoverEffects-master.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "codrops-sketches-main.zip",
+      "sha256": "6ec5752e70f88a98c22699c26dfcc8cdc7e09871d491f67e2775845aac7b198b",
+      "archiveBytes": 5798607,
+      "expandedBytes": 6028736,
+      "fileCount": 144,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/codrops-sketches-main.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "IntroTrailEffect-main.zip",
+      "sha256": "94401edc3ec1fe49ea5a80d2b3b9de1d07d6e6ef1b5035e002ae1440df08b287",
+      "archiveBytes": 638302,
+      "expandedBytes": 826015,
+      "fileCount": 27,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/IntroTrailEffect-main.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "amber-main.zip",
+      "sha256": "03b324ed455190b14a07acc7bf9f38adb78f0bc7711e23b7a5b32f2da9c73814",
+      "archiveBytes": 4279985,
+      "expandedBytes": 4739008,
+      "fileCount": 80,
+      "skillFiles": [
+        "amber-main/.agents/skills/gsap-core/SKILL.md",
+        "amber-main/.agents/skills/gsap-performance/SKILL.md",
+        "amber-main/.agents/skills/gsap-react/SKILL.md",
+        "amber-main/.agents/skills/gsap-timeline/SKILL.md",
+        "amber-main/.agents/skills/react-router/SKILL.md"
+      ],
+      "symlinksNotExtracted": [
+        "amber-main/.claude/skills/gsap-core",
+        "amber-main/.claude/skills/gsap-performance",
+        "amber-main/.claude/skills/gsap-react",
+        "amber-main/.claude/skills/gsap-timeline",
+        "amber-main/.claude/skills/react-router"
+      ],
+      "localCopy": ".local/design-reference-archives/amber-main.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "GitHubDesktop_zh-master.zip",
+      "sha256": "ce18abd14a4b3ad6f503460cb9b1026da4fff9e1c7d533d9cab31a1d0540308a",
+      "archiveBytes": 1493434,
+      "expandedBytes": 6621843,
+      "fileCount": 22,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/GitHubDesktop_zh-master.zip",
+      "zipIntegrity": "passed"
+    },
+    {
+      "file": "h5-Dooring-master.zip",
+      "sha256": "3bc36e34321f4852efa3f05a2114eb934f35712b34d16213e03bf987d8affca3",
+      "archiveBytes": 28249727,
+      "expandedBytes": 31629191,
+      "fileCount": 385,
+      "skillFiles": [],
+      "symlinksNotExtracted": [],
+      "localCopy": ".local/design-reference-archives/h5-Dooring-master.zip",
+      "zipIntegrity": "passed"
+    }
+  ],
+  "vendoredFiles": [
+    {
+      "path": "docs/design/resources/vendor/stylekit/LICENSE",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/LICENSE",
+      "bytes": 1067,
+      "sha256": "dcd1e458e3d212d23f54c63dddf91dee8c1b09339f60c44afedf3be1e078c828"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/README.en.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/README.en.md",
+      "bytes": 10386,
+      "sha256": "494d6ae1d47d2518eea6bd49f7892080e07b9c943d9724bcd0f70a49f4144343"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/README.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/README.md",
+      "bytes": 11287,
+      "sha256": "92f3cb51f1a7df5b0744e4bd75c5a2759a13a02d46fafd7c48376242daf5a88c"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/SKILL.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/SKILL.md",
+      "bytes": 5605,
+      "sha256": "63087d4acf0fcf9839ae43c8bff88b1566eaefa7ab7bce9141b885cccc914cdc"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/references/assets.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/references/assets.md",
+      "bytes": 5568,
+      "sha256": "6ce907c99d270fad80d6f1755f169c1ab24c5de9de0588bbb8a890acdf7641d8"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/references/design-principles.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/references/design-principles.md",
+      "bytes": 3784,
+      "sha256": "b443f746e4faff55218d00fe2d5757a96a7babe40747e5ed40e52eef8c6d72e6"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/references/forward-test.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/references/forward-test.md",
+      "bytes": 2662,
+      "sha256": "2a672ea06b402637628c472eaafc959d2e6f80d47874619e0fa6d764211a72a5"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/references/mobile-ui.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/references/mobile-ui.md",
+      "bytes": 6608,
+      "sha256": "12a6dc3026c091393ff0665adcc5ce28bbf1521fa9322bb0944a0bf7e3d0a63e"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/references/spec-workflow.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/references/spec-workflow.md",
+      "bytes": 3483,
+      "sha256": "e0c3e930ca56c4342ea02871cddb6695f0998377c16be0ca055719568b06786a"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/references/style-signatures.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/references/style-signatures.md",
+      "bytes": 2841,
+      "sha256": "68abe03fef25448f26d1f07fb9e5e049267fc811d4141443da6b97ad07715f24"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/references/updates.md",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/references/updates.md",
+      "bytes": 2606,
+      "sha256": "848c36b9804cc6dd9efda40f520f843eb1599c507e53e8c18518bd9fd7f0a5dd"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/benchmark.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/benchmark.py",
+      "bytes": 9476,
+      "sha256": "c50eeffd4838a0ee6d588dcdd39ceb80c96a8e6da6021a7d1db25ff36ec4565b"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/detect-project.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/detect-project.py",
+      "bytes": 13489,
+      "sha256": "61c4c6f1f579bcbc222155aecf45c179fe6f88b4c73d5866c6eb3f36fe137e84"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/eval-check.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/eval-check.py",
+      "bytes": 13420,
+      "sha256": "85a7b81384a2c53c9bb2f525265344b3dbd813a5732eaf2d389aba5b40aaf94d"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/fetch-asset.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/fetch-asset.py",
+      "bytes": 29814,
+      "sha256": "84b716abf6219f720f87f365c43c5ac69a5de56d8c064d6d4b53f35aff0a1872"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/fetch-style.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/fetch-style.py",
+      "bytes": 7086,
+      "sha256": "623f0f8f208644ba4a4e2d472f0a002ac3ebfb232c00a42eaa59621bbc7856b9"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/generate-release-manifest.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/generate-release-manifest.py",
+      "bytes": 5005,
+      "sha256": "dc47cc5428790afc93399b257290e46f078ca6cd81cb319ebbc1e39d5e8b4095"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/release-manifest.json",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/release-manifest.json",
+      "bytes": 2572,
+      "sha256": "75a403d9de68efa66e576ed8ed194cc253f6d892b4edd633b2e4b79b5c28f57a"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/spec_input.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/spec_input.py",
+      "bytes": 17210,
+      "sha256": "da42bca67a4d6536b22b3963ca9612bfaa11bc974b34c573fee0ba9f9b374b70"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/update-skill.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/update-skill.py",
+      "bytes": 37561,
+      "sha256": "a18babd0da0b8365200eb2663aab5c392334fb6e996ad69d24c26cae0632afb3"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/scripts/verify-spec.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/scripts/verify-spec.py",
+      "bytes": 5762,
+      "sha256": "cd404dc634a666637b67e2c7d10d811a2219a838f1c32a091cabd7d1b505aeb9"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/tests/fixtures/style-lint-contract.json",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/tests/fixtures/style-lint-contract.json",
+      "bytes": 38000,
+      "sha256": "6140ac7eb0589e711518cbd577bd9d7cf991566f98dc2fb4ae3ca8ce2e63bc23"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/tests/test_assets.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/tests/test_assets.py",
+      "bytes": 15978,
+      "sha256": "49a2bf8d114fa595a4d119b44abf67c412a1716603f2e3ba84026e252dbb6aa0"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/tests/test_detect_project.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/tests/test_detect_project.py",
+      "bytes": 9306,
+      "sha256": "6e976784c1c1580230d5b50b70747a19126aa2984e70455dc3ccadf07c39310c"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/tests/test_scripts.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/tests/test_scripts.py",
+      "bytes": 25429,
+      "sha256": "54b87f2a06c9ff4c8ff1ef368ed7358b79bc628acd90a79c2444a6d938e82a29"
+    },
+    {
+      "path": "docs/design/resources/vendor/stylekit/tests/test_update_skill.py",
+      "archive": "stylekit-skill-main.zip",
+      "entry": "stylekit-skill-main/tests/test_update_skill.py",
+      "bytes": 21694,
+      "sha256": "c8bd53347c208e67defa60dfc8710cf6b489664a322643eb4323a6a0198ab5f5"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/LICENSE",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/LICENSE",
+      "bytes": 1066,
+      "sha256": "51b04b06556662dd817e8f4aa6d06bc7139dc73739e1319a7233cfde3e147b90"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/README.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/README.md",
+      "bytes": 8508,
+      "sha256": "2cd27948cd1486056271d8d962918eec074e9956b594111b5f84304ec1c13914"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/README.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/README.md",
+      "bytes": 1535,
+      "sha256": "d755e9ebe4cb8f386a68ffdaa5193d24ecf19f26998de921d6b845fcfaa392ee"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/nuxt/app/app.vue",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/nuxt/app/app.vue",
+      "bytes": 37,
+      "sha256": "60d22e79db83480cb4bb77c7566187fffab1a6d8aa870f27dd061cb8dd5bf336"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/nuxt/app/composables/useGSAP.ts",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/nuxt/app/composables/useGSAP.ts",
+      "bytes": 2918,
+      "sha256": "cbd3c12d6a8d889017e2d8ff48f914b5237cb9dc58ec52bd2002a48f2c7b09f0"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/nuxt/app/pages/index.vue",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/nuxt/app/pages/index.vue",
+      "bytes": 1010,
+      "sha256": "1cd00f9919bf546b138670718acb884541f65c1226ab6fe283f2dd4e77c15fcf"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/nuxt/nuxt.config.ts",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/nuxt/nuxt.config.ts",
+      "bytes": 85,
+      "sha256": "21e3875c7cc220aef71428109184fbe1e4f4445f9ec086385dd4038f42720e41"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/nuxt/package.json",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/nuxt/package.json",
+      "bytes": 359,
+      "sha256": "f94da18c76c9826bf0e0ffc76384917a7f94a7900947991f8a803fb8bd187da3"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/react/App.jsx",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/react/App.jsx",
+      "bytes": 1331,
+      "sha256": "bdad45dafd00c7bb4f34ab2baa33ad9d624a15e9b29162a3c9b0eb2dce86db4b"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/react/index.html",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/react/index.html",
+      "bytes": 305,
+      "sha256": "444b15f8fdd753fcd7a8f9584ba506a255bbc537d12e73acfb7d41b8eb81a37a"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/react/main.jsx",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/react/main.jsx",
+      "bytes": 217,
+      "sha256": "d23cfbb031f9db286f8d61beba85dbbb8aeca96ac6ab8f9d3b3358fdea22600f"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/react/package.json",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/react/package.json",
+      "bytes": 414,
+      "sha256": "f4fd0f037d82be906000b192878b405dbbc0e6d5bf8c548da7bc323a5b5b4710"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/react/vite.config.js",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/react/vite.config.js",
+      "bytes": 149,
+      "sha256": "bd4a17f9ba1306dd5801e62063f448390d679230c9aa050d1ed930a40ef3774c"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/vanilla/index.html",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/vanilla/index.html",
+      "bytes": 1085,
+      "sha256": "b4e4f53c5b59a4bc44e13696ec72df7e0603497416f9220e56135c4b9ca283e6"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/vanilla/main.js",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/vanilla/main.js",
+      "bytes": 1181,
+      "sha256": "0c8c3d79a10dad596687b0013aa66b93c28581e42e1c0052e1bcbc265e40b98a"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/vue/app.vue",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/vue/app.vue",
+      "bytes": 1859,
+      "sha256": "fe82f03b53be9b6ec4294c9bd831e31d59ccb2fb1cc4c9d65a7301e91a4f2529"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/vue/index.html",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/vue/index.html",
+      "bytes": 328,
+      "sha256": "558fbcbe6e1c4c651899952c2b56e16463b30b03fd3b9b8e8b19c6d741c1c0fc"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/vue/main.js",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/vue/main.js",
+      "bytes": 285,
+      "sha256": "524f61ad58f73e8f65068fac257f0dd526e0f8ed29bd654ef0ac9f7cb9b7d686"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/vue/package.json",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/vue/package.json",
+      "bytes": 343,
+      "sha256": "8c4ff7a7acfc6808249a8e5921d97da0b9c6593e6f6820a233ffd9b15a5a2d83"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/examples/vue/vite.config.js",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/examples/vue/vite.config.js",
+      "bytes": 158,
+      "sha256": "159d5c167f86f273a094a3de1b3165e2db10d9b0b699cd029d06535d28747ca6"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-core/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-core/SKILL.md",
+      "bytes": 14792,
+      "sha256": "3887b47e050ab5afbe2a9a820f23d39fa02ab785e06a343be44c6f91d84d12b3"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-frameworks/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-frameworks/SKILL.md",
+      "bytes": 10621,
+      "sha256": "842d9d3659ec3ddc8abbdc524708f8facf81f468ac25d0577f48c759c4fa31e6"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-performance/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-performance/SKILL.md",
+      "bytes": 4139,
+      "sha256": "cb5408d6fba707aabcbfe3320317a14c1f8fca6070074e5261047930f50d441e"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-plugins/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-plugins/SKILL.md",
+      "bytes": 21579,
+      "sha256": "5838b856c74c07fbc9fa99b6dfd1eee34ea554c3e530c30e0d58014b707d70a4"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-react/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-react/SKILL.md",
+      "bytes": 6565,
+      "sha256": "88e2a5312b45e8cc7b3c496637ff5bc9af2ae9c925b555c8b235b34cbc989d74"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-scrolltrigger/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-scrolltrigger/SKILL.md",
+      "bytes": 18390,
+      "sha256": "9351b6666a4749c0740406ea363aaccb99a087ff45cc5e8b99a0f367facf3ef4"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-timeline/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-timeline/SKILL.md",
+      "bytes": 4394,
+      "sha256": "1a8b0f39cc4be3ed3d834b89672e4ae2f151b901dc3450bebf10bbc45379fe02"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/gsap-utils/SKILL.md",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/gsap-utils/SKILL.md",
+      "bytes": 12093,
+      "sha256": "1927bcc4ea95b38203404ad5ea1d060b15c4a886c65ae53e885ff1793aabe0ba"
+    },
+    {
+      "path": "docs/design/resources/vendor/gsap/skills/llms.txt",
+      "archive": "gsap-skills-main.zip",
+      "entry": "gsap-skills-main/skills/llms.txt",
+      "bytes": 3111,
+      "sha256": "32dab4bde09bc822ac17ebc49ee2ff87ca8c304a1c6e0509aadde7223f78b42f"
+    }
+  ]
+}

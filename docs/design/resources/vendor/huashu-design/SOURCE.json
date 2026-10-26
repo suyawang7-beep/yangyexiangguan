@@ -1,0 +1,57 @@
+{
+  "repository": "https://github.com/alchaincyf/huashu-design",
+  "revision": "4fc7bfdbd5ec3fa2d43ce7a6433de60976a5e4b1",
+  "selection": "Core skill and selected web design references only; scripts, media, installation and hooks not imported",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sha256": "63cbc2ffcfd99f7b8acb6ff92adbbbba4bfaeec84373703d81df6a6fc6055a23",
+      "bytes": 15558
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "6d6a2a9caf2e6d2b76974050427053b2892d8aa4c33fd168ce63a537fcee9d96",
+      "bytes": 1086
+    },
+    {
+      "path": "README.md",
+      "sha256": "695017b495712dce57a9476527c403260c88446d33180b1a6ff93d0e0832b04d",
+      "bytes": 28831
+    },
+    {
+      "path": "references/modules/web.md",
+      "sha256": "73733f02f6fa3c19ed56e1949f4f0c5511a09a5f45a98c8298a1222ddc9c3591",
+      "bytes": 2467
+    },
+    {
+      "path": "references/design-context.md",
+      "sha256": "93a7e6be5f6cb29076d3651747d5033701362ddd03283b1ddf11b105757430b6",
+      "bytes": 6704
+    },
+    {
+      "path": "references/typography.md",
+      "sha256": "4aae63d6bc39a0f67a05398b11bc381b7190f51bb7cd83f1a933f2e7551984cb",
+      "bytes": 18751
+    },
+    {
+      "path": "references/directions.md",
+      "sha256": "78ad5a0df1536ad19cb9049f1a90d027c6c30a4a44acde657a0d4b410ad8efa7",
+      "bytes": 12670
+    },
+    {
+      "path": "references/critique-guide.md",
+      "sha256": "3636ed8422bb88a11bc3e1db00b252b707f20cf83f6ec900077abb020ff7a8ce",
+      "bytes": 9022
+    },
+    {
+      "path": "references/verification.md",
+      "sha256": "2481be020d5253efebcc6dd1a3bea80db25c1d03ce92d5a0347124c7407b366c",
+      "bytes": 6998
+    },
+    {
+      "path": "references/content-guidelines.md",
+      "sha256": "d9e1f08740bc6a1327b9bedaafad37b9791a1640a3b13b686b53f4a9483414e2",
+      "bytes": 11791
+    }
+  ]
+}
