@@ -1,8 +1,4 @@
-/* 2.0 social link configuration. Fill ONLY confirmed official Douyin profile URLs.
-   Use complete https:// URLs. Empty values render non-clickable status text.
-   Example accepted domains: www.douyin.com, v.douyin.com.
-*/
-window.BUZHI_SOCIAL_LINKS = Object.freeze({
-  zhizhi: '',
-  caicai: ''
-});
+/* Official shared Douyin account for 菜菜与吱吱.
+   Fill only a verified official https://www.douyin.com/... or https://v.douyin.com/... URL.
+   Empty means display a non-clickable placeholder. */
+window.BUZHI_SOCIAL_LINKS = Object.freeze({ sharedDouyin: '' });
