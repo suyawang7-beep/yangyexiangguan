@@ -150,7 +150,7 @@
     return `<section class="glass empty-state">${icon('ticket')}<h2>${title}</h2><p>用一个昵称和一枚庆典头像，记下这次登岛的身份。<br>首次领取，送你恰好够抽一次卡的 50 金币。</p><div class="actions">${link('passport', '去领取通行证', 'btn primary')}${link('home', '先回码头', 'btn')}</div></section>`;
   }
   function cardPicture(card) {
-    const item=LIVE&&liveCatalog.find(c=>c.previewId===card.id),name=item&&'cards/'+item.id+'.webp';
+    const item=LIVE&&accountCollection.catalog.find(c=>c.previewId===card.id),name=item&&'cards/'+item.id+'.webp';
     if(!name||!managedAssets[name])return icon(card.motif);
     const image=document.createElement('img');image.dataset.officialCard='true';image.alt=card.name;image.src=assetUrl(name);image.style.cssText='display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit';applyAssetLayout(image,name);return image.outerHTML;
   }
@@ -172,10 +172,7 @@
     {id:'commission',title:'临时委托',text:'输入金币兑换码领取131.4金币，每码最多40位岛民，每人限兑一次',reward:131.4,motif:'bird'}
   ];
   let liveToken = LIVE ? sessionStorage.getItem('buzhi-online-token')||'' : '';
-  let liveCatalog=[];
-  let liveTotalSlots=50;
-  let liveCatalogReady=false,liveCatalogFailed=false;
-  let latestLiveProfile=null,latestLiveProfileToken='',profileRevision=0;
+  const accountCollection = window.BuzhiAccountCollection.create({ cards: CARDS, blank, getToken: () => liveToken });
   let liveOcProfiles=[];
   let managedAssets={};
   let managedVersions={};
@@ -204,7 +201,7 @@
     // Guide map uses the approved full-archipelago artwork, not the admin decorative override.
     document.querySelectorAll('.memory-card').forEach(card=>{
       const label=card.querySelector('.card-number')?.textContent?.match(/BZ-\d{2}/)?.[0];
-      const match=liveCatalog.find(item=>item.previewId===label);
+      const match=accountCollection.catalog.find(item=>item.previewId===label);
       if(!match||!managedAssets['cards/'+match.id+'.webp'])return;
       const slot=card.querySelector('.card-picture');if(!slot)return;
       let img=slot.querySelector('img[data-official-card]');
@@ -242,63 +239,28 @@
     }finally{if(timer!==undefined)clearTimeout(timer)}
   }
   function takeProfile(profile,{celebrate=false}={}){
-    latestLiveProfile=profile;latestLiveProfileToken=liveToken;
     const fresh=celebrate&&state.passport?.id===profile.id?profile.bonuses.filter(n=>[3,6].includes(n)&&!state.bonuses.includes(n)):[];
-    state=blank();state.pendingMilestones=fresh;state.taskProgress=profile.taskProgress||null;
-    state.passport={id:profile.id,nickname:profile.nickname,avatar:0};
-    state.balance=profile.coins;
-    state.ledger=(profile.ledger||[]).map(t=>({amount:t.amount,label:t.reason,at:Date.parse(t.created_at)}));
-    state.tasks=profile.tasks.map(t=>t==='report'?'arrival':t.startsWith('letter:')?'letter':t.startsWith('quiz:')?'quiz':t);
-    state.quizRewarded=!!profile.quiz?.rewarded;
-    state.bonuses=profile.bonuses;
-    state.checkins=profile.checkins;
-    state.demoIslander=true;
-    for(const [index,item] of profile.draws.entries()){
-      const card=liveCatalog.find(c=>c.id===item.card_id);
-      if(!card)continue;
-      const id=card.previewId;
-      const entry=state.collection[id]||{quantity:0,firstAt:Date.parse(item.created_at)};
-      entry.quantity++;state.collection[id]=entry;
-      state.history.push({id:'server-'+index,cardId:id,rarity:item.rarity,at:Date.parse(item.created_at),first:index===profile.draws.length-1});
-    }
-    if(profile.inventory){
-      for(const [previewId,item] of Object.entries(state.collection)){item.quantity=0;}
-      for(const [cardId,quantity] of Object.entries(profile.inventory)){
-        const found=liveCatalog.find(c=>c.id===cardId);if(!found||quantity<=0)continue;
-        const key=found.previewId,firstAt=state.collection[key]?.firstAt||Date.now();
-        state.collection[key]={quantity,firstAt};
-      }
-      for(const fusion of profile.fusions||[]){
-        const found=liveCatalog.find(c=>c.id===fusion.result);
-        if(found)state.history.unshift({id:'fusion-'+fusion.at+'-'+fusion.result,cardId:found.previewId,rarity:fusion.rarity,at:Date.parse(fusion.at),fusion:true});
-      }
-    }
+    state=accountCollection.acceptProfile(profile);
+    state.pendingMilestones=fresh;
     renderPage();state.pendingMilestones=[];
   }
   async function liveInit(){
     TASKS=LIVE_TASKS;
-    const tokenAtStart=liveToken,revisionAtStart=profileRevision;
     renderPage();
     const artworkTask=loadManagedArtwork();
-    const catalogTask=(async()=>{
-      try{
-        const catalog=await liveApi('catalog');liveCatalog=catalog.cards;liveTotalSlots=catalog.totalSlots;
-        for(const item of liveCatalog){let card=CARDS.find(c=>c.id===item.previewId);if(!card){card={id:item.previewId,rarity:item.rarity,name:item.name,motif:'star',characters:item.characters||'不吱岛',story:item.story||'新的星海回忆，等待与你相遇。'};CARDS.push(card)}card.rarity=item.rarity;card.name=item.name;card.story=item.story??card.story;card.characters=item.characters??card.characters}
-        liveCatalogReady=true;
-        if(latestLiveProfile&&liveToken&&latestLiveProfileToken===liveToken)takeProfile(latestLiveProfile);
+    const collectionTask=accountCollection.load(liveApi,(kind,profile)=>{
+      if(kind==='profile')takeProfile(profile);
+      else if(kind==='catalog'){
+        if(accountCollection.profileCurrent)takeProfile(accountCollection.profile);
         else if(PAGE!=='passport')renderPage();
-      }catch(e){liveCatalogFailed=true;if(PAGE==='collection'||PAGE==='draw')renderPage();toast(e.message)}
-    })();
-    const ocTask=liveApi('oc').then(oc=>{liveOcProfiles=oc;if(PAGE==='islanders')renderPage()}).catch(e=>toast(e.message));
-    const profileTask=tokenAtStart?(async()=>{
-      try{const profile=await liveApi('me');if(liveToken===tokenAtStart&&profileRevision===revisionAtStart)takeProfile(profile)}
-      catch(e){
-        if(liveToken!==tokenAtStart||profileRevision!==revisionAtStart)return;
-        if(e.status===401){liveToken='';latestLiveProfile=null;sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage()}
-        else toast('暂时无法读取账户，登录状态已保留，请刷新重试。');
+      }else if(kind==='catalog-error'){
+        if(PAGE==='collection'||PAGE==='draw')renderPage();
+      }else if(kind==='expired'){
+        liveToken='';sessionStorage.removeItem('buzhi-online-token');state=blank();renderPage();
       }
-    })():Promise.resolve();
-    await Promise.allSettled([artworkTask,catalogTask,ocTask,profileTask]);
+    },error=>toast(error.message));
+    const ocTask=liveApi('oc').then(oc=>{liveOcProfiles=oc;if(PAGE==='islanders')renderPage()}).catch(e=>toast(e.message));
+    await Promise.allSettled([artworkTask,collectionTask,ocTask]);
   }
   function activeAsset(name,fallback){
     if(!LIVE)return fallback;
@@ -370,10 +332,10 @@
     return `<div class="memory-card card-back"><img class="card-back-art" src="assets/memory-card-back.svg?v=20261018-arcana1" alt="" aria-hidden="true" width="300" height="425" draggable="false"><div class="card-back-label"><span class="card-back-kicker">CELESTIAL ARCHIVE</span><h2>不吱岛</h2><p>星海秘藏 · 生日回忆</p></div><span class="card-back-edition">BUZHI ISLAND · 2026</span></div>`;
   }
   function drawPoolInfo() {
-    const cards=LIVE&&liveCatalogReady?liveCatalog:CARDS,counts={UR:0,SSR:0,SR:0,R:0,N:0};
+    const cards=LIVE&&accountCollection.catalogReady?accountCollection.catalog:CARDS,counts={UR:0,SSR:0,SR:0,R:0,N:0};
     for(const card of cards)counts[card.rarity]++;
-    const total=cards.length,remaining=Math.max(0,(LIVE?liveTotalSlots:50)-total);
-    return {ready:!LIVE||liveCatalogReady,total,counts,first:counts.SSR+counts.SR,description:`UR、SSR、SR、R、N，当前公开${total}张卡片，剩余${remaining}张待开放。正常卡池每张概率均为1/${total}。`};
+    const total=cards.length,remaining=Math.max(0,(LIVE?accountCollection.totalSlots:50)-total);
+    return {ready:!LIVE||accountCollection.catalogReady,total,counts,first:counts.SSR+counts.SR,description:`UR、SSR、SR、R、N，当前公开${total}张卡片，剩余${remaining}张待开放。正常卡池每张概率均为1/${total}。`};
   }
   function renderDraw() {
     const first = state.history.length === 0;
@@ -388,7 +350,7 @@
       </div>
       <section class="glass draw-info" aria-label="抽取生日回忆">
         <div class="draw-cost"><span>每次单抽 <strong>50</strong> 金币</span><i aria-hidden="true"></i><span>我的金币 <strong data-balance>${state.balance}</strong> 枚</span></div>
-        ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 || (LIVE&&!liveCatalogReady) ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
+        ${state.passport ? `<button type="button" class="btn primary full" id="draw-button" ${state.balance < 50 || (LIVE&&!accountCollection.catalogReady) ? 'disabled' : ''}>${first ? '拆开第一份生日回忆' : '抽取一张生日回忆'} ${icon('sparkles')}</button>` : link('passport', '先领取生日通行证', 'btn primary full')}
         <p class="draw-status" id="draw-status" role="status">${state.passport ? state.balance < 50 ? '金币不足50枚，可以去签到或岛民事务所看看。' : '重复卡会保留，并计入持有数量。' : '领取通行证即可获得够抽一次卡的50金币。'}</p>
         <div class="postal-next"><a href="office.html">去岛民事务所 ${icon('arrow')}</a><a href="collection.html">查看收藏 ${icon('cards')}</a></div>
         <div class="postal-pool-note"><span class="pill pink" id="draw-pool-label">${!pool.ready?'正在读取卡池…':first ? '首次赴约 · SR / SSR 保障' : `生日回忆卡池 · ${pool.total} 张`}</span></div>
@@ -401,7 +363,7 @@
   const filters = { ownership: 'all', rarity: 'all', search: '' };
 
   function fusionMarkup(){
-    const used=Math.min(3,Number(latestLiveProfile?.fusionDaily?.used||0)),remain=3-used;
+    const used=Math.min(3,Number(accountCollection.profile?.fusionDaily?.used||0)),remain=3-used;
     const valid=CARDS.filter(c=>['N','R','SR'].includes(c.rarity)&&(state.collection[c.id]?.quantity||0)>0);
     const options=valid.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'（'+c.rarity+' · '+(state.collection[c.id]?.quantity||0)+'张）</option>').join('');
     return '<details class="glass sea-fusion" id="sea-fusion"><summary class="sea-fusion-launch"><span class="sea-fusion-shell" aria-hidden="true">🐚</span><span><strong>海风融卡坊</strong><small>两张回忆，凝成一张新的相遇</small></span><span class="sea-fusion-badge">'+(LIVE?'今日剩余 '+remain+'/3 次':'每日3次')+'</span><span class="sea-fusion-chevron" aria-hidden="true">⌄</span></summary><div class="sea-fusion-interior"><div class="sea-fusion-stage" aria-hidden="true"><span class="sea-fusion-card">✦</span><span class="sea-fusion-vortex">✧</span><span class="sea-fusion-card">✦</span></div><p class="small muted">每天最多融合3次，次日北京时间00:00刷新。消耗2张同等级材料卡，随机获得1张卡（可能与材料同级或降级）。N→N/SR/SSR/UR；R→N/R/SSR/UR；SR→N/R/SR/SSR/UR。</p>'+
@@ -420,7 +382,7 @@
     const title = heading('05', 'Keep the moments that matter', '回忆收藏室', '不是每一个瞬间都会重来，但我们可以把它好好收起来。');
     const owned = Object.values(state.collection).filter((entry) => entry.quantity > 0).length;
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
-    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div>${fusionMarkup()}<div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
+    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!accountCollection.catalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!accountCollection.catalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div>${fusionMarkup()}<div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
       return card ? `<div class="history-row"><span class="rarity">${esc(entry.rarity||card.rarity)}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
@@ -428,7 +390,7 @@
 
   function fillCollection() {
     const grid = document.querySelector('#collection-grid');
-    if(LIVE&&!liveCatalogReady){grid.innerHTML='<p class="info-note" role="status">'+(liveCatalogFailed?'暂时无法读取收藏目录，请刷新重试。已有卡片仍安全保存。':'正在读取收藏目录，已有卡片仍安全保存。')+'</p>';return}
+    if(LIVE&&!accountCollection.catalogReady){grid.innerHTML='<p class="info-note" role="status">'+(accountCollection.catalogFailed?'暂时无法读取收藏目录，请刷新重试。已有卡片仍安全保存。':'正在读取收藏目录，已有卡片仍安全保存。')+'</p>';return}
     const cards = CARDS.filter((card) => {
       const quantity = state.collection[card.id]?.quantity || 0;
       return (filters.ownership === 'all' || (filters.ownership === 'owned' ? quantity > 0 : quantity === 0))
@@ -779,7 +741,7 @@
         try{
           const out=await liveApi('quiz/submit',{date:deck.date,answers:deck.questions.map(q=>({questionId:q.id,optionId:answers[q.id]}))});
           if(!current())return;
-          profileRevision++;takeProfile(out.profile,{celebrate:out.rewardGranted===25});result(out);
+          accountCollection.invalidateProfile();takeProfile(out.profile,{celebrate:out.rewardGranted===25});result(out);
         }catch(e){
           if(!current())return;
           busy=false;host.querySelectorAll('button,input').forEach(e=>e.disabled=false);status.textContent=e.status===409?e.message+'。请关闭后重新打开。':e.message+'，可重新提交；同一天不会重复发放奖励。';
@@ -827,9 +789,9 @@
   function bindLiveDraw(){
     document.querySelector('#draw-button')?.addEventListener('click',async()=>{
       if(drawing||!state.passport||state.balance<50)return;
-      if(!liveCatalogReady){toast('卡片目录正在加载，请稍后再试。');return}drawing=true;
+      if(!accountCollection.catalogReady){toast('卡片目录正在加载，请稍后再试。');return}drawing=true;
       const button=document.querySelector('#draw-button');button.disabled=true;
-      try{const result=await liveApi('draw',{});const cardInfo=liveCatalog.find(c=>c.id===result.card.id);if(!cardInfo)throw Error('卡片目录缺少映射，请联系岛主');
+      try{const result=await liveApi('draw',{});const cardInfo=accountCollection.catalog.find(c=>c.id===result.card.id);if(!cardInfo)throw Error('卡片目录缺少映射，请联系岛主');
         const card={...CARDS.find(c=>c.id===cardInfo.previewId),rarity:result.card.rarity};
         const first=state.history.length===0;takeProfile(result.profile);drawing=true;
         const stage=document.querySelector('#draw-stage');
@@ -862,12 +824,12 @@
         veil.innerHTML='<div class="sea-fusion-veil-content"><span class="sea-fusion-veil-stars" aria-hidden="true">✧ ✦ ✧</span><span>海风正在融合回忆…</span></div>';
         document.body.append(veil);
         try{
-          const a=liveCatalog.find(c=>c.previewId===first),b=liveCatalog.find(c=>c.previewId===second);
+          const a=accountCollection.catalog.find(c=>c.previewId===first),b=accountCollection.catalog.find(c=>c.previewId===second);
           if(!a||!b)throw Error('卡牌目录未同步，请刷新页面');
           const result=await liveApi('fuse',{first:a.id,second:b.id,requestId});
           if(liveToken!==originalToken)return;
           takeProfile(result.profile);
-          const outcome=liveCatalog.find(c=>c.id===result.card.id);
+          const outcome=accountCollection.catalog.find(c=>c.id===result.card.id);
           veil.remove();showFusionReveal({name:outcome?.name||result.card.id,rarity:result.card.rarity});
         }catch(error){
           if(!fusionForm.isConnected)return;
@@ -997,7 +959,7 @@
     if (PAGE === 'passport') installPassportTabs();
     updateWallet();
     document.dispatchEvent(new CustomEvent('buzhi:render'));
-    if(PAGE==='collection')document.dispatchEvent(new CustomEvent('buzhi:collection-data',{detail:{catalogReady:!LIVE||liveCatalogReady,error:liveCatalogFailed,profileReady:!LIVE||!liveToken||!!latestLiveProfile,signedIn:!!liveToken,cards:(!LIVE||liveCatalogReady?CARDS.filter(c=>!LIVE||liveCatalog.some(item=>item.previewId===c.id)):[]).map(c=>({...c,image:LIVE?assetUrl('cards/'+liveCatalog.find(item=>item.previewId===c.id).id+'.webp'):'assets/island.svg',quantity:Number(state.collection[c.id]?.quantity)||0})),history:state.history}}));
+    if(PAGE==='collection')document.dispatchEvent(new CustomEvent('buzhi:collection-data',{detail:accountCollection.snapshot(state,assetUrl,LIVE)}));
     if(LIVE)document.querySelectorAll('img[src^="/assets/decor/"]').forEach(img=>{img.onerror=()=>{img.onerror=null;img.src=img.src.includes('island-map')?'assets/buzhi-archipelago-soft-palette-draft.png':'assets/island.svg'}});
     if(LIVE){refreshLiveNotices();refreshManagedArtwork()};
   }

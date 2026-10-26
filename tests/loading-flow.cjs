@@ -1,17 +1,19 @@
 const {readFileSync}=require('node:fs');
 const source=readFileSync(__dirname+'/../ui-preview/app.js','utf8');
+const createAccountCollection=new Function('window',readFileSync(__dirname+'/../ui-preview/account-collection-state.js','utf8')+';return window.BuzhiAccountCollection.create;')({});
 const check=(ok,message)=>{if(!ok)throw Error(message)};
 function section(a,b){const start=source.indexOf(a);check(start>=0,'missing '+a);const end=source.indexOf(b,start);check(end>start,'missing boundary '+b);return source.slice(start,end)}
 const initSource=section('  async function liveInit(){','\n  function activeAsset');
 const apiSource=section('  async function liveApi(path,body){','\n  function takeProfile');
 async function initProbe(blocked,errorStatus,switchAccount){
  const calls=[];let release;const gate=new Promise(r=>release=r);
- const run=new Function('env', 'let TASKS,liveCatalog=[],liveOcProfiles=[],liveToken="test-token",state={},latestLiveProfile=null,liveCatalogReady=false,liveCatalogFailed=false,profileRevision=0;const LIVE_TASKS=[],CARDS=[],PAGE="passport";env.switchToken=v=>liveToken=v;const {loadManagedArtwork,liveApi,takeProfile,renderPage,toast,sessionStorage,blank}=env;'+initSource+';return liveInit();');
+ const run=new Function('env', 'let TASKS,liveOcProfiles=[],liveToken="test-token",state={};const LIVE_TASKS=[],CARDS=[],PAGE="passport";env.switchToken=v=>liveToken=v;const {loadManagedArtwork,liveApi,renderPage,toast,sessionStorage,blank}=env;const accountCollection=env.createAccountCollection({cards:CARDS,blank,getToken:()=>liveToken});const takeProfile=p=>{state=accountCollection.acceptProfile(p);env.takeProfile(p)};'+initSource+';return liveInit();');
  const env={
   loadManagedArtwork:async()=>{calls.push('artwork');if(blocked==='artwork')await gate},
-  liveApi:async path=>{calls.push(path);if(path===blocked)await gate;if(path==='catalog')return {cards:[]};if(path==='oc')return [];if(path==='me'){if(errorStatus){const e=Error('temporary failure');e.status=errorStatus;throw e}return {id:'test',draws:[]}}},
+  createAccountCollection,
+  liveApi:async path=>{calls.push(path);if(path===blocked)await gate;if(path==='catalog')return {cards:[]};if(path==='oc')return [];if(path==='me'){if(errorStatus){const e=Error('temporary failure');e.status=errorStatus;throw e}return {id:'test',draws:[],tasks:[],bonuses:[],checkins:[]}}},
   takeProfile:()=>calls.push('profile'),renderPage:()=>calls.push('render'),toast:()=>calls.push('notice'),
-  sessionStorage:{removeItem:()=>calls.push('logout')},blank:()=>({})
+  sessionStorage:{removeItem:()=>calls.push('logout')},blank:()=>({collection:{},history:[]})
  };
  const pending=run(env);
  for(let i=0;i<30;i++)await Promise.resolve();const before=[...calls];if(switchAccount)env.switchToken('other-token');release();await pending;return {before,calls};
@@ -36,7 +38,7 @@ async function drawProbe(uncertain){
  const nodes={'#draw-stage':{classList:{remove(){},add(){}},setAttribute(){}},'#stage-card':{},'#draw-status':{},'#draw-result-label':{},'.world':{dataset:{motion:'on'}}};
  const document={querySelector:q=>q==='#draw-button'?Object.assign(current,{addEventListener:(name,fn)=>handler=fn}):nodes[q],addEventListener(){}};
  const body=section('  function bindLiveDraw(){','\n  function bindCollection');
- const compile=new Function('document','liveApi','takeProfile','setTimeout','let drawing=false,liveCatalogReady=true;const state={passport:{},balance:100,history:[]},liveCatalog=[{id:"R-1",previewId:"p1"}],CARDS=[{id:"p1",rarity:"R",name:"test"}],toast=()=>{},drawBack=()=>"",cardMarkup=()=>"";'+body+';bindLiveDraw();');
+ const compile=new Function('document','liveApi','takeProfile','setTimeout','let drawing=false;const accountCollection={catalogReady:true,catalog:[{id:"R-1",previewId:"p1"}]};const state={passport:{},balance:100,history:[]},CARDS=[{id:"p1",rarity:"R",name:"test"}],toast=()=>{},drawBack=()=>"",cardMarkup=()=>"";'+body+';bindLiveDraw();');
  compile(document,async()=>{calls++;if(uncertain)throw {uncertain:true,message:'unknown'};return {card:{id:'R-1'},profile:{}}},()=>{replaced=current;current={disabled:false,textContent:''}},fn=>finish=fn);
  await handler();finish?.();return {current,replaced,calls};
 }
