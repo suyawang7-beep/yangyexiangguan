@@ -27,3 +27,23 @@
 手机端放到导航抽屉/账户菜单，但不可隐藏基本登录入口。
 `ui-preview/buzhi2` 当前仍是静态预览，不接真实账号 API；不要要求用户输入真实密码。
 下一步必须先定位正式后端对应路由/数据模型，再建立迁移与接口测试，不能从前端请求推断所有服务端能力。
+
+
+## 2026-10-27 后端核对补充（以 main 源码为准）
+
+已读取 `server/index.mjs` 与 `server/resident-center.mjs`，请以以下结论修正前面的「建议」：
+
+| 目标 | 后端事实 | 下一步 |
+| --- | --- | --- |
+| 自定义登录密码 | 已有 `users.password_hash`、scrypt 加盐哈希、`POST /api/register` 与 `POST /api/login` | 保留并复用，勿重建 |
+| 修改密码 | **已有** `POST /api/password`，有旧密码核验，修改后会删除该用户全部现存 sessions | 2.0 做设置页，并说明所有设备需重新登录；需核对旧密钥迁移路径 |
+| 登录会话 | `sessions(token_hash,user_id,expires)`，12小时期限；客户端 Bearer token | 顶栏显示身份；退出操作优先只撤销当前会话（需新增单会话注销路由），不能删除岛民 |
+| 唯一账号名 | `users` 现有 id/nickname/secret_hash/password_hash/created_at，**没有 username 列** | 需要专门非破坏迁移、唯一索引、登录兼容与测试 |
+| 修改昵称 | `state()` 从 users.nickname 读取，未发现对应写入 API；`/api/resident/profile` 不是昵称修改 | 新增经过鉴权、校验与限流的昵称修改接口 |
+| 个人资料保存 | `resident-center.save()` 当前**主动抛出403，功能关闭**，仅岛屿选择/个人简介预设结构存在 | 不得在 UI 标「已开放」；需另行确认是否启用 |
+| 原账户找回 | `/api/recovery/request`、`/api/recovery/reset` 已有 | 保留原路径，未来新账号不可绕过审核 |
+| 资产归属 | ledger、draws、tasks、checkins 通过 user_id 关联 `users.id` | 新增 username 绝不能改 user_id |
+
+**重要更正：** `/api/resident/profile` 的名字容易误导，它在当前后端不提供修改 nickname，且保存功能被禁用。设计不能直接接此接口声称修改昵称成功。
+
+本次仅做代码核对与文档修正，后端尚未更改、未运行集成测试，也没有生产部署。
