@@ -15,3 +15,14 @@
 
 /* Birthday and homepage form one destination, not a separate long landing page. Visual team may replace scene geometry. */
 .home-birthday{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr);gap:clamp(14px,3vw,34px);align-items:start;padding-top:12px}.home-birthday-scene{position:relative;min-height:570px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:clamp(20px,4vw,55px);background:radial-gradient(ellipse at 70% 20%,#fff8 0,transparent 50%),linear-gradient(145deg,#c4e7f5,#e9ddf9);border-radius:42% 18% 28% 15%/13% 25% 13% 16%}.home-birthday-scene h1{font-size:clamp(34px,4.5vw,60px);margin:8px 0}.home-art-slot{width:min(100%,420px);min-height:225px;border-radius:42% 17% 35% 18%/20% 45% 20% 40%;background:#ffffff42}.home-birthday-desk{margin-top:65px}.home-birthday-desk .surface{border-radius:28px 18px 42px 16px;padding:clamp(16px,2vw,30px)}@media(max-width:850px){.home-birthday{grid-template-columns:1fr}.home-birthday-scene{min-height:390px;border-radius:28% 13% 21% 10%/10% 15% 11% 14%}.home-birthday-desk{margin-top:0}.home-art-slot{min-height:160px}}
+
+/* Host profiles: small floating identity links, never a second navigation row. */
+.social-keepers{margin-top:20px;max-width:440px}
+.social-keepers>p{font-size:13px;margin:0 0 9px;color:var(--mute);letter-spacing:.03em}
+.social-keepers-links{display:flex;flex-wrap:wrap;gap:11px}
+.douyin-link{display:flex;gap:12px;align-items:center;min-height:48px;border:1px solid #ffffffc4;background:#fff9;color:var(--ink);border-radius:40% 18% 34% 16%/28% 42% 26% 36%;padding:8px 17px;font-size:13px;box-shadow:0 4px 15px #7297ae1c}
+.douyin-link strong{font-size:16px}
+.douyin-link span{font-size:12px}
+.douyin-link.is-unset{opacity:.7;border-style:dashed;cursor:default}
+.douyin-link:not(.is-unset):hover{transform:translateY(-2px);background:#fff}
+@media(prefers-reduced-motion:reduce){.douyin-link{transform:none!important}}
