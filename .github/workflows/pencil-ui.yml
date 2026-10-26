@@ -5,6 +5,8 @@ on:
     paths:
       - 'ui-preview/**'
       - 'server/index.mjs'
+      - 'server/card-collection.mjs'
+      - 'tests/card-collection-module.mjs'
       - 'tests/pencil-*'
       - 'tests/liquid-page-evidence.cjs'
       - 'tests/resident-appearance.cjs'
@@ -14,7 +16,7 @@ on:
       - '.github/workflows/pencil-ui.yml'
   pull_request:
     branches: [main]
-    paths: ['ui-preview/**', 'server/index.mjs', 'tests/pencil-*', 'tests/liquid-page-evidence.cjs', 'tests/resident-appearance.cjs', 'tests/resident-production.cjs', 'tests/guide-alignment.cjs', 'tests/ambient-motion.cjs', '.github/workflows/pencil-ui.yml']
+    paths: ['ui-preview/**', 'server/index.mjs', 'server/card-collection.mjs', 'tests/card-collection-module.mjs', 'tests/pencil-*', 'tests/liquid-page-evidence.cjs', 'tests/resident-appearance.cjs', 'tests/resident-production.cjs', 'tests/guide-alignment.cjs', 'tests/ambient-motion.cjs', '.github/workflows/pencil-ui.yml']
   workflow_dispatch:
 jobs:
   browser:
@@ -35,6 +37,7 @@ jobs:
           RESIDENT_EVIDENCE_DIR: ${{ runner.temp }}/resident-evidence
       - run: node tests/resident-production.cjs
       - run: node tests/resident-journal.cjs
+      - run: node tests/card-collection-module.mjs
       - run: node tests/card-fusion.cjs
       - run: node tests/guide-alignment.cjs
         env:

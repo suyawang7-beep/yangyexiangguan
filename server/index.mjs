@@ -1,3 +1,4 @@
+import {createCardCollection} from './card-collection.mjs';
 import {createCoinCodeAdmin} from './coin-code-admin.mjs';
 import {createQuiz} from './quiz.mjs';
 import {listTaskWritings} from './task-writings.mjs';
@@ -161,39 +162,8 @@ function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nick
 function session(id){const token=rand(36);db.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').run(sha(token),id,Date.now()+43200000);return token}
 function completedTaskCount(id){return db.prepare("SELECT COUNT(DISTINCT CASE WHEN task_id='letter' OR task_id LIKE 'letter:%' THEN 'letter' WHEN task_id='quiz' OR task_id LIKE 'quiz:%' THEN 'quiz' ELSE task_id END) AS n FROM tasks WHERE user_id=? AND task_id<>'report'").get(id).n}
 
-const FUSION_RARITIES={N:['N','SR','SSR','UR'],R:['N','R','SSR','UR'],SR:['N','R','SR','SSR','UR']};
-function cardInventory(id){
- const owned=new Map();
- for(const item of db.prepare('SELECT card_id FROM draws WHERE user_id=?').all(id))owned.set(item.card_id,(owned.get(item.card_id)||0)+1);
- const history=db.prepare('SELECT source_a,source_b,result_card_id FROM card_fusions WHERE user_id=? ORDER BY id').all(id);
- for(const h of history){for(const key of [h.source_a,h.source_b])owned.set(key,(owned.get(key)||0)-1);owned.set(h.result_card_id,(owned.get(h.result_card_id)||0)+1)}
- return Object.fromEntries([...owned].filter(([,count])=>count>0));
-}
-function dailyFusionCount(id){return db.prepare("SELECT COUNT(*) AS n FROM card_fusions WHERE user_id=? AND date(created_at,'+8 hours')=date('now','+8 hours')").get(id).n}
-function fuseCards(id,b){
- membership.requireVerified(id);
- const first=String(b?.first||''),second=String(b?.second||''),requestId=String(b?.requestId||'');
- if(!/^[a-f0-9-]{20,80}$/i.test(requestId))throw error(400,'融卡请求编号无效');
- return tx(()=>{
-  const previous=db.prepare('SELECT source_a,source_b,result_card_id,result_rarity,created_at FROM card_fusions WHERE user_id=? AND request_id=?').get(id,requestId);
-  if(previous){
-   if(previous.source_a!==first||previous.source_b!==second)throw error(409,'同一融卡请求不能更换材料');
-   return {card:{id:previous.result_card_id,rarity:previous.result_rarity},profile:state(id),alreadyCompleted:true};
-  }
-  if(dailyFusionCount(id)>=3)throw error(409,'今天的3次融卡机会已用完，明天00:00（北京时间）刷新');
-  const cards=getCards().filter(c=>!c.unreleased),byId=new Map(cards.map(c=>[c.id,c]));
-  const a=byId.get(first),z=byId.get(second);
-  if(!a||!z||a.rarity!==z.rarity||!Object.hasOwn(FUSION_RARITIES,a.rarity))throw error(400,'请选择两张同等级的N、R或SR卡');
-  const owned=cardInventory(id),required=first===second?2:1;
-  if((owned[first]||0)<required||(owned[second]||0)<(first===second?required:1))throw error(409,'材料卡数量不足，请刷新收藏后重试');
-  const options=cards.filter(c=>FUSION_RARITIES[a.rarity].includes(c.rarity));
-  if(!options.length)throw error(409,'当前没有符合融卡规则的公开卡片');
-  const card=options[randomInt(options.length)],createdAt=now();
-  db.prepare('INSERT INTO card_fusions(user_id,request_id,source_a,source_b,result_card_id,result_rarity,created_at) VALUES(?,?,?,?,?,?,?)').run(id,requestId,first,second,card.id,card.rarity,createdAt);
-  return {card:{id:card.id,rarity:card.rarity},profile:state(id),alreadyCompleted:false};
- });
-}
-function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,quiz:quiz.status(id),status:membership.get(id).status==='verified'?'islander':'visitor',membership:membership.get(id),taskProgress:{completed:completedTaskCount(id)},coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id).filter(x=>(!x.startsWith('letter:')||x==='letter:'+day())&&(!x.startsWith('quiz:')||x==='quiz:'+day())),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id),inventory:cardInventory(id),fusionDaily:{used:dailyFusionCount(id),limit:3,timezone:'Asia/Shanghai'},fusions:db.prepare('SELECT source_a AS first,source_b AS second,result_card_id AS result, result_rarity AS rarity,created_at AS at FROM card_fusions WHERE user_id=? ORDER BY id DESC LIMIT 50').all(id)}}
+const cardCollection=createCardCollection(db,{tx,getCards,requireVerified:id=>membership.requireVerified(id),profile:state,randomInt,now,error});
+function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,quiz:quiz.status(id),status:membership.get(id).status==='verified'?'islander':'visitor',membership:membership.get(id),taskProgress:{completed:completedTaskCount(id)},coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id).filter(x=>(!x.startsWith('letter:')||x==='letter:'+day())&&(!x.startsWith('quiz:')||x==='quiz:'+day())),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id),...cardCollection.read(id)}}
 function getActivity(){const row=db.prepare('SELECT starts_at,ends_at FROM activity_settings WHERE id=1').get();const settings={startsAt:row?.starts_at??null,endsAt:row?.ends_at??null};const at=Date.now();return {...settings,timezone:'Asia/Shanghai',phase:activityPhase(settings,at),serverTime:new Date(at).toISOString()}}
 function requireActiveActivity(){const phase=getActivity().phase;if(phase!=='active')throw error(403,phase==='upcoming'?'活动尚未开始，暂不能登记、兑奖、签到或抽卡':'活动已结束，已有账户和收藏仍可查看')}
 function saveActivity(payload){let settings;try{settings=validateActivity(payload)}catch(e){throw error(400,e.message)}return tx(()=>{db.prepare('INSERT INTO activity_settings(id,starts_at,ends_at,updated_at) VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET starts_at=excluded.starts_at,ends_at=excluded.ends_at,updated_at=excluded.updated_at').run(settings.startsAt,settings.endsAt,now());auditAdmin('activity.update',settings);return getActivity()})}
@@ -355,7 +325,7 @@ else if(path==='/api/redeem'&&req.method==='POST')data=redeem(auth(req),b);
 else if(path==='/api/redeem-coin-code'&&req.method==='POST')data=redeemCoinCode(auth(req),b);
 else if(path==='/api/checkin'&&req.method==='POST')data=checkin(auth(req));
 else if(path==='/api/draw'&&req.method==='POST')data=draw(auth(req));
-else if(path==='/api/fuse'&&req.method==='POST')data=fuseCards(auth(req),b);
+else if(path==='/api/fuse'&&req.method==='POST')data=cardCollection.fuse(auth(req),b);
 else if(path==='/api/messages'&&req.method==='GET')data={items:messageBoard.publicRows(),accepting:getActivity().phase==='active'};
 else if(path==='/api/messages'&&req.method==='POST'){requireActiveActivity();data=messageBoard.submit(auth(req),b)}
 else if(path==='/api/admin/task-writings'&&req.method==='GET'){admin(req);data=listTaskWritings(db,new URL(req.url,'http://localhost').searchParams)}
