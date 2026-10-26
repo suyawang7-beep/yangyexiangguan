@@ -26,3 +26,26 @@
 .douyin-link.is-unset{opacity:.7;border-style:dashed;cursor:default}
 .douyin-link:not(.is-unset):hover{transform:translateY(-2px);background:#fff}
 @media(prefers-reduced-motion:reduce){.douyin-link{transform:none!important}}
+
+/* Office: asymmetric island desk instead of four identical rectangular cards. */
+.office-world{max-width:1200px;margin:auto;padding:12px 0 30px}
+.office-counter{display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:24px;min-height:350px;padding:28px clamp(20px,4vw,54px);border-radius:36% 12% 23% 9%/12% 22% 13% 16%;background:radial-gradient(ellipse at 80% 15%,#f6e5ff9a,transparent 56%),linear-gradient(125deg,#c5e9f5,#e8e0ffb8);box-shadow:0 20px 48px #638caa1c}
+.office-copy h1{font-size:clamp(32px,5vw,57px);margin:8px 0 13px}
+.office-quote{font-size:clamp(16px,2.2vw,21px);line-height:1.7}
+.office-scene{min-height:245px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;border:1px dashed #ffffffda;border-radius:47% 23% 34% 16%/35% 42% 22% 31%;background:#ffffff42;padding:16px}
+.office-scene span:last-child{font-size:13px;opacity:.8}
+.office-stations{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:25px;margin:31px 0;align-items:start}
+.office-station{padding:clamp(20px,3vw,32px);min-width:0;box-shadow:0 12px 37px #6b9baa17}
+.office-station h2{margin:8px 0 10px;font-size:clamp(20px,2.6vw,29px)}
+.office-station p{line-height:1.7}
+.office-stamp{font-size:12px;letter-spacing:.08em;opacity:.75}
+.office-board{background:#fffbeccf;border:1px solid #fff9db;border-radius:11% 3% 9% 2%/5% 10% 4% 7%;transform:rotate(-.6deg)}
+.office-paper{margin-top:19px;padding:20px;background:#fffefa;border:1px dashed #d8c8a8;border-radius:6px 23px 8px 18px}
+.office-files{margin-top:38px;background:#d4e6f6c7;border:1px solid #eef9ff;border-radius:27% 7% 18% 6%/10% 20% 8% 14%}
+.office-drawer{padding:22px 16px;margin-top:17px;background:#ffffffa8;border-radius:11px 16px 29px 10px;border-bottom:7px solid #9fc0da}
+.office-music{margin-left:27px;background:#e7dff6c9;border-radius:8% 29% 6% 18%/14% 9% 17% 7%}
+.office-bird{margin-top:19px;background:#d7f0efc4;border-radius:25% 8% 15% 5%/9% 18% 8% 13%}
+.office-note-form{display:grid;gap:10px}.office-note-form input{width:100%;max-width:420px;padding:12px;border-radius:14px;border:1px solid #a9c9d3;background:#fffd}.office-note-form button{justify-self:start}
+.office-choices{border:0;padding:0;margin:16px 0;display:grid;gap:13px}.office-choices legend{margin-bottom:12px;font-weight:600}.office-choices label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}.office-reaction{padding:13px 16px;background:#ffffff9c;border-radius:15px}
+.office-footer-note{text-align:center;margin:20px auto;max-width:800px;opacity:.8}
+@media(max-width:800px){.office-counter,.office-stations{grid-template-columns:1fr}.office-counter{border-radius:28px 50px 32px 21px;padding:25px 20px}.office-scene{min-height:180px}.office-files,.office-music,.office-bird{margin:0}.office-stations{gap:18px}.office-station{transform:none;border-radius:22px 34px 20px 29px}}
