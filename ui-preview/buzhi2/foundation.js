@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const links=[['home','首页','index.html'],['workshop','融卡工坊','workshop.html'],['shop','周边商店','shop.html'],['collection','收藏室','collection.html'],['mailbox','岛主信箱','mailbox.html'],['office','事务所','office.html'],['resident','个人中心','resident.html'],['guide','登岛导览','guide.html']];
+const links=[['home','首页','index.html'],['birthday','生日来信','birthday.html'],['workshop','融卡工坊','workshop.html'],['shop','周边商店','shop.html'],['collection','收藏室','collection.html'],['mailbox','岛主信箱','mailbox.html'],['office','事务所','office.html'],['resident','个人中心','resident.html'],['guide','登岛导览','guide.html']];
 const key=document.body.dataset.page||'home';const h=(title,lead)=>'<header class="page-title"><span class="eyebrow">不吱岛 2.0 · 独立页面</span><h1>'+title+'</h1><p>'+lead+'</p></header>';const link=(id,label,style='button')=>'<a class="'+style+'" href="'+links.find(x=>x[0]===id)[2]+'">'+label+'</a>';
 const cards=[['SR','海风来信'],['R','贝壳耳语'],['N','小岛邮戳']]; const sample=cards.map((x,i)=>'<button type="button" class="card-select" data-card="'+i+'" aria-pressed="'+(i===0?'true':'false')+'"><span class="status">'+x[0]+' · 演示</span><strong>'+x[1]+'</strong><small>仅占位，不代表账户拥有</small></button>').join('');
 const pages={
