@@ -720,6 +720,7 @@ export function createQuiz(db,{membership,requireActiveActivity,tx,earn,state,aw
  function submit(id,b){
   membership.requireVerified(id);requireActiveActivity();
   return tx(()=>{
+   requireActiveActivity();
    const d=dailyQuiz();
    if(b.date!==d.date)throw fail(409,'题目已按北京时间更新，请重新打开今日小测');
    if(!Array.isArray(b.answers)||b.answers.length!==5||b.answers.some(a=>!a||typeof a.questionId!=='string'||typeof a.optionId!=='string')||new Set(b.answers.map(a=>a.questionId)).size!==5)throw fail(400,'请完整回答今日5道题');

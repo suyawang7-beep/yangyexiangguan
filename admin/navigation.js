@@ -1,11 +1,11 @@
 /* Existing admin routes grouped for scanning; no functional entry is removed. */
 (() => {
  'use strict';
- const pages=[['island-mail','岛民信箱','#islandGiftPanel'],['quiz-results','默契小测记录','#quizResultsPanel'],['task-writings','文字任务收件箱','#taskWritingsPanel'],['messages','岛民留言板','#islandMessagesPanel'],['overview','活动概览','#stats'],['activity','活动时间','#activityForm'],['site-maintenance','网站维护','#siteMaintenancePanel'],['codes','兑换码管理','#generate'],['announcements','公告管理','#noticeForm'],['visual','视效管理','#visualPanel'],['users','参与者列表','#users'],['recovery','岛民查找与找回','#islanderRecoveryPanel'],['account-recovery','账号找回审核','#recoveryReviewPanel'],['coins','金币发放','#coinGrantPanel'],['user-details','参与者详情','#userDetailPanel'],['members','岛民认证','#membershipPanel'],['visitors','游客管理','#visitorPanel'],['audit','操作记录','#adminAuditPanel'],['residents','居民物语','#residentAdminPanel'],['characters','OC 人物','#ocProfilesPanel'],['cards','回忆卡片','#cardProfilesPanel'],['assets','页面素材','#assetManagePanel'],['asset-check','素材检查','#assetAuditPanel'],['backups','备份与导出','#operationsPanel'],['test-cleanup','测试记录清理','#testCleanupPanel']];
+ const pages=[['island-mail','岛民信箱','#islandGiftPanel'],['quiz-results','默契小测记录','#quizResultsPanel'],['task-writings','文字任务收件箱','#taskWritingsPanel'],['messages','岛民留言板','#islandMessagesPanel'],['overview','活动概览','#stats'],['activity','活动时间','#activityForm'],['site-maintenance','网站维护','#siteMaintenancePanel'],['codes','兑换码管理','#generate'],['announcements','公告管理','#noticeForm'],['visual','视效管理','#visualPanel'],['users','参与者列表','#users'],['recovery','岛民查找与找回','#islanderRecoveryPanel'],['account-recovery','账号找回审核','#recoveryReviewPanel'],['coins','金币发放','#coinGrantPanel'],['user-details','参与者详情','#userDetailPanel'],['members','岛民认证','#membershipPanel'],['visitors','游客管理','#visitorPanel'],['audit','操作记录','#adminAuditPanel'],['residents','居民物语','#residentAdminPanel'],['characters','OC 人物','#ocProfilesPanel'],['cards','卡池管理','#cardProfilesPanel'],['office','岛民事务所管理','#officeAdminPanel'],['assets','页面素材','#assetManagePanel'],['asset-check','素材检查','#assetAuditPanel'],['backups','备份与导出','#operationsPanel'],['test-cleanup','测试记录清理','#testCleanupPanel']];
  const groups=[
-  ['活动与奖励',['overview','activity','codes','coins']],
+  ['活动与奖励',['overview','cards','office','activity','codes','coins']],
   ['岛民与审核',['users','members','visitors','recovery','account-recovery','user-details']],
-  ['内容与互动',['island-mail','quiz-results','task-writings','messages','announcements','residents','characters','cards']],
+  ['内容与互动',['island-mail','quiz-results','task-writings','messages','announcements','residents','characters']],
   ['站点与维护',['site-maintenance','visual','assets','asset-check','backups','test-cleanup','audit']]
  ];
  const sections=new Map(pages.map(([slug,,selector])=>[slug,document.querySelector(selector)?.closest('section')]));
