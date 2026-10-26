@@ -1,0 +1,62 @@
+{
+  "upstream": "https://github.com/cursor/plugins",
+  "revision": "10d7b8a647caedfca8143ca8335d9e063c027227",
+  "skills": [
+    {
+      "name": "verify-this",
+      "upstreamPath": "cursor-team-kit/skills/verify-this",
+      "files": [
+        {
+          "path": ".agents/skills/verify-this/SKILL.md",
+          "sha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de"
+        },
+        {
+          "path": ".agents/skills/verify-this/LICENSE",
+          "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0"
+        }
+      ]
+    },
+    {
+      "name": "run-smoke-tests",
+      "upstreamPath": "cursor-team-kit/skills/run-smoke-tests",
+      "files": [
+        {
+          "path": ".agents/skills/run-smoke-tests/SKILL.md",
+          "sha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb"
+        },
+        {
+          "path": ".agents/skills/run-smoke-tests/LICENSE",
+          "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0"
+        }
+      ]
+    },
+    {
+      "name": "deslop",
+      "upstreamPath": "cursor-team-kit/skills/deslop",
+      "files": [
+        {
+          "path": ".agents/skills/deslop/SKILL.md",
+          "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810"
+        },
+        {
+          "path": ".agents/skills/deslop/LICENSE",
+          "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0"
+        }
+      ]
+    },
+    {
+      "name": "make-pr-easy-to-review",
+      "upstreamPath": "cursor-team-kit/skills/make-pr-easy-to-review",
+      "files": [
+        {
+          "path": ".agents/skills/make-pr-easy-to-review/SKILL.md",
+          "sha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7"
+        },
+        {
+          "path": ".agents/skills/make-pr-easy-to-review/LICENSE",
+          "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0"
+        }
+      ]
+    }
+  ]
+}
