@@ -1,0 +1,61 @@
+/* V4.1 artistically grounded extension to engineering-organic-v3.css.
+   Engineering foundation revision: foundation.js 9b446a26, foundation.css f874ecbd.
+   Include after foundation.css and engineering-organic-v3.css.
+   Additive styling only: no user data, no new fake interaction state. */
+:root{--buzhi-paper:#fffcf0;--buzhi-ink:#285572;--buzhi-shell:#f8e7df;--buzhi-sea:#a8d9eb}
+.home-birthday{overflow:visible}
+.home-birthday::before{background:radial-gradient(ellipse at 73% 15%,#fff8,transparent 38%),linear-gradient(180deg,#cdeffaeb 0%,#a6d6edae 56%,#6ab4d47a 100%);border-radius:46% 54% 29% 71%/16% 22% 78% 84%}
+.home-birthday-scene{isolation:isolate}
+.home-birthday-scene:after{content:"";position:absolute;inset:33% -3% 7% 0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 50% 89%,#fff9,transparent 47%),repeating-radial-gradient(ellipse at 72% 98%,transparent 0 46px,#ffffff72 48px 50px,transparent 53px 88px);opacity:.8}
+.home-art-slot{isolation:isolate;display:flex;align-items:flex-end;justify-content:center;padding:36px 22px 25px;line-height:1.8;font-size:13px;letter-spacing:.05em;color:#376989;text-align:center;border:8px solid #ffffffa0;outline:1px solid #ffffffbd;background:radial-gradient(circle at 40% 30%,#fffc,transparent 40%),linear-gradient(160deg,#d3f4facf,#bad1efb8 60%,#f7d5ed8c);box-shadow:0 22px 45px #5d87b53a,inset 0 0 0 1px #fff;overflow:visible}
+.home-art-slot:before{content:"✧";position:absolute;top:-35px;left:11%;font-size:95px;font-family:serif;color:#fff;text-shadow:0 6px 13px #80a8c0;transform:rotate(-18deg);pointer-events:none}
+.home-art-slot:after{content:"";position:absolute;right:-17px;bottom:24px;width:105px;height:85px;border:9px solid #ffffffb9;border-left:0;border-bottom:0;border-radius:75% 25% 72% 10%;transform:rotate(22deg);pointer-events:none}
+.home-birthday-desk{filter:drop-shadow(0 20px 25px #5a89a827)}
+.home-birthday-desk .surface{border:1px solid #fff;box-shadow:inset 0 0 0 6px #fff7,6px 12px 24px #6b88a025}
+.home-birthday-desk .surface:before{content:"✉ SEA LETTER";position:absolute;right:20px;top:-24px;font:700 10px/1.2 sans-serif;letter-spacing:2px;background:#eef8ffeb;color:#5383ab;padding:8px 12px;border:1px solid white;transform:rotate(5deg);box-shadow:2px 5px 12px #6a8aaf38}
+.home-birthday-desk .tabs .button[aria-selected=true]{background:#e1effff2;color:#315f84;border:1px solid #89b4d3;box-shadow:inset 0 -3px #94c1d8}
+.home-birthday-desk [role=tabpanel]{min-height:144px}
+.home-birthday-desk details{font-size:13px}
+.social-keepers{position:relative;z-index:3;margin-top:20px;max-width:360px;padding:10px 12px 12px 0}
+.social-keepers>p{font-family:KaiTi,STKaiti,serif;font-size:15px;color:#396d89}
+.social-keepers-links{display:block}
+.douyin-link{position:relative;min-height:56px;width:fit-content;max-width:100%;border:2px solid #fff;padding:11px 18px 11px 48px;border-radius:8px 22px 9px 28px;background:linear-gradient(110deg,#fffef5f0,#e7f6fdd8);box-shadow:5px 9px 21px #48789f38;transform:rotate(-2deg);transition:transform .2s ease,box-shadow .2s ease}
+.douyin-link:before{content:"♫";position:absolute;left:13px;top:10px;font-size:23px;color:#6d90b8}
+.douyin-link strong{font-size:14px;white-space:normal}
+.douyin-link span{font-size:12px}
+.douyin-link:not(.is-unset):hover{transform:rotate(0deg) translateY(-3px)}
+/* Specialized scenes: layered materials rather than uniform card shells */
+body[data-page="workshop"] .layout>.surface:before{content:"✦  TIDAL ATELIER  ✦";display:block;text-align:center;letter-spacing:3px;color:#7099ac;font:700 10px sans-serif;margin:0 0 10px}
+body[data-page="workshop"] .card-list{position:relative}
+body[data-page="workshop"] .card-list:before{content:"";position:absolute;z-index:0;left:13%;right:13%;top:12%;bottom:6%;border-radius:50%;border:2px dashed #c1dfeb;background:radial-gradient(circle,#ffffffba,#9fdaec74 60%,transparent 70%);box-shadow:0 0 0 10px #ffffff37;pointer-events:none}
+body[data-page="workshop"] .card-select{z-index:1}
+body[data-page="workshop"] .card-select:nth-child(2){z-index:3}
+body[data-page="shop"] .shop-item .placeholder{background:radial-gradient(circle at 50% 30%,#fff,#daeffa);border-radius:48% 52% 24% 26%/42% 43% 15% 15%;border:1px dashed #a4c9d5;min-height:120px}
+body[data-page="collection"] #collection-grid .tile{border-radius:8px;background:radial-gradient(circle at 52% 35%,#ffffffa4,transparent 46%),linear-gradient(135deg,#b3dcef,#e6c9ee);position:relative}
+body[data-page="collection"] #collection-grid .tile:before{content:"";position:absolute;left:35%;top:-12px;width:68px;height:22px;background:#fffbddbd;transform:rotate(-7deg);box-shadow:0 1px 4px #7e99ae3a;pointer-events:none}
+body[data-page="mailbox"] .layout>.surface:first-child:before{content:"✉";position:absolute;top:-22px;right:10%;font-size:57px;color:#8bb4d1;transform:rotate(12deg);text-shadow:2px 4px #fff8;pointer-events:none}
+body[data-page="office"] .surface:before{content:"ISLAND NOTICE";position:absolute;right:34px;top:-15px;font:700 11px sans-serif;letter-spacing:2px;padding:8px;background:#fff4d9;color:#8a806b;transform:rotate(4deg)}
+body[data-page="resident"] .layout>.surface:first-child:after{content:"ISLAND PASSPORT";position:absolute;left:30px;top:15px;font:700 10px sans-serif;letter-spacing:2px;color:#86a0b7}
+body[data-page="guide"] .tile{position:relative}body[data-page="guide"] .tile:before{content:"✦";position:absolute;top:18px;left:25px;color:#85b9d1;font-size:23px;pointer-events:none}
+/* Desktop/phone layouts are different compositions. */
+@media(max-width:850px){.social-keepers{max-width:90%}}
+@media(max-width:560px){
+ .home-birthday{min-height:900px}
+ .home-birthday-scene{height:53%}
+ .home-birthday-scene h1{max-width:90%;line-height:1.25}
+ .home-art-slot{min-height:213px;top:41%;right:1%;width:78%;padding:15px 20px;font-size:11px}
+ .home-art-slot:before{font-size:52px;top:-20px}
+ .social-keepers{position:absolute;top:72%;left:0;width:100%;margin:0}
+ .social-keepers>p{font-size:12px;margin:0 0 4px}
+ .douyin-link{padding:7px 12px 7px 34px;min-height:44px}
+ .douyin-link:before{font-size:16px;left:10px;top:11px}
+ .douyin-link strong{font-size:12px}
+ .douyin-link span{font-size:11px}
+ .home-birthday-desk{top:59%;right:4%;width:90%}
+ .home-birthday-desk .surface{padding:23px 15px 16px}
+ .home-birthday-desk [role=tabpanel]{min-height:120px}
+ .home-birthday-desk .surface:before{top:-19px;font-size:8px}
+ body[data-page="workshop"] .card-list:before{left:10%;right:10%}
+}
+@media(max-width:390px){.home-birthday{min-height:940px}.home-birthday-desk{top:61%}.social-keepers{top:71%}}
+@media(prefers-reduced-motion:reduce){.douyin-link,.douyin-link:hover{transition:none!important;transform:none!important}}
