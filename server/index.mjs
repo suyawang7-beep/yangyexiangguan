@@ -97,6 +97,8 @@ const error=(status,message)=>Object.assign(new Error(message),{status});
 const eq=(a,b)=>{const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&timingSafeEqual(x,y)};
 function tx(f){db.exec('BEGIN IMMEDIATE');try{const out=f();db.exec('COMMIT');return out}catch(e){db.exec('ROLLBACK');throw e}}
 function auth(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token)throw error(401,'请先登录');const s=db.prepare('SELECT user_id FROM sessions WHERE token_hash=? AND expires>?').get(sha(token),Date.now());if(!s)throw error(401,'登录已失效');return s.user_id}
+function logout(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token)throw error(401,'请先登录');const deleted=db.prepare('DELETE FROM sessions WHERE token_hash=?').run(sha(token));return {ok:true,alreadyLoggedOut:deleted.changes===0}}
+function updateNickname(id,b){const nickname=String(b.nickname||'').trim();if(!nickname||[...nickname].length>20)throw error(400,'昵称须为 1-20 字');db.prepare('UPDATE users SET nickname=? WHERE id=?').run(nickname,id);return {ok:true,profile:state(id)}}
 function admin(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token||!eq(token,ADMIN))throw error(403,'无管理权限')}
 function balance(id){return db.prepare('SELECT COALESCE(SUM(amount),0) AS n FROM ledger WHERE user_id=?').get(id).n}
 function earn(id,amount,reason){db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(id,amount,reason,now())}
@@ -295,6 +297,8 @@ else if(path==='/api/island-mail/claim'&&req.method==='POST')data=claimIslandMai
 else if(path==='/api/admin/island-mail'&&req.method==='GET'){admin(req);data=adminIslandMail(mailCursor(url.searchParams.get('before')))}
 else if(path==='/api/admin/island-mail/send'&&req.method==='POST'){admin(req);data=sendIslandMail(b)}
 
+else if(path==='/api/logout'&&req.method==='POST')data=logout(req);
+else if(path==='/api/profile/nickname'&&req.method==='POST')data=updateNickname(auth(req),b);
 else if(path==='/api/password'&&req.method==='POST')data=updatePassword(auth(req),b);
 else if(path==='/api/admin/residents'&&req.method==='GET'){admin(req);data=residentCenter.adminList()}
 else if(path==='/api/admin/residents/review'&&req.method==='POST'){admin(req);data=residentCenter.adminReview(b)}
