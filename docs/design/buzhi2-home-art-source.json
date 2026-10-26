@@ -1,0 +1,81 @@
+{
+  "baseline": "0b1045c976254979b676e0d893ac4aad765d0638",
+  "engineeringFiles": [
+    {
+      "name": "README.md",
+      "blob": "f0a511bedeec89f4ba3280c75fbda95fadc4f195"
+    },
+    {
+      "name": "account-controller.js",
+      "blob": "345d49c404de6108e6f55381521ab69cf0a555fb"
+    },
+    {
+      "name": "birthday.html",
+      "blob": "b5e208b7aeb393ab99f4cb60030cee3fac8f399d"
+    },
+    {
+      "name": "collection.html",
+      "blob": "672c37a4ccc258c9b7c1b3ad6869fdd70168f747"
+    },
+    {
+      "name": "directions.html",
+      "blob": "75c571e58715f83a78444ba43d6ecfc94b794e81"
+    },
+    {
+      "name": "foundation.css",
+      "blob": "2889525ba4cd627f0e8b21493a10f4af5f0cde09"
+    },
+    {
+      "name": "foundation.js",
+      "blob": "3a8e8fea76353d8919c0927ac78a0361d7c350fc"
+    },
+    {
+      "name": "guide.html",
+      "blob": "f2711b65905cbdf10b794e6f71d90bce6dbdda3e"
+    },
+    {
+      "name": "index.html",
+      "blob": "f25ebbf9acf018fc6c2895c8c46d72b7a179b16e"
+    },
+    {
+      "name": "mailbox.html",
+      "blob": "b900195312bbdf0a397c2f99a63549e8d77f803a"
+    },
+    {
+      "name": "office.html",
+      "blob": "30f6ffbdb4273bf2fcd6bd42953151e9fe1f2498"
+    },
+    {
+      "name": "preview.js",
+      "blob": "948ef48245f6071670df4d326a7fc2902203b9cb"
+    },
+    {
+      "name": "resident.html",
+      "blob": "c50a8e30e7b74b30b278625147afa9b5bee177b9"
+    },
+    {
+      "name": "shop.html",
+      "blob": "8fe50f34858d442ea08e10ed483faddeef850081"
+    },
+    {
+      "name": "site-links.js",
+      "blob": "6831f76cd02f8c4f47e50ee7a610053e4dfc2079"
+    },
+    {
+      "name": "state-model.js",
+      "blob": "2bac13c74bcc531f9526157c9bb2a7689e347570"
+    },
+    {
+      "name": "style.css",
+      "blob": "dce38b11c4a41f14b394f3cd8fc7113c8d9164d8"
+    },
+    {
+      "name": "workshop.html",
+      "blob": "4d31cc6fed2e5ca073b63c38c0a2546daf7368ba"
+    }
+  ],
+  "homeOverrides": [
+    "index.html (loads home-art.css and home-art.js only)"
+  ],
+  "reference": "docs/design/buzhi2-approved-concept.png"
+}

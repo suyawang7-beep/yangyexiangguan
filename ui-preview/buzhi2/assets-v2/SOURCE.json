@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-27",
+  "reference": "../../../docs/design/buzhi2-approved-concept.png",
+  "assets": [
+    {
+      "file": "birthday-bay-v1.webp",
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 621412,
+      "sha256": "3ccd79f78863f0b04c3b82cbe5e0f3c58da60e1906b58ac60f8c6750d5e9750d",
+      "source": "Built-in image_gen; generated from user-provided concept image; candidate, not approved final art"
+    },
+    {
+      "file": "zhizhi-portrait-v1.webp",
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "bytes": 597392,
+      "sha256": "e1990a6b816dc30b862d6a2ae75cd73f478b05b6b6b3fe137b8a8593b770a245",
+      "source": "Built-in image_gen; generated from user-provided concept image; candidate, not approved final art"
+    }
+  ],
+  "method": "PNG to WebP encoding only; alpha preserved; no manual character edits"
+}

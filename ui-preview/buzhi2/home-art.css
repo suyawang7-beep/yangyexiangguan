@@ -1,0 +1,111 @@
+@font-face{font-family:IslandRound;src:url('../assets/fonts/buzhi-rounded.woff2') format('woff2');font-display:swap}
+@font-face{font-family:IslandHand;src:url('../assets/fonts/buzhi-hand.woff2') format('woff2');font-display:swap}
+body[data-page=home]{--ink:#254a74;--mute:#506986;--action:#3f66b0;background:#e4f1fc;color:var(--ink);font-family:IslandRound,'Microsoft YaHei',sans-serif}
+body[data-page=home] .site{max-width:1600px;padding:0 28px 20px;position:relative;isolation:isolate}
+body[data-page=home] .site:before{content:'';position:absolute;z-index:-2;inset:0;min-height:100vh;background:url('assets-v2/birthday-bay-v1.webp') 45% 15%/cover no-repeat}
+body[data-page=home] .masthead{position:relative;z-index:6;gap:20px;padding:15px 4px;border-bottom:1px solid #fff9}
+body[data-page=home] .brand{font:36px/1.1 IslandHand,serif;color:#365b99;text-shadow:0 2px 8px #fff}
+body[data-page=home] .brand small{font:10px/1.4 IslandRound,sans-serif;letter-spacing:.1em;color:#294f7b}
+body[data-page=home] .nav{gap:2px;background:#faffffed;box-shadow:0 5px 20px #31579217;border-radius:6px;padding:3px 5px}
+body[data-page=home] .nav a{font-size:13px;padding:10px 11px;border-radius:5px;white-space:nowrap}
+body[data-page=home] .nav a[aria-current=page]{color:#3154a2;background:#e4eafa}
+body[data-page=home] .controls{gap:5px;justify-content:flex-end}
+body[data-page=home] .controls .button{font-size:11px;min-height:36px;padding:7px 10px;background:#f6fcfff0;border:1px solid #c9dafa;border-radius:18px}
+body[data-page=home] .auth-status{font-size:11px;background:#f8fcffed;padding:6px 9px;border-radius:15px}
+body[data-page=home] .auth-logout{display:none}
+body[data-page=home] .banner{font-size:12px;line-height:1.6;margin:10px 0 0;padding:7px 13px;border-radius:3px;background:#f4faffeb;max-width:920px;border-color:#fff;color:#3f5b7e}
+body[data-page=home] .home-birthday{position:relative;display:block;min-height:810px;padding:0}
+body[data-page=home] .home-birthday-scene{position:absolute;inset:0;min-height:0;padding:0;border-radius:0;background:none;display:block}
+body[data-page=home] .home-birthday-scene>.eyebrow{position:absolute;right:7%;top:28px;background:#f8fcfff0;color:#506d9e;padding:6px 16px;border:1px solid white;border-radius:20px;font-size:11px;z-index:2}
+body[data-page=home] .home-art-slot{position:absolute;left:-8%;bottom:26px;width:75%;height:auto;min-height:0;aspect-ratio:3/2;background:none;border:none;border-radius:0;padding:0;z-index:1;display:block;pointer-events:none}
+body[data-page=home] .home-art-slot img{width:100%;height:100%;object-fit:contain;object-position:center bottom;display:block;filter:drop-shadow(0 15px 18px #45669020)}
+body[data-page=home] .home-birthday-scene h1{position:absolute;left:59%;top:52px;z-index:2;text-align:center;margin:0;width:35%;font-family:IslandHand,serif;font-weight:400;line-height:1.05;color:#4363ae;text-shadow:0 2px 0 #fff,0 0 22px white}
+.hero-overline{display:block;font:14px/1.8 IslandRound,sans-serif;letter-spacing:.16em;margin-bottom:10px}
+.hero-name{font-size:clamp(70px,7vw,108px);display:block;letter-spacing:.12em}
+.hero-season{font-size:clamp(34px,3.3vw,50px);display:block;letter-spacing:.15em;margin-top:5px}
+body[data-page=home] .hero-wish{position:absolute;top:268px;right:4%;width:41%;text-align:center;font-size:14px;background:#f2faffed;padding:8px 12px;border-radius:3px;z-index:2;color:#2d527d}
+body[data-page=home] .home-birthday-desk{position:absolute;right:3%;bottom:34px;margin:0;width:42%;z-index:3;transform:rotate(1deg)}
+body[data-page=home] .home-birthday-desk>.eyebrow{display:none}
+body[data-page=home] .home-birthday-desk>.surface{background:#fffdf5;border:1px solid #fff;border-radius:4px 16px 5px 7px;box-shadow:0 15px 35px #3c639d24;padding:22px 28px 20px}
+body[data-page=home] .home-birthday-desk>.surface:before{content:'';display:block;background:#bed9e5a6;border:1px solid #f1fbff78;width:90px;height:21px;position:absolute;top:-11px;left:42%;transform:rotate(-5deg)}
+body[data-page=home] .home-birthday-desk>.surface>.eyebrow{font-size:11px;color:#567ba0;margin-bottom:10px}
+body[data-page=home] .home-birthday-desk .section{margin:0}
+body[data-page=home] .home-birthday-desk .tabs{display:flex;gap:12px;border-bottom:1px solid #b9cde2;margin-bottom:16px;padding-bottom:4px}
+body[data-page=home] .home-birthday-desk .tabs .button{min-height:44px;padding:9px 22px;color:#547299;background:transparent;border:0;border-radius:0;border-bottom:2px solid transparent;box-shadow:none}
+body[data-page=home] .home-birthday-desk .tabs [aria-selected=true]{background:#edf3fe;color:#375ba2;border-bottom-color:#587bc7}
+body[data-page=home] .home-birthday-desk h2{font:28px/1.4 IslandHand,serif;color:#345b8a;margin:0 0 9px}
+body[data-page=home] .home-birthday-desk p{font-size:14px;line-height:1.8;margin:0 0 9px}
+body[data-page=home] .home-birthday-desk details{font-size:14px;color:#48678d}
+body[data-page=home] .home-birthday-desk summary{min-height:44px;cursor:pointer;padding:8px 0}
+body[data-page=home] [role=tabpanel][hidden]{display:none!important}
+.home-activities{display:grid;grid-template-columns:1fr 1fr;gap:9px 13px;margin-top:14px}
+.home-activities a{display:block;padding:11px 14px;background:#f8fcfff5;border:1px solid #fff;border-radius:3px;box-shadow:0 3px 9px #36568512;color:#335d92;min-height:64px}
+.home-activities strong{font-size:15px;display:block;font-weight:500}
+.home-activities small{display:block;font-size:11px;color:#59738d;margin-top:2px}
+.home-activities a:nth-child(n+3){background:#f3f9ffe8;min-height:54px;padding-block:7px}
+body[data-page=home] .social-keepers{position:absolute;left:1%;bottom:4px;z-index:4;max-width:330px;margin:0}
+body[data-page=home] .social-keepers>p{font-size:12px;color:#294c78;background:#ffffffed;display:inline-block;padding:2px 10px;margin-bottom:4px}
+body[data-page=home] .douyin-link{background:#f7fbfff5;border:1px solid white;border-radius:5px;padding:8px 13px;transform:rotate(-2deg);box-shadow:0 4px 14px #36588818}
+body[data-page=home] .douyin-link strong{font-size:14px}
+body[data-page=home] .douyin-link span{font-size:12px}
+body[data-page=home] .art-preview-note{position:absolute;bottom:0;right:4%;background:#f5fbffef;padding:3px 9px;font-size:10px;color:#49638a;z-index:5;margin:0}
+body[data-page=home] .site-footer{text-align:center;padding:10px;background:#f4faffde;font-size:11px;border:0;color:#4d6884}
+body[data-page=home] a:focus-visible,body[data-page=home] button:focus-visible,body[data-page=home] summary:focus-visible{outline:3px solid #243d87;outline-offset:4px}
+@media(hover:hover){.home-activities a:hover{background:#fff;box-shadow:0 6px 18px #345e9923}.home-birthday-desk .tabs .button:hover{background:#edf2fc}}
+@media(max-width:1150px) and (min-width:761px){
+body[data-page=home] .masthead{flex-wrap:wrap;gap:10px}
+body[data-page=home] .nav{order:3;width:100%;justify-content:center}
+body[data-page=home] .home-birthday{min-height:760px}
+body[data-page=home] .home-art-slot{left:-12%;width:80%;bottom:90px}
+body[data-page=home] .home-birthday-desk{width:45%;right:0}
+body[data-page=home] .home-birthday-scene h1{left:57%;width:40%}
+body[data-page=home] .hero-wish{right:0;width:43%;top:235px}
+}
+@media(max-width:760px){
+body[data-page=home] .site{padding:0 14px 78px;overflow-x:clip}
+body[data-page=home] .site:before{background-size:auto 730px;background-position:32% 35px;background-color:#e4f2fc}
+body[data-page=home] .masthead{padding:13px 0;gap:8px;flex-wrap:nowrap}
+body[data-page=home] .brand{font-size:29px}
+body[data-page=home] .brand small{font-size:8px}
+body[data-page=home] .nav{display:none}
+body[data-page=home] .controls{flex-wrap:nowrap}
+body[data-page=home] .controls .button{min-height:40px;font-size:11px;padding:8px}
+body[data-page=home] .auth-status{font-size:10px;padding:5px}
+body[data-page=home] .banner{font-size:11px;line-height:1.6;margin:0;padding:7px 10px}
+body[data-page=home] .mobile-more{display:block;margin:8px 0 0;background:#f9fdfff0;border:1px solid #d7e3f4;border-radius:4px;padding:0 12px;font-size:12px}
+body[data-page=home] .mobile-more summary{min-height:40px;display:flex;align-items:center}
+body[data-page=home] .home-birthday{min-height:0;padding-top:400px}
+body[data-page=home] .home-birthday-scene{bottom:auto;height:400px}
+body[data-page=home] .home-birthday-scene>.eyebrow{right:0;top:13px;font-size:9px;padding:4px 9px}
+body[data-page=home] .home-art-slot{left:-26%;bottom:5px;width:121%;height:305px;aspect-ratio:auto}
+body[data-page=home] .home-art-slot img{object-fit:contain;object-position:left bottom}
+body[data-page=home] .home-birthday-scene h1{left:48%;top:46px;width:52%;text-align:center}
+.hero-overline{font-size:11px;letter-spacing:.04em;margin-bottom:6px}
+.hero-name{font-size:62px;letter-spacing:.08em}
+.hero-season{font-size:29px;letter-spacing:.08em;margin-top:6px}
+body[data-page=home] .hero-wish{top:211px;right:0;width:45%;padding:7px 8px;font-size:12px;line-height:1.7;text-align:left;background:#f4faffeb}
+body[data-page=home] .social-keepers{left:0;bottom:0;max-width:210px}
+body[data-page=home] .social-keepers>p{display:none}
+body[data-page=home] .douyin-link{padding:6px 10px}
+body[data-page=home] .douyin-link strong{font-size:12px}
+body[data-page=home] .douyin-link span{font-size:10px}
+body[data-page=home] .art-preview-note{right:0;bottom:0;max-width:41%;font-size:9px;line-height:1.5}
+body[data-page=home] .home-birthday-desk{position:relative;width:100%;right:auto;bottom:auto;margin:16px 0 0;transform:none}
+body[data-page=home] .home-birthday-desk>.surface{padding:18px 21px;background:#fffdf6f5}
+body[data-page=home] .home-birthday-desk .tabs{margin-bottom:12px}
+body[data-page=home] .home-birthday-desk .tabs .button{font-size:15px;flex:1}
+body[data-page=home] .home-birthday-desk h2{font-size:27px}
+body[data-page=home] .home-birthday-desk p{font-size:14px}
+.home-activities{gap:9px;margin-top:12px}
+.home-activities a{padding:11px;min-height:66px}
+.home-activities strong{font-size:14px}
+.home-activities small{font-size:11px}
+body[data-page=home] .site-footer{margin-top:18px;font-size:10px;line-height:1.7}
+body[data-page=home] .mobile-nav{display:grid;min-height:54px;padding-bottom:env(safe-area-inset-bottom);background:#f8fcfff5}
+body[data-page=home] .mobile-nav a{font-size:12px;min-height:48px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Keep the 320px viewport usable when a scrollbar consumes inline space. */
+body[data-page=home]{min-width:0}
+.home-activities a:nth-child(n+3){background:#f5fbffde;box-shadow:none;border-color:transparent}
