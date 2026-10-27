@@ -49,6 +49,14 @@ const HELP = {
   }
 };
 
+HELP["decor/workshop-background.webp"]={label:"2.0 融卡工坊背景",pages:["融卡工坊"],region:"潮汐工坊场景背景",description:"作为独立工坊场景素材保存；2.0 前端静态预览尚未读取后台素材，不代表已生效。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
+HELP["decor/workshop-altar.webp"]={label:"2.0 融卡台",pages:["融卡工坊"],region:"融合工作台装饰层",description:"独立台面视觉素材，不含合成规则、扣卡或动效程序。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
+HELP["decor/shop-background.webp"]={label:"2.0 周边店背景",pages:["周边兑换店"],region:"店铺室内外场景",description:"用于未来商店背景；上传不会启用兑换功能。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
+HELP["decor/shop-display.webp"]={label:"2.0 周边陈列台",pages:["周边兑换店"],region:"商品展示柜或货架装饰",description:"仅作为店铺装饰，与具体商品图、库存和兑换订单分开。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
+HELP["decor/home-foreground.webp"]={label:"2.0 生日首页前景",pages:["首页 · 生日主题"],region:"蓝鸟花、丝带等装饰前景",description:"不替换角色或正式海岛背景，前端需显式绑定后才显示。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
+HELP["decor/office-noticeboard.webp"]={label:"2.0 事务所公告板",pages:["岛民事务所"],region:"公告板物件",description:"公告文字及任务进度仍由正式服务端管理。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
+HELP["decor/office-songbook.webp"]={label:"2.0 海风点歌簿",pages:["岛民事务所"],region:"点歌簿道具",description:"只是视觉素材，不会自动上线点歌收集。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
+HELP["decor/office-feijiu.webp"]={label:"2.0 肥啾彩蛋",pages:["岛民事务所"],region:"肥啾互动装饰",description:"只是展示素材，不会启用金币奖励。",recommendation:'上传 WebP 图像，图片主体避开主要文本区；建议先检查桌面端与手机端裁切。素材不会自动发布到尚未接线的 2.0 页面。'};
 function characterHelp(label) {
   return {
     label: `${label}独立角色图`, pages: ['岛民画廊'], region: `画廊中${label}对应的角色插画区域`,

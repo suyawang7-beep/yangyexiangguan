@@ -97,6 +97,8 @@ const error=(status,message)=>Object.assign(new Error(message),{status});
 const eq=(a,b)=>{const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&timingSafeEqual(x,y)};
 function tx(f){db.exec('BEGIN IMMEDIATE');try{const out=f();db.exec('COMMIT');return out}catch(e){db.exec('ROLLBACK');throw e}}
 function auth(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token)throw error(401,'请先登录');const s=db.prepare('SELECT user_id FROM sessions WHERE token_hash=? AND expires>?').get(sha(token),Date.now());if(!s)throw error(401,'登录已失效');return s.user_id}
+function logout(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token)throw error(401,'请先登录');const deleted=db.prepare('DELETE FROM sessions WHERE token_hash=?').run(sha(token));return {ok:true,alreadyLoggedOut:deleted.changes===0}}
+function updateNickname(id,b){const nickname=String(b.nickname||'').trim();if(!nickname||[...nickname].length>20)throw error(400,'昵称须为 1-20 字');db.prepare('UPDATE users SET nickname=? WHERE id=?').run(nickname,id);return {ok:true,profile:state(id)}}
 function admin(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token||!eq(token,ADMIN))throw error(403,'无管理权限')}
 function balance(id){return db.prepare('SELECT COALESCE(SUM(amount),0) AS n FROM ledger WHERE user_id=?').get(id).n}
 function earn(id,amount,reason){db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(id,amount,reason,now())}
@@ -229,7 +231,7 @@ function cleanupTestAccounts(b){
 function announcements(adminView=false){return db.prepare('SELECT id,title,body,published,created_at,updated_at FROM announcements '+(adminView?'':'WHERE published=1 ')+'ORDER BY id DESC LIMIT 100').all()}
 function saveAnnouncement(b){const title=String(b.title||'').trim(),body=String(b.body||'').trim(),published=b.published===true?1:0,id=b.id==null?null:Number(b.id);if(!title||title.length>80||!body||body.length>1500)throw error(400,'公告标题须为 1–80 字，正文须为 1–1500 字');if(id!==null&&(!Number.isSafeInteger(id)||id<1))throw error(400,'公告编号无效');return tx(()=>{const t=now();if(id===null)db.prepare('INSERT INTO announcements(title,body,published,created_at,updated_at) VALUES(?,?,?,?,?)').run(title,body,published,t,t);else{const result=db.prepare('UPDATE announcements SET title=?,body=?,published=?,updated_at=? WHERE id=?').run(title,body,published,t,id);if(!result.changes)throw error(404,'公告不存在')}return announcements(true)})}
 function deleteAnnouncement(b){const id=Number(b.id);if(!Number.isSafeInteger(id)||id<1)throw error(400,'公告编号无效');const result=db.prepare('DELETE FROM announcements WHERE id=?').run(id);if(!result.changes)throw error(404,'公告不存在');return {deleted:id}}
-const ASSET_NAMES=new Set(['characters/zhizhi.webp','characters/caicai.webp','decor/home-background.webp','decor/home-poster.webp','decor/island-map.webp','decor/office-background.webp','decor/checkin-background.webp','decor/checkin-memorial.webp','decor/post-office-background.webp','decor/collection-background.webp','decor/mailbox-background.webp',...CARDS.map(card=>'cards/'+card.id+'.webp')]);
+const ASSET_NAMES=new Set(['characters/zhizhi.webp','characters/caicai.webp','decor/home-background.webp','decor/home-poster.webp','decor/island-map.webp','decor/office-background.webp','decor/checkin-background.webp','decor/checkin-memorial.webp','decor/post-office-background.webp','decor/collection-background.webp','decor/mailbox-background.webp','decor/workshop-background.webp','decor/workshop-altar.webp','decor/shop-background.webp','decor/shop-display.webp','decor/home-foreground.webp','decor/office-noticeboard.webp','decor/office-songbook.webp','decor/office-feijiu.webp',...CARDS.map(card=>'cards/'+card.id+'.webp')]);
 function allAssetNames(){return [...ASSET_NAMES,...listOc().map(p=>'oc/'+p.id+'.webp')]}
 function assetPath(name){if(!ASSET_NAMES.has(name)&&!(/^oc\/oc-[A-Za-z0-9_-]{8,30}\.webp$/.test(name)&&db.prepare('SELECT id FROM oc_profiles WHERE id=?').get(name.slice(3,-5))))throw error(400,'素材位置无效');return resolve(ASSET_DIR,name)}
 function assetReadPath(name){const uploaded=assetPath(name);if(existsSync(uploaded))return uploaded;const bundled=resolve(fileURLToPath(new URL('..',import.meta.url)),'assets',name);return existsSync(bundled)?bundled:null}
@@ -295,6 +297,8 @@ else if(path==='/api/island-mail/claim'&&req.method==='POST')data=claimIslandMai
 else if(path==='/api/admin/island-mail'&&req.method==='GET'){admin(req);data=adminIslandMail(mailCursor(url.searchParams.get('before')))}
 else if(path==='/api/admin/island-mail/send'&&req.method==='POST'){admin(req);data=sendIslandMail(b)}
 
+else if(path==='/api/logout'&&req.method==='POST')data=logout(req);
+else if(path==='/api/profile/nickname'&&req.method==='POST')data=updateNickname(auth(req),b);
 else if(path==='/api/password'&&req.method==='POST')data=updatePassword(auth(req),b);
 else if(path==='/api/admin/residents'&&req.method==='GET'){admin(req);data=residentCenter.adminList()}
 else if(path==='/api/admin/residents/review'&&req.method==='POST'){admin(req);data=residentCenter.adminReview(b)}

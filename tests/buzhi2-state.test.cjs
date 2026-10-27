@@ -1,0 +1,12 @@
+/* Run: node --test tests/buzhi2-state.test.cjs (Node >= 18). */
+const test=require('node:test');const assert=require('node:assert/strict');const s=require('../ui-preview/buzhi2/state-model.js');
+test('preview gateway never makes a network request',async()=>{let called=0;const g=s.createReadOnlyGateway({fetchJson:()=>{called++;return{}},preview:true});assert.equal((await g.read('me')).phase,s.PHASE.UNAVAILABLE);assert.equal(called,0)});
+test('unknown or closed activity denies transactions',()=>{for(const status of [s.EVENTS.UNKNOWN,s.EVENTS.CLOSED,s.EVENTS.SCHEDULED])assert.equal(s.canUseFeature({identity:s.USER.AUTHENTICATED,verified:true,activity:status,ruleConfirmed:true}).enabled,false)});
+test('real activity status alone never grants operations without rules and identity',()=>{assert.equal(s.canUseFeature({activity:s.EVENTS.OPEN,verified:true,ruleConfirmed:true}).enabled,false);assert.equal(s.canUseFeature({identity:s.USER.AUTHENTICATED,activity:s.EVENTS.OPEN,verified:true}).enabled,false)});
+test('explicitly authorized state can be evaluated without performing a transaction',()=>{assert.equal(s.canUseFeature({identity:s.USER.AUTHENTICATED,verified:true,activity:s.EVENTS.OPEN,ruleConfirmed:true}).enabled,true)});
+test('missing profile is not zero coins',()=>{const v=s.asProfileResponse(null);assert.equal(v.phase,s.PHASE.ERROR);assert.equal(v.data,null)});
+test('valid profile preserves actual zero balance',()=>{const v=s.asProfileResponse({id:'a',nickname:'b',coins:0,draws:[],ledger:[]});assert.equal(v.phase,s.PHASE.READY);assert.equal(v.data.coins,0)});
+test('empty collection distinct from loading and error',()=>{assert.equal(s.asCollectionResponse({cards:[]}).phase,s.PHASE.EMPTY);assert.equal(s.asCollectionResponse({}).phase,s.PHASE.ERROR)});
+test('real-mode gateway requires explicit read transport',()=>assert.throws(()=>s.createReadOnlyGateway({preview:false}),/Missing/));
+test('read gateway permits only approved endpoints',async()=>{const seen=[];const g=s.createReadOnlyGateway({preview:false,fetchJson:async p=>{seen.push(p);return {cards:[]}}});assert.equal((await g.read('draw')).phase,s.PHASE.ERROR);assert.equal(seen.length,0);assert.equal((await g.read('catalog')).phase,s.PHASE.EMPTY);assert.deepEqual(seen,['/api/catalog'])});
+test('exceptions become error state, never success',async()=>{const g=s.createReadOnlyGateway({preview:false,fetchJson:async()=>{throw Error('offline')}});assert.equal((await g.read('announcements')).phase,s.PHASE.ERROR)});
