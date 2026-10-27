@@ -69,7 +69,7 @@
 /* Visual parity pass with docs/design/previews/zhizhi-birthday.css.
    Keep engineering flows while adopting the design branch's typography, ink,
    stationery motifs and restrained translucent surfaces. */
-@font-face{font-family:BuzhiRound;src:url('../assets/fonts/buzhi-rounded.woff2') format('woff2');font-display:swap}
+@font-face{font-family:BuzhiRound;src:url('assets/fonts/buzhi-rounded.woff2') format('woff2');font-display:swap}
 :root{--ink:#234d60;--mute:#516e79;--line:#c1d8df;--surface:#fffdf6de;--background:#dceff6;--action:#27627a;font-family:BuzhiRound,"Microsoft YaHei","PingFang SC",sans-serif}
 body{background:radial-gradient(ellipse at 16% 24%,#ffffff82,transparent 40%),linear-gradient(180deg,#dceff6 0,#edf7f7 41%,#f9faf4 74%,#e7f3f6 100%);line-height:1.75}
 .site{max-width:1200px}.masthead{border-bottom:1px solid #c1d8df9c;gap:17px}.brand{font-size:22px;font-weight:600;letter-spacing:.02em}.brand small{letter-spacing:1px;color:var(--mute)}.nav{gap:17px}.nav a{display:inline-flex;align-items:center;min-height:44px}.nav a[aria-current=page]{border-color:#b65d6b;font-weight:600}.button{border-radius:30px;min-height:46px;padding:10px 20px}.button.primary{background:var(--action);box-shadow:0 8px 20px #28657b20}.eyebrow{letter-spacing:.09em;color:#497184}.surface{background:#fffdf6b8;box-shadow:0 12px 38px #3e6f7d0c;border-color:#fff}.banner{background:#f5fbfecf;border-radius:6px 20px 7px 17px;border-color:#c8dfe8;color:#516e79}.page-title h1,.home-birthday-scene h1,.craft-stage-head h1,.merch-arch h1,.office-copy h1{font-weight:500;letter-spacing:.025em;line-height:1.36}.page-title p{line-height:1.9}.status{background:#f5faf8;border-color:#c1d8df;color:#4d6f7a}
