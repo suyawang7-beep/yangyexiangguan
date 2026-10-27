@@ -111,3 +111,14 @@ body{background:radial-gradient(ellipse at 16% 24%,#ffffff82,transparent 40%),li
 @media(max-width:760px){.island-home{margin-top:10px}.island-home-hero{min-height:675px;padding:48px 18px 50px;border-radius:34px 45px 28px 22px}.home-island-picture img{height:330px}.home-postcard{left:5%;bottom:105px;width:45%;padding:13px}.home-postcard strong{font-size:15px}.home-shared-social{right:4%;bottom:65px}.home-book{width:96%;padding:27px 22px;margin-top:-17px}.home-book-page{padding-right:85px}}
 @media(max-width:490px){.island-home-hero{min-height:655px;padding:35px 13px 42px}.home-birthday-kicker{letter-spacing:.1em;font-size:11px}.home-masthead h1{font-size:clamp(29px,8vw,39px)}.home-masthead em{white-space:normal}.home-masthead p{font-size:13px}.home-island-picture{margin:12px auto}.home-island-picture img{height:260px}.home-picture-caption{bottom:0;right:2px}.home-postcard{left:4%;bottom:113px;width:55%;transform:rotate(-4deg)}.home-postcard>span:last-child{display:none}.home-shared-social{right:4%;bottom:22px;max-width:78%}.home-shared-social .douyin-link{gap:6px;flex-wrap:wrap;padding:8px 11px}.home-shared-social .douyin-link strong{font-size:13px}.home-book-page{padding:20px 0 5px}.home-paper-mark{position:static;margin-left:auto;width:60px;height:60px;font-size:10px}.home-book-page p{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.home-shared-social .douyin-link:hover{transform:none}}
+
+/* Site-wide typography: all Buzhi 2.0 pages, navigation, dialogs and controls. */
+:root{--font-island:BuzhiRound,"Microsoft YaHei","PingFang SC",sans-serif;font-family:var(--font-island)}
+html,body,#app,.site,.masthead,.nav,.controls,.mobile-nav,.mobile-more,.site-footer,
+main,section,article,aside,header,footer,details,summary,dialog,form,fieldset,legend,
+h1,h2,h3,h4,h5,h6,p,span,strong,small,label,caption,table,th,td,
+button,input,textarea,select,option,[role="button"],[role="tab"],.button{
+ font-family:var(--font-island);
+}
+button,input,textarea,select{font-size:inherit;line-height:inherit}
+input::placeholder,textarea::placeholder{font-family:var(--font-island)}
