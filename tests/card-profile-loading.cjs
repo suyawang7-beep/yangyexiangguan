@@ -10,7 +10,7 @@ const folder=mkdtempSync(join(tmpdir(),'card-profile-')),dbPath=join(folder,'db.
  const page=await browser.newPage();await page.addInitScript(t=>sessionStorage.setItem('buzhi-online-token',t),account.token);
  const gate=new Promise(r=>release=r);await page.route('**/api/catalog',async route=>{await gate;await route.continue()});
  await page.goto(base+'/draw.html',{waitUntil:'domcontentloaded'});await page.locator('#draw-button').waitFor();
- release();await page.waitForLoadState('networkidle');await page.locator('#draw-pool-description').filter({hasText:'46张'}).waitFor({timeout:3000});
+ release();await page.waitForLoadState('networkidle');await page.locator('#draw-pool-description').filter({hasText:'60张'}).waitFor({timeout:3000});
  await page.goto(base+'/collection.html',{waitUntil:'networkidle'});assert.equal(await page.locator('.history-row').count(),1);
  console.log('PASS account loaded before catalog preserves historical draw and normal-pool explanation');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{release();await browser?.close();if(server?.exitCode===null){const done=new Promise(r=>server.once('exit',r));server.kill();await done}rmSync(folder,{recursive:true,force:true})});

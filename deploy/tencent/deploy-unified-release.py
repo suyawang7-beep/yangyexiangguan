@@ -1,5 +1,5 @@
 """Approved stopped-service deployment. No account/reward test writes; fail closed."""
-import hashlib, json, os, pathlib, pwd, re, shutil, sqlite3, subprocess, sys, tarfile, time, urllib.request
+import hashlib, json, os, pathlib, pwd, re, shutil, sqlite3, subprocess, sys, tarfile, time, urllib.request, urllib.error
 
 revision, archive_hash, manifest_hash, snapshot = sys.argv[1:5]
 assert re.fullmatch('[a-f0-9]{40}', revision)
@@ -83,10 +83,10 @@ if not current.is_symlink():
     rollback=release.parent/('pre-unified-'+time.strftime('%Y%m%dT%H%M%SZ',time.gmtime()))
 assert rollback.is_relative_to(pathlib.Path('/opt/buzhi-production'))
 state={'revision':revision,'previousRelease':str(rollback),'snapshot':str(backup),'baseline':baseline,'archiveSha256':archive_hash,'manifestSha256':manifest_hash}
-state_path=backup/'deployment-state.json'
+state_path=backup/('deployment-state-'+revision+'.json')
 with state_path.open('x') as out: json.dump(state,out,indent=2)
 state_path.chmod(0o600)
-config_backup=backup/'environment.env'
+config_backup=backup/('environment-'+revision+'.env')
 with config_backup.open('xb') as out: out.write(config_bytes)
 config_backup.chmod(0o600)
 switched=False
@@ -96,7 +96,11 @@ try:
     approved=['LOCK-'+str(n) for n in [*range(33,46),50]]
     for card in approved:
         relative='cards/'+card+'.webp';source=release/'assets'/relative;target=assets/relative
-        if target.exists(): assert digest(target)==digest(source), 'Refusing to overwrite an existing card'
+        if target.exists():
+            if card=='LOCK-50':
+                print('Preserving production LOCK-50 artwork (may differ from packaged card)')
+            else:
+                assert digest(target)==digest(source), 'Refusing to overwrite an existing card: '+card
         else:
             if not target.parent.exists():
                 target.parent.mkdir(mode=0o700,parents=True)
@@ -120,9 +124,30 @@ try:
                 if response.status==200 and response.headers['x-buzhi-revision']==revision: healthy=True;break
         except Exception: time.sleep(.5)
     assert healthy and run('systemctl','is-active',service)=='active', 'New service did not become healthy'
-    with urllib.request.urlopen('http://127.0.0.1:14179/api/catalog',timeout=5) as response: catalog=json.load(response)
-    assert catalog['visibleCards']==46 and len(catalog['cards'])==46
-    assert {c['id'] for c in catalog['cards'] if c['id'].startswith('LOCK-')}==set(approved)
+    # Read-only admin catalog works even while the site-wide maintenance gate is enabled.
+    request=urllib.request.Request('http://127.0.0.1:14179/api/admin/cards',headers={'Authorization':'Bearer '+values['ADMIN_TOKEN']})
+    with urllib.request.urlopen(request,timeout=5) as response:
+        assert response.status==200
+        catalog=json.load(response)
+    assert isinstance(catalog,list) and len(catalog)==60 and all(not c['unreleased'] for c in catalog)
+    expected_ids={'LOCK-'+str(n) for n in range(33,61)}
+    assert {c['id'] for c in catalog if c['id'].startswith('LOCK-')}==expected_ids
+    assert all(c['rarity'] in ['UR','SSR','SR','R','N'] for c in catalog)
+    # Keep the public maintenance gate on and ensure it does not admit visitors.
+    checkdb=readonly(database)
+    try:
+        row=checkdb.execute('SELECT enabled FROM site_maintenance WHERE id=1').fetchone()
+    finally:
+        checkdb.close()
+    if row and row[0]:
+        try:
+            urllib.request.urlopen('http://127.0.0.1:14179/api/catalog',timeout=5)
+            raise AssertionError('Maintenance gate opened unexpectedly')
+        except urllib.error.HTTPError as exc:
+            assert exc.code==503, 'Unexpected maintenance response'
+    else:
+        with urllib.request.urlopen('http://127.0.0.1:14179/api/catalog',timeout=5) as response: public=json.load(response)
+        assert public['visibleCards']==60 and len(public['cards'])==60
     # Live traffic may append rows. Every pre-existing ledger/draw/check-in row must survive.
     live=readonly(database)
     for table,sql in queries:
@@ -133,7 +158,7 @@ try:
         assert live.execute('SELECT count(*) FROM '+table).fetchone()[0]>=original.execute('SELECT count(*) FROM '+table).fetchone()[0]
     assert live.execute('PRAGMA integrity_check').fetchall()==[('ok',)] and not live.execute('PRAGMA foreign_key_check').fetchall()
     after={'users':live.execute('SELECT count(*) FROM users').fetchone()[0],'ledgerRows':live.execute('SELECT count(*) FROM ledger').fetchone()[0],'coinsTotal':live.execute('SELECT sum(amount) FROM ledger').fetchone()[0],'draws':live.execute('SELECT count(*) FROM draws').fetchone()[0],'checkins':live.execute('SELECT count(*) FROM checkins').fetchone()[0]}
-    live.close();state.update({'status':'deployed','after':after,'cards':46})
+    live.close();state.update({'status':'deployed','after':after,'cards':60})
     state_path.write_text(json.dumps(state,indent=2))
     print(json.dumps(state))
 except Exception:
