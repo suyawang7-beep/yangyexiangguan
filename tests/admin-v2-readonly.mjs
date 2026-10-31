@@ -18,8 +18,8 @@ try{
  const headers={Authorization:'Bearer '+token};const res=await fetch(url+'/api/admin/v2/read-model',{headers});assert.equal(res.status,200);assert.match(res.headers.get('cache-control'),/no-store/);
  const data=await res.json();assert.equal(data.readOnly,true);assert.equal(data.overview.users,0);assert(data.cards.length>0);assert.deepEqual(data.residents.items,[]);assert.deepEqual(data.audit.items,[]);assert.equal(data.capabilities.writes,false);assert.equal(data.capabilities.fusion,false);
  assert.equal((await fetch(url+'/admin/v2/readonly-client.js')).status,200);
- assert.equal((await fetch(url+'/admin')).status,200);assert.equal((await fetch(url+'/admin/v2/')).status,503);
+ assert.equal((await fetch(url+'/admin')).status,200);assert.equal((await fetch(url+'/admin/v2/')).status,200);
  assert.equal((await fetch(url+'/api/admin/v2/read-model',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:'{}'})).status,404);
  const old=await (await fetch(url+'/api/admin/overview',{headers})).json();assert.deepEqual(data.overview,old);
- console.log('PASS admin v2: auth isolation, real read model, no-store, legacy coexistence, missing-source 503, writes rejected; temporary DB/assets only');
+ console.log('PASS admin v2: auth isolation, real read model, no-store, legacy coexistence, delivered UI 200, writes rejected; temporary DB/assets only');
 }finally{clearTimeout(timeout);child.kill();await exited;rmSync(root,{recursive:true,force:true});}

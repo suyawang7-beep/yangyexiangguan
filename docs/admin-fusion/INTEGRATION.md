@@ -25,3 +25,11 @@ node tests/admin-v2-readonly.mjs：自动分配回环端口；独立系统临时
 
 ## 备份及发布门槛（尚未执行）
 生产DB在线备份使用SQLite backup API获得一致快照（不要单拷运行中的主文件或孤立WAL）；如需原始取证包，需一致冻结机制覆盖DB/WAL/SHM。素材和当前代码单独归档、SHA256清单、配置加密备份、异机转存后核验；恢复到隔离目录检查integrity_check及关键合成业务。具体停机/快照策略须现场确认。正式数据库迁移、代码替换及服务重启均等待Go/No-Go；本阶段无此授权。
+
+## Work包接收与SSH恢复（覆盖上文缺失状态）
+已接收本机BZI-Admin-Work.zip，SHA256 c679776774687f262c7b419d70ef91fffde09f1ae6f16dd1fb50346a6277f0a2；解压31文件，五件齐全。完整原件归档.local/admin-work-received/，不提交和提供为运行文件。admin/v2保留原HTML外壳与原CSS；移除Mock登录、硬编码统计、虚构流水及模拟写操作，模型/适配器/脚本改为真实只读。原始样例数据仍只在归档，不作为运营数据。样式继续由Work负责，业务脚本归工程楼。
+已在回环28402、独立临时DB/素材、合成管理员环境启动只读测试；API定向测试通过，浏览器已登录看到真实空库0统计。无真实用户或生产凭据进入浏览器。
+SSH现已恢复，只读核实：VM-0-15-ubuntu；production active，健康200；current指向releases/unified-91c6dcf3b44450e76230a8033b9c91f9b3490620，进程版本标识相同。原始server/index.mjs SHA256 ce355124e1a63446bfe6ee96cb4654d04100581c19bea11dac1a89df9099cbd6，下载只读副本规范化CRLF后与本地91c6dcf提交完全相等（规范化SHA256 ab0ed70ef2b8ca9e80ffcf8e3a75f7c735c6d4e8732dff4983b23afa69097127）。不是全运行文件校验。
+生产确有/api/fuse与feature-access，数据库有card_fusions和feature_access；PRAGMA user_version=0，不能据此称无迁移。生产DB/素材进程路径符合历史约定，服务用户buzhi-production，回环14179；备份目录17项，仅确认存在未验证可恢复性。只读取schema，未输出用户记录。
+stage active，buzhi-stage用户，回环14178，DB=/var/lib/buzhi-stage/island.sqlite，素材=/var/lib/buzhi-stage/assets，与生产realpath不同；旧staging active以root运行，DB=/home/ubuntu/buzhi-staging/data/island.sqlite，未选用。stage是否有其他工作占用、全部符号链接与权限隔离仍需核实，未部署。
+重要：生产高于GitHub main，需要先纳入已提交91c6dcf的增量以免回退现有60卡/融卡/独立活动入口，再测试本次改动。不得直接以59be3ef为最终发布包。全程未改生产、未重启。
