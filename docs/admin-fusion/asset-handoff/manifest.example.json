@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "version": "engineering-assigned-content-hash",
+  "slots": {
+    "radio.scene.a": {
+      "path": "/assets/decor/radio-scene-a.webp",
+      "enabled": false,
+      "authorized": false,
+      "version": "replace-with-real-hash",
+      "alt": "海上留声亭背景"
+    },
+    "radio.cover.a": {
+      "path": "/assets/decor/radio-cover-a.webp",
+      "enabled": false,
+      "authorized": false,
+      "alt": "已授权A面封套"
+    },
+    "weather.scene": {
+      "path": "/assets/decor/weather-scene.webp",
+      "enabled": false,
+      "authorized": false,
+      "alt": "云端观测站"
+    },
+    "fusion.card.FORMAL-CARD-ID": {
+      "path": "/assets/cards/FORMAL-CARD-ID.webp",
+      "enabled": false,
+      "authorized": false,
+      "alt": "工程正式卡牌名"
+    }
+  },
+  "note": "All examples disabled. Paths are proposals, not existing server slots; engineering owns registry and approval."
+}

@@ -1,0 +1,8 @@
+/* Added only in explicit asset hosts. Empty/disabled manifests change no layout. */
+.bzi-managed-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:2}
+.bzi-has-art{isolation:isolate}
+.bzi-has-art>.botanical-print,.bzi-has-art>.art-feather,.bzi-has-art>.portrait-corner,.bzi-has-art>.portrait-feather,.bzi-has-art>strong,.bzi-has-art>em,.bzi-has-art>small{visibility:hidden}
+.bzi-inline-art{position:relative;display:inline-block;width:44px;height:44px;min-width:44px;color:transparent!important}
+.bzi-has-card-art>.card-sea,.bzi-has-card-art>.card-illustration,.bzi-has-card-art>.card-title,.bzi-has-card-art>.card-id,.bzi-has-card-art>.card-placeholder{visibility:hidden}
+.bzi-has-card-art>.card-grade{z-index:3}
+#orb-scene.bzi-has-art>svg{visibility:hidden}

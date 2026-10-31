@@ -23,3 +23,10 @@ node tests/admin-v2-readonly.mjs：既有只读鉴权/新旧入口仍通过。
 尚未对真实图片音频做完整上传-发布-前台缓存闭环，未远程部署、未生产改动。不能把上述单测当作专题功能验收。下一步取得点位，补充私有预览/图片解码校验、后台表单与真实页面消费，再隔离浏览器验证。
 
 补充：曾正式发布过的hash文件继续可读取，以支持旧页面和历史版本；从未发布的草稿仍私有。原文‘只提供当前发布引用’以此条为准。
+
+## Work消费交付已接收（覆盖空registry状态）
+BZI-Asset-Handoff.zip SHA256=1274683e81b3c01c586fca18de054cafaa760b63b3f251d4d76dafeec5524138；Radio/Weather/Fusion三份ZIP已按source-archives.json逐个校验一致。39项完整点位原清单、schema与交付README保存在asset-handoff/。消费两文件保留在admin/integration/asset-consumer/，当前未放入前台路由或应用其patch，避免宣称三页已接入。
+server/topic-asset-slots.json登记18个具体、已交付consumer-patch图片位；DEMO卡ID/模板位、首页外部负责人、商店未交付、公共代码原生、音频预留全部排除。状态仍是patch-received-not-page-integrated；本地模块默认关闭。
+公开manifest补充Work消费者字段schemaVersion/version/slots，图片path=不可变hash地址、version=SHA256。发布媒体要求非空来源授权说明且authorized=true；此确认是运营者声明，不是自动法律核验。恢复旧发布沿用原确认。草稿文件仍私有，曾发布文件保留公开可读以支持旧页面。
+新增tests/topic-assets-images.mjs使用仓库LOCK-50.webp只读副本在临时目录验证：草稿404、未授权发布拒绝、发布后bytes一致、hash契约正确、18点位无DEMO与未交付页。未修改或覆盖原卡图。文本/A-B/回退/审计与只读后台测试也通过。尚未做真实浏览器替换/缓存闭环，未上传服务器。
+下一步应用Work patch到三份隔离源码副本，接入发布manifest桥接，增私有草稿预览和后台表单，分别做电台A/B、气象报告和融卡重绘浏览器验证；融合业务仍不可直接采用Mock库存。活动配置归档与文案管理、音频位置仍待实际消费支持。

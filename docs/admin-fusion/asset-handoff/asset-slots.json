@@ -1,0 +1,1161 @@
+{
+  "schemaVersion": 1,
+  "scope": "visual-consumer-only; no backend/API/auth/model/deploy changes",
+  "status": "handoff candidate; original frozen files untouched",
+  "pages": [
+    {
+      "id": "radio",
+      "delivery": "delivered",
+      "sourceRoot": "C:\\Users\\A\\Documents\\Codex\\2026-10-31\\ready\\outputs\\BZI-Radio-Work",
+      "entries": [
+        "index.html",
+        "collection.html",
+        "ticket.html"
+      ],
+      "notes": "留声票子页不是暂停开发的独立北山雀投递局"
+    },
+    {
+      "id": "weather",
+      "delivery": "delivered",
+      "sourceRoot": "C:\\Users\\A\\Documents\\Codex\\2026-10-31\\ready\\outputs\\BZI-Weather-Work",
+      "entries": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "fusion",
+      "delivery": "delivered-mock-ui",
+      "sourceRoot": "C:\\Users\\A\\Documents\\Codex\\2026-10-31\\ready\\outputs\\BZI-Fusion-Work",
+      "entries": [
+        "index.html"
+      ],
+      "notes": "业务由工程主线接管，本补丁不改Mock/真实适配器"
+    },
+    {
+      "id": "home",
+      "delivery": "external-owner-only",
+      "entries": []
+    },
+    {
+      "id": "shop",
+      "delivery": "not-delivered-by-work",
+      "entries": []
+    },
+    {
+      "id": "flower-garden",
+      "delivery": "paused-not-delivered",
+      "entries": []
+    },
+    {
+      "id": "independent-post-office",
+      "delivery": "paused-not-delivered",
+      "entries": []
+    }
+  ],
+  "slots": [
+    {
+      "id": "home.scene.reference",
+      "page": "专题首页",
+      "purpose": "外部VIS-10世界观参照，不能当作可直接替换的3D场景贴图",
+      "recommendedRatio": "16:9",
+      "recommendedPixels": [
+        1920,
+        1080
+      ],
+      "defaultFile": "ui-preview/buzhi2/assets-v2/archipelago-v4-reference.png",
+      "mode": "A/B",
+      "replacementSupport": "not-delivered-by-work",
+      "deliveryStatus": "external-owner-only",
+      "anchor": null,
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "文件只读存在于首页工程树；VIS-10四张截图已看。未交付首页源码补丁，需首页负责人确认真实场景对象/纹理锚点。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.scene.a",
+      "page": "双面留声电台",
+      "purpose": "海天群岛插画背景",
+      "recommendedRatio": "16:9",
+      "recommendedPixels": [
+        1920,
+        1080
+      ],
+      "defaultFile": "BZI-Radio-Work/assets/sea-illustration-v1.webp",
+      "mode": "A",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".horizon-paint",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "现有A/B共用同一海景，B面另有CSS夜海光影；无第二张B背景。替换不改变A/B交互。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.cover.a",
+      "page": "双面留声电台",
+      "purpose": "封套授权插画",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "A",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".jacket-art-slot",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为内联装饰SVG与文字，不是官方卡图；包含collection/ticket子页同一封套。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.label.a",
+      "page": "双面留声电台",
+      "purpose": "唱片中心标签授权插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "A",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".oc-label-slot",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "宿主圆形标签会裁切边缘，请留10%安全边。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.oc.a",
+      "page": "双面留声电台",
+      "purpose": "吱吱授权立绘",
+      "recommendedRatio": "2:3",
+      "recommendedPixels": [
+        1000,
+        1500
+      ],
+      "defaultFile": null,
+      "mode": "A",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".portrait-art-slot",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "透明PNG/WebP优先，完整contain展示；当前仅素材占位。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.scene.b",
+      "page": "双面留声电台",
+      "purpose": "海天群岛插画背景",
+      "recommendedRatio": "16:9",
+      "recommendedPixels": [
+        1920,
+        1080
+      ],
+      "defaultFile": "BZI-Radio-Work/assets/sea-illustration-v1.webp",
+      "mode": "B",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".horizon-paint",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "现有A/B共用同一海景，B面另有CSS夜海光影；无第二张B背景。替换不改变A/B交互。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.cover.b",
+      "page": "双面留声电台",
+      "purpose": "封套授权插画",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "B",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".jacket-art-slot",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为内联装饰SVG与文字，不是官方卡图；包含collection/ticket子页同一封套。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.label.b",
+      "page": "双面留声电台",
+      "purpose": "唱片中心标签授权插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "B",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".oc-label-slot",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "宿主圆形标签会裁切边缘，请留10%安全边。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.oc.b",
+      "page": "双面留声电台",
+      "purpose": "吱吱授权立绘",
+      "recommendedRatio": "2:3",
+      "recommendedPixels": [
+        1000,
+        1500
+      ],
+      "defaultFile": null,
+      "mode": "B",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".portrait-art-slot",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "透明PNG/WebP优先，完整contain展示；当前仅素材占位。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.audio.authorized",
+      "page": "双面留声电台",
+      "purpose": "未来本人授权音频",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "A/B",
+      "replacementSupport": "not-implemented-audio",
+      "deliveryStatus": "reserved",
+      "anchor": "#play / 演示曲目数据",
+      "assetType": "audio",
+      "formats": null,
+      "notes": "本包不接音频、不自动播放、不提供商业音乐；本次消费补丁拒绝音频槽。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "radio.ticket.decoration",
+      "page": "双面留声电台留声票",
+      "purpose": "蓝鸟花/羽翼/邮戳装饰",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "A/B",
+      "replacementSupport": "code-native-not-raster",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#ticket / 现有PNG生成逻辑",
+      "assetType": "inline-svg-canvas",
+      "formats": null,
+      "notes": "当前是代码绘制，页面图片替换不会自动进入电台PNG；本次不改票据逻辑。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.scene",
+      "page": "苦情气象局",
+      "purpose": "海上云端观测站背景",
+      "recommendedRatio": "16:9",
+      "recommendedPixels": [
+        1920,
+        1080
+      ],
+      "defaultFile": "BZI-Weather-Work/assets/cloud-observatory.webp",
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".world-art",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "六种天气共用一张背景，外层天气色/光影仍由原CSS控制。若无独立报告背景，此图同步报告背景。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.oc",
+      "page": "苦情气象局",
+      "purpose": "观测席小头像/标记",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        512,
+        512
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".host-mark",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "真实宿主是小标记，不是假称已存在大幅立绘。当前为✧字符。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.report.background",
+      "page": "苦情气象局",
+      "purpose": "720×1080报告顶部海景插画",
+      "recommendedRatio": "16:9",
+      "recommendedPixels": [
+        1440,
+        810
+      ],
+      "defaultFile": "BZI-Weather-Work/index.html#report-backdrop (embedded WebP)",
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#report-backdrop / makeReport()",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前内嵌的是cloud-observatory海景；补丁支持独立替换并保持Canvas同源无污染。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.icon.sun",
+      "page": "苦情气象局",
+      "purpose": "天气球与纪念报告的sun插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "sun",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#orb-scene / makeReport().sceneSVG",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为sceneSVG()内联天气插画。补丁让同一已加载图片用于球内与报告，不改题目/评分/天气结果。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.icon.cloud",
+      "page": "苦情气象局",
+      "purpose": "天气球与纪念报告的cloud插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "cloud",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#orb-scene / makeReport().sceneSVG",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为sceneSVG()内联天气插画。补丁让同一已加载图片用于球内与报告，不改题目/评分/天气结果。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.icon.rain",
+      "page": "苦情气象局",
+      "purpose": "天气球与纪念报告的rain插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "rain",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#orb-scene / makeReport().sceneSVG",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为sceneSVG()内联天气插画。补丁让同一已加载图片用于球内与报告，不改题目/评分/天气结果。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.icon.storm",
+      "page": "苦情气象局",
+      "purpose": "天气球与纪念报告的storm插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "storm",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#orb-scene / makeReport().sceneSVG",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为sceneSVG()内联天气插画。补丁让同一已加载图片用于球内与报告，不改题目/评分/天气结果。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.icon.night",
+      "page": "苦情气象局",
+      "purpose": "天气球与纪念报告的night插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "night",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#orb-scene / makeReport().sceneSVG",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为sceneSVG()内联天气插画。补丁让同一已加载图片用于球内与报告，不改题目/评分/天气结果。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.icon.thunder",
+      "page": "苦情气象局",
+      "purpose": "天气球与纪念报告的thunder插画",
+      "recommendedRatio": "1:1",
+      "recommendedPixels": [
+        800,
+        800
+      ],
+      "defaultFile": null,
+      "mode": "thunder",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": "#orb-scene / makeReport().sceneSVG",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为sceneSVG()内联天气插画。补丁让同一已加载图片用于球内与报告，不改题目/评分/天气结果。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "weather.report.seal",
+      "page": "苦情气象局",
+      "purpose": "报告印章与编号",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "code-native-not-raster",
+      "deliveryStatus": "delivered-work",
+      "anchor": "weather.js makeReport() Canvas绘制段",
+      "assetType": "canvas",
+      "formats": null,
+      "notes": "现为Canvas绘制，未提供独立PNG默认文件。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.scene",
+      "page": "羽翼融卡工坊",
+      "purpose": "海岸羽翼炼金殿背景",
+      "recommendedRatio": "16:9",
+      "recommendedPixels": [
+        1920,
+        1080
+      ],
+      "defaultFile": "BZI-Fusion-Work/assets/atelier.webp",
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".atelier-world",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前文件对应atelier-coastal-original.png；旧atelier-original.png仅来源留档，不是当前背景。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-N01",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-N01\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-N02",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-N02\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-N03",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-N03\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-R01",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-R01\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-R02",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-R02\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-SR01",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-SR01\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-SR02",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-SR02\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-SSR01",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-SSR01\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-UR01",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-UR01\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.DEMO-HIDDEN",
+      "page": "羽翼融卡工坊",
+      "purpose": "演示卡面授权替换入口",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-patch",
+      "deliveryStatus": "delivered-work",
+      "anchor": ".rack-item[data-card=\"DEMO-HIDDEN\"] .card-face；#central-card/#result-card .card-id首段同ID",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "当前为原创内联装饰SVG。DEMO-ID不是正式业务卡号；工程须以正式cardId建映射，禁止直接套用Mock库存或概率。替换图片不改稀有度和数量。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "fusion.card.{cardId}",
+      "page": "羽翼融卡工坊",
+      "purpose": "工程正式cardId模板",
+      "recommendedRatio": "5:7",
+      "recommendedPixels": [
+        1000,
+        1400
+      ],
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "consumer-template",
+      "deliveryStatus": "reserved",
+      "anchor": ".card-face[data-card-id] 或 .card-id 首段 / .rack-item[data-card]",
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "消费者支持fusion.card.实际ID。工程适配器控制ID与授权素材，Work不创造正式卡图。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "shop.product.{productId}",
+      "page": "商店",
+      "purpose": "商品图占位模板",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "not-delivered-by-work",
+      "deliveryStatus": "not-delivered",
+      "anchor": null,
+      "assetType": "raster",
+      "formats": {
+        "input": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "servedPreferred": "image/webp",
+        "maximumBytes": 4194304,
+        "enforcement": "recommendation for engineering upload validation; consumer rejects declared oversized bytes and unsafe paths, does not upload"
+      },
+      "notes": "本次Work未交付商店。外部首页树存在ui-preview/buzhi2/shop.html，不是本包已确认的消费锚点。需商店负责人提供真实商品模型/页面契约。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "common.logo",
+      "page": "公共资源",
+      "purpose": "品牌文字标识",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "code-native-or-owner-confirmation",
+      "deliveryStatus": "no-independent-bitmap",
+      "anchor": null,
+      "assetType": "text-svg-system-font",
+      "formats": null,
+      "notes": "现有三页以文字/内联SVG/CSS/系统字体表达；没有可冒充官方的独立资源文件。未统一成公共图片槽。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "common.wing",
+      "page": "公共资源",
+      "purpose": "羽翼纹样",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "code-native-or-owner-confirmation",
+      "deliveryStatus": "no-independent-bitmap",
+      "anchor": null,
+      "assetType": "text-svg-system-font",
+      "formats": null,
+      "notes": "现有三页以文字/内联SVG/CSS/系统字体表达；没有可冒充官方的独立资源文件。未统一成公共图片槽。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "common.bluebirdflower",
+      "page": "公共资源",
+      "purpose": "蓝鸟花装饰",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "code-native-or-owner-confirmation",
+      "deliveryStatus": "no-independent-bitmap",
+      "anchor": null,
+      "assetType": "text-svg-system-font",
+      "formats": null,
+      "notes": "现有三页以文字/内联SVG/CSS/系统字体表达；没有可冒充官方的独立资源文件。未统一成公共图片槽。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "common.bird",
+      "page": "公共资源",
+      "purpose": "北山雀/海鸟装饰",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "code-native-or-owner-confirmation",
+      "deliveryStatus": "no-independent-bitmap",
+      "anchor": null,
+      "assetType": "text-svg-system-font",
+      "formats": null,
+      "notes": "现有三页以文字/内联SVG/CSS/系统字体表达；没有可冒充官方的独立资源文件。未统一成公共图片槽。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    },
+    {
+      "id": "common.font",
+      "page": "公共资源",
+      "purpose": "中文标题与界面字体",
+      "recommendedRatio": null,
+      "recommendedPixels": null,
+      "defaultFile": null,
+      "mode": "all",
+      "replacementSupport": "code-native-or-owner-confirmation",
+      "deliveryStatus": "no-independent-bitmap",
+      "anchor": null,
+      "assetType": "text-svg-system-font",
+      "formats": null,
+      "notes": "现有三页以文字/内联SVG/CSS/系统字体表达；没有可冒充官方的独立资源文件。未统一成公共图片槽。",
+      "existingServerSlot": false,
+      "serverRegistryStatus": "proposed logical slot; engineering must map to existing ASSET_NAMES or explicitly register; not a new API"
+    }
+  ],
+  "files": [
+    {
+      "file": "outputs/BZI-Radio-Work/assets/sea-illustration-v1.png",
+      "bytes": 2798733,
+      "pixels": [
+        1672,
+        941
+      ],
+      "sha256": "8f156f7dd073a7eb8e9fce90a96cc00cc341984bdbcb70ee8fa575341cf6aef5",
+      "role": "source-archive-not-runtime"
+    },
+    {
+      "file": "outputs/BZI-Radio-Work/assets/sea-illustration-v1.webp",
+      "bytes": 380144,
+      "pixels": [
+        1672,
+        941
+      ],
+      "sha256": "5e458ab0a1bd046d131f57028ea3255cebb93a9a231f468372d4c817353a8392",
+      "role": "current-runtime"
+    },
+    {
+      "file": "outputs/BZI-Weather-Work/assets/cloud-observatory-original.png",
+      "bytes": 2379320,
+      "pixels": [
+        1672,
+        941
+      ],
+      "sha256": "a7e2a2ef94aa5173ee983aed540418fe6ec7eb09d533cb4fd2bfa6d5e50b0a6f",
+      "role": "source-archive-not-runtime"
+    },
+    {
+      "file": "outputs/BZI-Weather-Work/assets/cloud-observatory.webp",
+      "bytes": 257542,
+      "pixels": [
+        1672,
+        941
+      ],
+      "sha256": "7c44ffea4e9bd05cf2c060e1e1650ba677d643e17f03d53471e41c04653eb9ad",
+      "role": "current-runtime"
+    },
+    {
+      "file": "outputs/BZI-Fusion-Work/assets/atelier-coastal-original.png",
+      "bytes": 2462696,
+      "pixels": [
+        1671,
+        941
+      ],
+      "sha256": "52e2097bcef2d474e77a414928131e621161def945a6f064e5ec18b89c617687",
+      "role": "source-archive-not-runtime"
+    },
+    {
+      "file": "outputs/BZI-Fusion-Work/assets/atelier-original.png",
+      "bytes": 2866079,
+      "pixels": [
+        1672,
+        941
+      ],
+      "sha256": "aa8ca6d723afcbb7aea910e220e5097dbd1617385e5c4f504145ba8f7d995c7e",
+      "role": "source-archive-not-runtime"
+    },
+    {
+      "file": "outputs/BZI-Fusion-Work/assets/atelier.webp",
+      "bytes": 330616,
+      "pixels": [
+        1671,
+        941
+      ],
+      "sha256": "741b6a4b6d57891205e92b58ef93b3c5e082d4874177cb0d7aa05d8b36f0e7aa",
+      "role": "current-runtime"
+    }
+  ]
+}

@@ -1,1 +1,326 @@
-[]
+[
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.scene.a",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "海天群岛插画背景",
+    "mode": "A",
+    "anchor": ".horizon-paint",
+    "recommendedRatio": "16:9",
+    "recommendedPixels": [
+      1920,
+      1080
+    ],
+    "defaultFile": "BZI-Radio-Work/assets/sea-illustration-v1.webp",
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.cover.a",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "封套授权插画",
+    "mode": "A",
+    "anchor": ".jacket-art-slot",
+    "recommendedRatio": "5:7",
+    "recommendedPixels": [
+      1000,
+      1400
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.label.a",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "唱片中心标签授权插画",
+    "mode": "A",
+    "anchor": ".oc-label-slot",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.oc.a",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "吱吱授权立绘",
+    "mode": "A",
+    "anchor": ".portrait-art-slot",
+    "recommendedRatio": "2:3",
+    "recommendedPixels": [
+      1000,
+      1500
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.scene.b",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "海天群岛插画背景",
+    "mode": "B",
+    "anchor": ".horizon-paint",
+    "recommendedRatio": "16:9",
+    "recommendedPixels": [
+      1920,
+      1080
+    ],
+    "defaultFile": "BZI-Radio-Work/assets/sea-illustration-v1.webp",
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.cover.b",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "封套授权插画",
+    "mode": "B",
+    "anchor": ".jacket-art-slot",
+    "recommendedRatio": "5:7",
+    "recommendedPixels": [
+      1000,
+      1400
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.label.b",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "唱片中心标签授权插画",
+    "mode": "B",
+    "anchor": ".oc-label-slot",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "radio.oc.b",
+    "kind": "image",
+    "required": false,
+    "page": "双面留声电台",
+    "purpose": "吱吱授权立绘",
+    "mode": "B",
+    "anchor": ".portrait-art-slot",
+    "recommendedRatio": "2:3",
+    "recommendedPixels": [
+      1000,
+      1500
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.scene",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "海上云端观测站背景",
+    "mode": "all",
+    "anchor": ".world-art",
+    "recommendedRatio": "16:9",
+    "recommendedPixels": [
+      1920,
+      1080
+    ],
+    "defaultFile": "BZI-Weather-Work/assets/cloud-observatory.webp",
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.oc",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "观测席小头像/标记",
+    "mode": "all",
+    "anchor": ".host-mark",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      512,
+      512
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.report.background",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "720×1080报告顶部海景插画",
+    "mode": "all",
+    "anchor": "#report-backdrop / makeReport()",
+    "recommendedRatio": "16:9",
+    "recommendedPixels": [
+      1440,
+      810
+    ],
+    "defaultFile": "BZI-Weather-Work/index.html#report-backdrop (embedded WebP)",
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.icon.sun",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "天气球与纪念报告的sun插画",
+    "mode": "sun",
+    "anchor": "#orb-scene / makeReport().sceneSVG",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.icon.cloud",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "天气球与纪念报告的cloud插画",
+    "mode": "cloud",
+    "anchor": "#orb-scene / makeReport().sceneSVG",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.icon.rain",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "天气球与纪念报告的rain插画",
+    "mode": "rain",
+    "anchor": "#orb-scene / makeReport().sceneSVG",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.icon.storm",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "天气球与纪念报告的storm插画",
+    "mode": "storm",
+    "anchor": "#orb-scene / makeReport().sceneSVG",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.icon.night",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "天气球与纪念报告的night插画",
+    "mode": "night",
+    "anchor": "#orb-scene / makeReport().sceneSVG",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "weather.icon.thunder",
+    "kind": "image",
+    "required": false,
+    "page": "苦情气象局",
+    "purpose": "天气球与纪念报告的thunder插画",
+    "mode": "thunder",
+    "anchor": "#orb-scene / makeReport().sceneSVG",
+    "recommendedRatio": "1:1",
+    "recommendedPixels": [
+      800,
+      800
+    ],
+    "defaultFile": null,
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  },
+  {
+    "topic": "zhizhi-birthday",
+    "id": "fusion.scene",
+    "kind": "image",
+    "required": false,
+    "page": "羽翼融卡工坊",
+    "purpose": "海岸羽翼炼金殿背景",
+    "mode": "all",
+    "anchor": ".atelier-world",
+    "recommendedRatio": "16:9",
+    "recommendedPixels": [
+      1920,
+      1080
+    ],
+    "defaultFile": "BZI-Fusion-Work/assets/atelier.webp",
+    "maxBytes": 4194304,
+    "consumerStatus": "patch-received-not-page-integrated"
+  }
+]

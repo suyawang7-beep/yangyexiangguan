@@ -1,0 +1,20 @@
+[
+  {
+    "path": "C:\\Users\\A\\Documents\\Codex\\2026-10-31\\ready\\outputs\\BZI-Radio-Work.zip",
+    "sha256": "58fecab8a61d37e699f79c814d9b1577ceb132a7e776e62d7c5b7f378bf97962",
+    "bytes": 25319733,
+    "runtimeMismatches": []
+  },
+  {
+    "path": "C:\\Users\\A\\Documents\\Codex\\2026-10-31\\ready\\outputs\\BZI-Weather-Work.zip",
+    "sha256": "830ae3d77c940e323b80f9279f1b5dc69af24ed145f2e0551f332b1f937db4ad",
+    "bytes": 5168145,
+    "runtimeMismatches": []
+  },
+  {
+    "path": "C:\\Users\\A\\Documents\\Codex\\2026-10-31\\ready\\outputs\\BZI-Fusion-Work.zip",
+    "sha256": "d4c87ff1b07650ae10d3d0f4d50443a68487ea406a44ce55b61f5a0b9d866b2b",
+    "bytes": 6944679,
+    "runtimeMismatches": []
+  }
+]
