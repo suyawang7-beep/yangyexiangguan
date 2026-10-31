@@ -11,7 +11,7 @@
     ['星光黄', '#f8e5b3'], ['小岛绿', '#c3e4d4'],
   ];
   const PATHS = {
-    home: ['index.html', '庆典码头', 'home'], passport: ['passport.html', '生日通行证', 'ticket'],
+    home: ['index.html', '登岛码头', 'home'], passport: ['passport.html', '岛民通行证', 'ticket'],
     office: ['office.html', '岛民事务所', 'flag'], checkin: ['checkin.html', '每日签到', 'sun'],
     draw: ['draw.html', '肥啾邮局', 'mail'], collection: ['collection.html', '回忆收藏室', 'cards'],
     mailbox: ['mailbox.html', '岛主信箱', 'heart'],
@@ -305,20 +305,20 @@
     return managedAssets[name]?assetUrl(name):fallback;
   }
   function renderShell() {
-    document.title = `${PATHS[PAGE][1]} · 不吱岛生日庆典`;
+    document.title = `${PATHS[PAGE][1]} · 不吱岛`;
     const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: '抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
     document.querySelector('#app').innerHTML = `<div class="world" data-motion="on"><div class="ocean" aria-hidden="true"></div><div class="ambient" aria-hidden="true"></div><i class="bubble b1" aria-hidden="true"></i><i class="bubble b2" aria-hidden="true"></i><i class="bubble b3" aria-hidden="true"></i>
       <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark"><img src="assets/island-mark.svg" alt="" aria-hidden="true" width="44" height="44"></span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection', 'islanders', 'guide', 'mailbox', 'checkin'].map((key) => navItem(key)).join('')}</nav><nav class="mobile-secondary-nav" aria-label="更多岛上地点"><a href="islanders.html">岛民回廊</a><a href="mailbox.html">岛主信箱</a><a href="guide.html">登岛导览</a><a href="passport.html#membershipApplication">岛民认证</a></nav><div class="header-actions"><a href="resident.html" style="font-size:13px;padding:9px 13px;border:1px solid #b4d8ef;border-radius:30px;background:#ffffff99;color:#497ba0;text-decoration:none">🏝️ 个人中心</a><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
-      <div class="container"><div class="demo-line"><span><i class="status-dot"></i>${LIVE ? '庆典正式活动 · 账户数据安全保存' : '本地演示 · 数据仅保存在此浏览器'}</span><span>${EVENT.name} / 2026.10.18 — 10.25</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div>${LIVE ? '生日回忆 · 与你相遇' : '插画与卡面为示意 · 庆典账户数据由服务器保存'}</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
+      <div class="container"><div class="demo-line"><span><i class="status-dot"></i>${LIVE ? '不吱岛 · 账户数据安全保存' : '本地演示 · 数据仅保存在此浏览器'}</span><span>不吱岛 · 菜菜与吱吱</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div>${LIVE ? '生日回忆 · 与你相遇' : '插画与卡面为示意 · 庆典账户数据由服务器保存'}</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
     if(!LIVE)showStorageError();
     setupMotion();
   }
 
   function renderHome() {
-    let primary = link('passport', '领取生日通行证', 'btn primary');
+    let primary = link('passport', '领取岛民通行证', 'btn primary');
     if (state.passport) primary = state.history.length ? link('collection', '查看我的回忆', 'btn primary') : link('draw', '去抽第一张卡', 'btn primary');
-    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">✧ 菜菜生日特别企划 · 2026 ✧</div><h1>雾岛吱&菜Gina🐟<span>の诞生日！</span></h1><p class="subtitle">完成庆典任务领取金币，<br>收集与菜菜的生日回忆吧！</p><div class="hero-date"><strong>10.20</strong><i></i><small>菜菜岛主 · 正式生日<br>庆典开放 10.18 — 10.25</small></div><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}<a class="btn" href="resident.html">🏝️ 我的岛屿生活</a></div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="菜菜与吱吱的生日庆典主视觉" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">生日快乐，菜菜岛主！<strong>Make a little wish ✦</strong></div>${LIVE ? "" : `<span class="art-caption">双人主视觉示意 · 待替换正式立绘</span>`}</div></section>
-      <aside class="news-strip glass"><strong>✦ 岛上来信</strong><p>海风已经把邀请送达。10月18—25日，来不吱岛收藏一段生日回忆吧。</p><a href="mailbox.html">查看岛主信箱 ${icon('arrow')}</a></aside>`;
+    return `<section class="home-hero"><div class="hero-letters" aria-hidden="true">A LITTLE WISH.</div><div class="hero-copy"><div class="eyebrow">✧ 欢迎来到不吱岛 ✧</div><h1>雾岛吱&菜Gina🐟<span>的小岛日常</span></h1><p class="subtitle">海风、来信与收藏，<br>在小岛上留下属于你的回忆。</p><div class="actions">${primary}${link('office', '去岛上逛逛', 'btn')}<a class="btn" href="resident.html">🏝️ 我的岛屿生活</a></div><p class="hero-footnote">${state.passport ? `欢迎回来，${esc(state.passport.nickname)}。你的 ${state.balance} 枚金币在这里等你。` : '无需登录即可浏览 · 每一位赴约的人，都值得被记住。'}</p></div><div class="hero-art"><img src="${activeAsset('decor/home-poster.webp','assets/island.svg')}" alt="菜菜与吱吱的小岛主视觉" width="720" height="760"><div class="floating-note glass shine">来自不吱岛的一封邀请<strong>今天，也要一起快乐呀。</strong>TO OUR DEAREST ISLANDERS ♡</div><div class="birthday-seal">欢迎回到不吱岛<strong>A little island, shared with you ✦</strong></div>${LIVE ? "" : `<span class="art-caption">双人主视觉示意 · 待替换正式立绘</span>`}</div></section>
+      <aside class="news-strip glass"><strong>✦ 岛上来信</strong><p>海风已经把邀请送达。来不吱岛，收藏相遇的回忆。</p><a href="mailbox.html">查看岛主信箱 ${icon('arrow')}</a></aside>`;
   }
 
   function renderPassport() {
