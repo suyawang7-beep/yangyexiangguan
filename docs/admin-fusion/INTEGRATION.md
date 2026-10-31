@@ -33,3 +33,9 @@ SSH现已恢复，只读核实：VM-0-15-ubuntu；production active，健康200�
 生产确有/api/fuse与feature-access，数据库有card_fusions和feature_access；PRAGMA user_version=0，不能据此称无迁移。生产DB/素材进程路径符合历史约定，服务用户buzhi-production，回环14179；备份目录17项，仅确认存在未验证可恢复性。只读取schema，未输出用户记录。
 stage active，buzhi-stage用户，回环14178，DB=/var/lib/buzhi-stage/island.sqlite，素材=/var/lib/buzhi-stage/assets，与生产realpath不同；旧staging active以root运行，DB=/home/ubuntu/buzhi-staging/data/island.sqlite，未选用。stage是否有其他工作占用、全部符号链接与权限隔离仍需核实，未部署。
 重要：生产高于GitHub main，需要先纳入已提交91c6dcf的增量以免回退现有60卡/融卡/独立活动入口，再测试本次改动。不得直接以59be3ef为最终发布包。全程未改生产、未重启。
+
+## 当前整合截止点
+Work只读UI提交df56668；生产基线合并提交972810a。合并冲突按91c6dcf完整server/index.mjs重建后仅移植本楼入口和read-model，相对生产提交server差异仅19行（含16行静态模块），避免旧asset路径覆盖生产卡图占位和其他功能。合并后重新跑admin-v2-readonly通过。
+新增定向结果：card-fusion.cjs通过（稀有度排除、库存、事务、幂等、不可变历史）；feature-access.mjs通过（继承、独立开关、时间边界、参数和审计回滚）。admin-feature-access.cjs未能执行：独立工作树缺playwright依赖，不算通过。未重跑旧全量31项。
+本机只读UI地址http://127.0.0.1:28402/admin/v2/，服务使用系统临时buzhi-admin-fusion-browser-20261031独立DB/素材、合成测试凭据。浏览器截图readonly-evidence.png为合并基线前相同UI的真实空库总览，非生产统计；尚未做新UI桌面/手机全流程。台账列表不暴露hash/口令字段，审计只显示操作/时间，详情留旧后台。卡图实际前台显示验证及上传写入仍未实施。
+下一步：确认stage当前工作占用、准备独立融合release和测试DB/素材目录，完成隔离上传/卡图缓存验证、受控写API冲突保护，再部署stage；生产不动。禁止将当前只读候选宣称已完成全部运营融合。远程测试尚无对外地址。源ZIP原样归档，不应作为生产发布包。
