@@ -1,0 +1,15 @@
+// Reproducible patch archive; immutable Git blobs avoid Windows checkout line endings.
+import {execFileSync,spawnSync} from 'node:child_process';import {readFileSync,writeFileSync,mkdtempSync,mkdirSync,existsSync} from 'node:fs';import {createHash} from 'node:crypto';import {tmpdir} from 'node:os';import {join,dirname} from 'node:path';
+const mode=process.argv[2],base='db52c57492cf5a24d64039593de8aa8aa170a574',git=a=>execFileSync('git',a),hash=b=>createHash('sha256').update(b).digest('hex');
+const opts=['-i','C:/Users/A/.ssh/buzhi_codex','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','HostKeyAlgorithms=ssh-ed25519'];
+const run=(exe,args,input)=>{const r=spawnSync(exe,args,{input,encoding:'utf8',maxBuffer:4*1024*1024});if(r.stdout)process.stdout.write(r.stdout);if(r.stderr)process.stderr.write(r.stderr);if(r.status!==0)throw Error(exe+' failed '+r.status);};
+if(mode==='pack'){
+ const revision=String(git(['rev-parse','HEAD'])).trim();if(String(git(['status','--porcelain'])).trim())throw Error('Commit all work before packaging');
+ const files=String(git(['diff','--name-only',base,revision,'--','server','admin','client','ui-preview','index.html'])).trim().split(/\r?\n/);const folder=mkdtempSync(join(tmpdir(),'buzhi-admin-release-')),tree=join(folder,'tree');mkdirSync(tree);
+ const manifest={base,revision,files:[]};for(const path of files){if(!/^(server|admin|client|ui-preview)\/[\w./-]+$|^index.html$/.test(path)||path.includes('..'))throw Error('Unexpected file '+path);const bytes=git(['show',revision+':'+path]);const previous=spawnSync('git',['show',base+':'+path]);const target=join(tree,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,bytes);manifest.files.push({path,sha256:hash(bytes),size:bytes.length,baseSha256:previous.status===0?hash(Buffer.from(String(previous.stdout).replaceAll('\r\n','\n'))):null});}
+ writeFileSync(join(folder,'files.txt'),files.join('\n')+'\n');execFileSync('tar',['-cf',join(folder,'patch.tar'),'-C',tree,'-T',join(folder,'files.txt')]);manifest.archiveSha256=hash(readFileSync(join(folder,'patch.tar')));writeFileSync(join(folder,'manifest.json'),JSON.stringify(manifest,null,2));console.log(JSON.stringify({folder,revision,files:files.length,sha256:manifest.archiveSha256}));
+}else if(mode==='upload'){
+ const folder=process.argv[3],m=JSON.parse(readFileSync(join(folder,'manifest.json'))),remote='/home/ubuntu/buzhi-admin-'+m.revision;run('ssh',[...opts,'ubuntu@43.132.221.214','mkdir -m 700 '+remote]);run('scp',[...opts,join(folder,'patch.tar'),join(folder,'manifest.json'),'ubuntu@43.132.221.214:'+remote+'/']);
+}else if(['stage','backup','deploy','verify'].includes(mode)){
+ const revision=process.argv[3];if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('full revision required');const file=new URL('../deploy/tencent/admin-fusion-'+mode+'.py',import.meta.url);run('ssh',[...opts,'ubuntu@43.132.221.214','sudo -n python3 - '+revision],readFileSync(file,'utf8'));
+}else throw Error('pack | upload FOLDER | stage/backup/deploy/verify REVISION');
