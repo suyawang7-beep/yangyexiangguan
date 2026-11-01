@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
+const admin=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8'),resident=readFileSync(new URL('../ui-preview/resident.js',import.meta.url),'utf8');
+test('legacy admin only sends manual rewards through the mailbox',()=>{assert(!admin.includes("req('coins/grant'"));assert(!admin.includes('id="coinGrantForm"'));assert(admin.includes('<option value="fusion">'));assert(admin.includes('id="islandGiftReason"'));assert(admin.includes("$('islandGiftUser').value=u.id"));for(const m of admin.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);});
+test('resident inbox labels fusion opportunities and refreshes profile after claim',()=>{assert(resident.includes("m.kind==='fusion'"));assert(resident.includes('次融卡机会'));assert(resident.includes("const profile=await api('me')"));new vm.Script(resident);});
