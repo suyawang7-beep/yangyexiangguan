@@ -39,3 +39,9 @@ fusionQuota移除旧grant方法，仅保留claimMail由信箱领取事务调用�
 ## 外部视觉交付暂存
 
 Work另交付BZI-Fusion-Official-Card-Adapter.zip，本机路径C:/Users/A/Documents/Codex/2026-10-31/ready/outputs/。只读SHA256核对65aeff73a02d27771dc03858932b314dd034e2669fc877b64ab70a957b116bb6一致。本轮**未解包合入或部署**，避免与信箱业务改动混合；共享memory-card与真实catalog契约已另行交付Work。后续单独审查CSS/容器补丁，不能用其中演示页或DEMO映射覆盖正式卡池。
+
+## 最终候选
+
+当前有效运行候选51b37743ef341ed8099353547aa12b3a755e88a6，SHA256 93529c88fb702a721e671eae49cd4e052838af918f1827d403e3c21e8737d7f2。305运行文件全部校验，通过tests/admin-unified-release.mjs：旧合成库全部原行保持，新增信箱/配额元数据正常；本人签收入账、重复领取幂等；回滚11c9eee后金币与补发记录保留，旧版不能消耗未领取次数邮件、也不能把次数回填成物品。新候选保存在本机visualizations/releases/buzhi-mail-only-51b3774，清单同目录。旧9efb917候选作废，仅保留历史。
+
+26/26相关子测试通过，另配额、关联清理、仅邮箱UI、旧发码退场等专项验证通过。生产未发布；新增schema/触发器、正式切换和重启仍须另行批准。
