@@ -1,0 +1,53 @@
+{
+  "deployedAt": "2026-11-01T09:34:01.670Z",
+  "deployed": true,
+  "revision": "51b37743ef341ed8099353547aa12b3a755e88a6",
+  "runtimeFilesVerified": 305,
+  "existingRowsUnchanged": true,
+  "additiveTables": 3,
+  "rollbackGuards": 2,
+  "oldRelease": "/opt/buzhi-production/releases/unified-11c9eee2178072d0960a376f0f809635cdb71a17",
+  "newRelease": "/opt/buzhi-production/releases/unified-51b37743ef341ed8099353547aa12b3a755e88a6",
+  "topicModuleEnabled": false,
+  "archiveSha256": "93529c88fb702a721e671eae49cd4e052838af918f1827d403e3c21e8737d7f2",
+  "backup": {
+    "revision": "51b37743ef341ed8099353547aa12b3a755e88a6",
+    "backup": "/var/backups/buzhi-production/admin-fusion-51b3774-r2",
+    "archive": "/home/ubuntu/buzhi-admin-backup-51b3774-r2.tar.gz",
+    "sha256": "0a4f1569345696c290c7deb784a8dd8ef9af433423c739a28184bdb66b893935",
+    "previousRelease": "/opt/buzhi-production/releases/unified-11c9eee2178072d0960a376f0f809635cdb71a17",
+    "serviceStoppedForConsistentBackup": true
+  },
+  "offhostRestore": {
+    "sha256": "0a4f1569345696c290c7deb784a8dd8ef9af433423c739a28184bdb66b893935",
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "restoredTables": 32,
+    "restoredFiles": {
+      "assets": 181,
+      "code": 299
+    },
+    "offhostDirectory": "C:/Users/A/Backups/buzhi-production/admin-fusion-51b3774-r2",
+    "restoredAt": "2026-11-01T09:32:50.748Z"
+  },
+  "productionChecks": {
+    "publicStatus": 200,
+    "maintenance": false,
+    "oldAndNewCardsEqual": true,
+    "unauthorized": 403,
+    "retiredDirectGrantStatus": 410,
+    "productionBusinessWrites": 0
+  },
+  "stageChecks": [
+    "auth",
+    "stale-conflict",
+    "card-save",
+    "upload-public-bytes",
+    "no-store",
+    "mail-no-immediate-credit",
+    "coin-131.4-claim",
+    "fusion-claim-3-to-5",
+    "duplicate-send-and-claim",
+    "direct-grants-410"
+  ]
+}
