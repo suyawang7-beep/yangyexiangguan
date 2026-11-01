@@ -63,7 +63,7 @@ async function request(path,body,token){
  const payload={userId:user.id,amount:2,reason:'quota test',confirmed:true,requestId:randomUUID()};
  assert([401,403].includes((await request('admin/fusion/grants',payload,user.token)).status));
  for(const path of ['admin/coins/grant','admin/fusion/grants'])assert.equal((await request(path,payload,admin)).status,410);
- const mail={userId:user.id,title:'融卡补发测试',message:'test',kind:'fusion',amount:2,requestId:payload.requestId};
+ const mail={userId:user.id,title:'融卡补发测试',message:'test',reason:'融卡测试原因',kind:'fusion',amount:2,requestId:payload.requestId};
  const sent=await request('admin/island-mail/send',mail,admin);assert.equal(sent.status,200,JSON.stringify(sent.data));
  assert.equal((await request('me',undefined,user.token)).data.fusionDaily.limit,3);
  const pair=await Promise.all([request('island-mail/claim',{id:sent.data.id},user.token),request('island-mail/claim',{id:sent.data.id},user.token)]);

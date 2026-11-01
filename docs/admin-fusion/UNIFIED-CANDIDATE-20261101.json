@@ -9,5 +9,7 @@
   "rollbackPreservesCoinsAndGrants": true,
   "syntheticOnly": true,
   "productionDeployed": false,
-  "requiresNewProductionApproval": true
+  "requiresNewProductionApproval": true,
+  "status": "superseded",
+  "supersededReason": "人工奖励改为信箱领取，等待新候选取代"
 }

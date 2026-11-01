@@ -118,6 +118,9 @@ db.exec("CREATE TABLE IF NOT EXISTS island_items (mail_id INTEGER PRIMARY KEY RE
 db.exec("CREATE TABLE IF NOT EXISTS island_mail_fusion_rewards(mail_id INTEGER PRIMARY KEY REFERENCES island_mail(id),amount INTEGER NOT NULL CHECK(amount BETWEEN 1 AND 100))");
 db.exec("CREATE TABLE IF NOT EXISTS island_mail_reward_notes(mail_id INTEGER PRIMARY KEY REFERENCES island_mail(id),reason TEXT NOT NULL)");
 function projectMail(row){const note=db.prepare('SELECT reason FROM island_mail_reward_notes WHERE mail_id=?').get(row.id);row={...row,reason:note?.reason||''};const reward=db.prepare('SELECT amount FROM island_mail_fusion_rewards WHERE mail_id=?').get(row.id);return reward?{...row,kind:'fusion',amount:reward.amount,itemName:''}:row}
+// Persistent guards also protect data if an older server is rolled back onto this DB.
+db.exec("CREATE TRIGGER IF NOT EXISTS guard_fusion_mail_claim BEFORE UPDATE OF claimed_at ON island_mail WHEN OLD.claimed_at IS NULL AND NEW.claimed_at IS NOT NULL AND EXISTS(SELECT 1 FROM island_mail_fusion_rewards f WHERE f.mail_id=NEW.id) AND NOT EXISTS(SELECT 1 FROM fusion_quota_grants g WHERE g.request_id='mail:'||NEW.id AND g.user_id=NEW.user_id) BEGIN SELECT RAISE(ABORT,'融卡邮件须通过支持领取的版本签收'); END");
+db.exec("CREATE TRIGGER IF NOT EXISTS guard_fusion_mail_item_backfill BEFORE INSERT ON island_items WHEN EXISTS(SELECT 1 FROM island_mail_fusion_rewards f WHERE f.mail_id=NEW.mail_id) BEGIN SELECT RAISE(IGNORE); END");
 // Compatibility for item gifts claimed by the original inbox implementation.
 db.exec("INSERT OR IGNORE INTO island_items(mail_id,user_id,item_name,acquired_at) SELECT id,user_id,item_name,claimed_at FROM island_mail WHERE kind='item' AND claimed_at IS NOT NULL AND NOT EXISTS(SELECT 1 FROM island_mail_fusion_rewards f WHERE f.mail_id=island_mail.id)");
 function mailCursor(value){if(value===null)return Number.MAX_SAFE_INTEGER;if(!/^[1-9][0-9]*$/.test(value)||!Number.isSafeInteger(Number(value)))throw error(400,'历史游标无效');return Number(value)}
@@ -127,6 +130,7 @@ function islandItems(id,before){membership.requireVerified(id);return mailPage(d
 function sendIslandMail(b){
  const userId=String(b.userId||'').trim(),title=String(b.title||'').trim(),message=String(b.message||'').trim(),kind=String(b.kind||''),itemName=String(b.itemName||'').trim(),requestId=String(b.requestId||'');
  const amount=typeof b.amount==='number'?coinTenths(b.amount)/10:b.amount,reason=typeof b.reason==='string'?b.reason.trim():'';
+ if(kind==='fusion'&&(reason.length<3||!message.trim()))throw error(400,'融卡次数邮件必须填写赠送原因和留言');
  if(b.reason!==undefined&&(typeof b.reason!=='string'||reason.length<3||reason.length>150))throw error(400,'请填写3至150字的赠送原因');
  if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||title.length<2||title.length>80||message.length>500||!['coins','item','fusion'].includes(kind)||!/^[0-9a-f-]{36}$/i.test(requestId)||kind==='coins'&&(!validCoinAmount(amount))||kind==='fusion'&&(!Number.isSafeInteger(b.amount)||b.amount<1||b.amount>100)||kind==='item'&&(!itemName||itemName.length>80))throw error(400,'请核对岛民编号、信件标题与奖励内容');
  return tx(()=>{
@@ -147,11 +151,12 @@ function claimIslandMail(userId,id){
   const stored=db.prepare('SELECT * FROM island_mail WHERE id=? AND user_id=?').get(id,userId);const row=stored?projectMail(stored):null;
   if(!row)throw error(404,'信件不存在');
   if(row.claimed_at)return {fusionDaily:fusionQuota.daily(userId),alreadyClaimed:true,coins:balance(userId),itemName:row.item_name,kind:row.kind,claimedAt:row.claimed_at};
+  if(row.kind==='fusion')fusionQuota.claimMail({userId,mailId:id,amount:row.amount,reason:row.reason||'岛民信箱：'+row.title});
   const t=now(),changed=db.prepare('UPDATE island_mail SET claimed_at=? WHERE id=? AND user_id=? AND claimed_at IS NULL').run(t,id,userId);
   if(changed.changes!==1)throw error(409,'领取状态已改变');
   if(row.kind==='coins')earn(userId,row.amount,'岛民信箱：'+row.title);
-  else if(row.kind==='fusion')fusionQuota.claimMail({userId,mailId:id,amount:row.amount,reason:row.reason||'岛民信箱：'+row.title});
-  else db.prepare('INSERT INTO island_items(mail_id,user_id,item_name,acquired_at) VALUES(?,?,?,?)').run(id,userId,row.item_name,t);
+
+  else if(row.kind==='item')db.prepare('INSERT INTO island_items(mail_id,user_id,item_name,acquired_at) VALUES(?,?,?,?)').run(id,userId,row.item_name,t);
   auditAdmin('mail.claim',{userId,mailId:id,kind:row.kind,amount:row.amount,reason:row.reason});
   return {fusionDaily:fusionQuota.daily(userId),claimed:true,coins:balance(userId),itemName:row.item_name,kind:row.kind,claimedAt:t}
  })
@@ -214,7 +219,7 @@ function redeemCoinCode(id,b){membership.requireVerified(id);featureAccess.requi
 function checkin(id){membership.requireVerified(id);requireActiveActivity();return tx(()=>{const today=day();if(db.prepare('SELECT 1 FROM checkins WHERE user_id=? AND day=?').get(id,today))throw error(409,'今日已签到');db.prepare('INSERT INTO checkins VALUES(?,?)').run(id,today);earn(id,10,'签到 '+today);return state(id)})}
 function draw(id){membership.requireVerified(id);featureAccess.requireActive('pool');return tx(()=>{featureAccess.requireActive('pool');if(balance(id)<50)throw error(409,'金币不足');const first=db.prepare('SELECT COUNT(*) AS n FROM draws WHERE user_id=?').get(id).n===0;const visible=getCards().filter(c=>!c.unreleased).map(({id,rarity})=>({id,rarity})),pool=first?visible.filter(c=>c.rarity==='SSR'||c.rarity==='SR'):visible;if(!pool.length)throw error(409,'卡池暂未准备好，请稍后再试');const card=pool[randomInt(pool.length)];earn(id,-50,'抽卡 '+card.id);db.prepare('INSERT INTO draws(user_id,card_id,rarity,created_at) VALUES(?,?,?,?)').run(id,card.id,card.rarity,now());return {card,profile:state(id)}})}
 const coinCodeAdmin=createCoinCodeAdmin({db,tx,sha,rand,now,error,audit:auditAdmin});
-function codes(b){if(b.kind==='coins')return coinCodeAdmin.generate(b);if(b.kind&&b.kind!=='task')throw error(400,'兑换码类型无效');const task=String(b.taskId||''),count=Number(b.count||1);if(task==='quiz')throw error(400,'默契小测已改为直接答题，无需生成完成代码');if(!TASKS.has(task)||!Number.isInteger(count)||count<1||count>100)throw error(400,'任务或数量无效');return tx(()=>{const out=[];for(let i=0;i<count;i++){const c='ISL-'+rand(18);db.prepare('INSERT INTO codes(hash,task_id) VALUES(?,?)').run(sha(c),task);out.push(c)}return {taskId:task,codes:out}})}
+function codes(b){if(b.kind==='coins'||b.taskId==='commission')throw error(410,'人工金币赠送已统一改为信箱领取；已发出的兑换码仍按原规则有效');if(b.kind&&b.kind!=='task')throw error(400,'兑换码类型无效');const task=String(b.taskId||''),count=Number(b.count||1);if(task==='quiz')throw error(400,'默契小测已改为直接答题，无需生成完成代码');if(!TASKS.has(task)||!Number.isInteger(count)||count<1||count>100)throw error(400,'任务或数量无效');return tx(()=>{const out=[];for(let i=0;i<count;i++){const c='ISL-'+rand(18);db.prepare('INSERT INTO codes(hash,task_id) VALUES(?,?)').run(sha(c),task);out.push(c)}return {taskId:task,codes:out}})}
 const VISUAL_KEYS={collectionGrid:false,collectionFan:true,collectionRing:false,ocSlider:true,ocStagger:false,ocDepth:false,effectWater:true,effectStars:true,effectIsland:true,effectProgress:true,effectGuide:true,effectDraw:true,effectCheckin:true};
 function getVisualSettings(){const rows=db.prepare('SELECT key,enabled FROM visual_settings').all();const result={...VISUAL_KEYS};for(const row of rows)if(Object.hasOwn(result,row.key))result[row.key]=!!row.enabled;return result}
 function saveVisualSettings(payload){if(!payload||typeof payload!=='object'||Array.isArray(payload)||Object.keys(payload).length!==Object.keys(VISUAL_KEYS).length||Object.keys(payload).some(key=>!Object.hasOwn(VISUAL_KEYS,key)||typeof payload[key]!=='boolean'))throw error(400,'视效配置格式无效');if(!['collectionGrid','collectionFan','collectionRing'].some(k=>payload[k])||!['ocSlider','ocStagger','ocDepth'].some(k=>payload[k]))throw error(400,'每个画廊必须至少保留一种展示方式');return tx(()=>{const stmt=db.prepare('INSERT INTO visual_settings(key,enabled,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET enabled=excluded.enabled,updated_at=excluded.updated_at');for(const [k,v] of Object.entries(payload))stmt.run(k,v?1:0,now());auditAdmin('visual.update',{settings:payload});return getVisualSettings()})}
