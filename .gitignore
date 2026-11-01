@@ -9,3 +9,5 @@ data/
 test-results/
 
 /.local/admin-work-received/
+
+.local/unified-browser-fixture.json

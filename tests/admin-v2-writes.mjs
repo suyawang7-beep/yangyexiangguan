@@ -11,6 +11,7 @@ try{
  const out=await Promise.race([once(child.stdout,'data'),exited.then(()=>{throw Error(log)}),new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('startup')),15000))]);
  const base='http://127.0.0.1:'+port;
  const req=async(path,body,auth=true)=>{const r=await fetch(base+path,{method:body?'POST':'GET',headers:{...(auth?{Authorization:'Bearer '+token}:{}),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,data:await r.json()};};
+ const dashboard=await req('/api/admin/v2/status');assert.equal(dashboard.status,200);assert.equal(dashboard.data.pending.memberships,0);assert.equal(dashboard.data.coinsTotal,0);assert.equal((await req('/api/admin/v2/status',undefined,false)).status,403);
  const get=()=>req('/api/admin/v2/config');let state=await get();assert.equal(state.status,200,'real configuration endpoint');
  assert.equal((await req('/api/admin/v2/config',null,false)).status,403);
  const before=state.data;assert.match(before.revision,/^[a-f0-9]{64}$/);const card=before.cards[0];

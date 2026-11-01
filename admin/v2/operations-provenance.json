@@ -1,0 +1,14 @@
+{
+  "generator": "tools/build-admin-operations.mjs",
+  "inputs": {
+    "admin/index.html": "5f4b60a645ef64d8df860b4336a9d872961771f763da4a08903ec66ceaf619af",
+    "admin/membership.js": "28855b25084af212e3579d1d4c3e0796b0b5ab809f49e6ed81864b78c7fc4d32",
+    "admin/maintenance.js": "fbd74040c179662e8360b19fcf147fd035c95ab0642fcfea7cafb349971a39f8",
+    "admin/messages.js": "4187afc6a37c253e8fb5615479e54768d08ca5b66fab21dca37dcb5e52b23ae3",
+    "admin/residents.js": "78d702be6c07376d3ceef76ece8f324f309f38da43b0a09f3507b29ecb62667b",
+    "admin/account-recovery.js": "b1b4b3a59f44c4025db7109cf098d476f9822cfa15a4a6ebf714b05d495466ec",
+    "admin/task-writings.js": "3a9db6239e1418dfa329a1258772fa734f712cbf36e2533e7959fc82bf9b2fa2",
+    "admin/quiz-results.js": "80e7d879f68b33bbb3d7fa39549bba53f7598a5faf664032fd381686e34787e7",
+    "admin/feature-access.js": "e113558fd05dc1174746145c432ca993755d77f83c0cd986694e76b43bce8b53"
+  }
+}

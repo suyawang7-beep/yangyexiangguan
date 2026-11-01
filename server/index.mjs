@@ -1,4 +1,4 @@
-import {coinTenths,ledgerBalance,validCoinAmount} from './money.mjs';
+import {coinTenths,ledgerBalance,validCoinAmount,sumCoinRows} from './money.mjs';
 import {createFusionQuota} from './fusion-quota.mjs';
 import {createAdminV2Config} from './admin-v2-config.mjs';
 import {createTopicAssets} from './topic-assets.mjs';
@@ -112,11 +112,11 @@ function balance(id){return ledgerBalance(db,id)}
 function earn(id,amount,reason){db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(id,coinTenths(amount)/10,reason,now())}
 db.exec("CREATE TABLE IF NOT EXISTS admin_coin_grants (request_id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),amount INTEGER NOT NULL,reason TEXT NOT NULL,created_at TEXT NOT NULL)");
 function grantCoins(b){
- const userId=String(b.userId||'').trim(),amount=b.amount,reason=String(b.reason||'').trim(),requestId=String(b.requestId||'');
+ const userId=String(b.userId||'').trim(),amount=typeof b.amount==='number'?coinTenths(b.amount)/10:b.amount,reason=String(b.reason||'').trim(),requestId=String(b.requestId||'');
  if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||!validCoinAmount(amount)||reason.length<3||reason.length>150||!/^[0-9a-f-]{36}$/i.test(requestId))throw error(400,'请填写完整岛民ID、0.1至5000枚金币、3至150字的原因');
  return tx(()=>{
   const previous=db.prepare('SELECT user_id AS userId,amount,reason FROM admin_coin_grants WHERE request_id=?').get(requestId);
-  if(previous){if(previous.userId!==userId||previous.amount!==amount||previous.reason!==reason)throw error(409,'请求编号已被使用');return {alreadyProcessed:true,...previous,coins:balance(userId)}}
+  if(previous){previous.amount=coinTenths(previous.amount)/10;if(previous.userId!==userId||previous.amount!==amount||previous.reason!==reason)throw error(409,'请求编号已被使用');return {alreadyProcessed:true,...previous,coins:balance(userId)}}
   const user=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(userId);if(!user)throw error(404,'没有找到对应的岛民ID');
   const t=now();db.prepare('INSERT INTO admin_coin_grants(request_id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').run(requestId,userId,amount,reason,t);
   earn(userId,amount,'岛主赠送：'+reason);auditAdmin('coins.grant',{userId,amount,reason,requestId});
@@ -130,12 +130,12 @@ db.exec("CREATE TABLE IF NOT EXISTS island_items (mail_id INTEGER PRIMARY KEY RE
 // Compatibility for item gifts claimed by the original inbox implementation.
 db.exec("INSERT OR IGNORE INTO island_items(mail_id,user_id,item_name,acquired_at) SELECT id,user_id,item_name,claimed_at FROM island_mail WHERE kind='item' AND claimed_at IS NOT NULL");
 function mailCursor(value){if(value===null)return Number.MAX_SAFE_INTEGER;if(!/^[1-9][0-9]*$/.test(value)||!Number.isSafeInteger(Number(value)))throw error(400,'历史游标无效');return Number(value)}
-function mailPage(rows,key='id'){return {items:rows.slice(0,100),nextBefore:rows.length>100?rows[99][key]:null}}
+function mailPage(rows,key='id'){return {items:rows.slice(0,100).map(row=>Object.hasOwn(row,'amount')?{...row,amount:coinTenths(row.amount)/10}:row),nextBefore:rows.length>100?rows[99][key]:null}}
 function mailList(id,before){membership.requireVerified(id);return {...mailPage(db.prepare("SELECT id,title,message,kind,amount,item_name AS itemName,created_at AS createdAt,claimed_at AS claimedAt FROM island_mail WHERE user_id=? AND id<? ORDER BY id DESC LIMIT 101").all(id,before)),coins:balance(id),unclaimed:db.prepare("SELECT COUNT(*) AS n FROM island_mail WHERE user_id=? AND claimed_at IS NULL").get(id).n}}
 function islandItems(id,before){membership.requireVerified(id);return mailPage(db.prepare("SELECT mail_id AS mailId,item_name AS itemName,acquired_at AS acquiredAt FROM island_items WHERE user_id=? AND mail_id<? ORDER BY mail_id DESC LIMIT 101").all(id,before),'mailId')}
 function sendIslandMail(b){
  const userId=String(b.userId||'').trim(),title=String(b.title||'').trim(),message=String(b.message||'').trim(),kind=String(b.kind||''),itemName=String(b.itemName||'').trim(),requestId=String(b.requestId||'');
- const amount=b.amount;
+ const amount=typeof b.amount==='number'?coinTenths(b.amount)/10:b.amount;
  if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||title.length<2||title.length>80||message.length>500||!['coins','item'].includes(kind)||!/^[0-9a-f-]{36}$/i.test(requestId)||kind==='coins'&&(!validCoinAmount(amount))||kind==='item'&&(!itemName||itemName.length>80))throw error(400,'请核对岛民编号、信件标题与奖励内容');
  return tx(()=>{
   const old=db.prepare('SELECT id,user_id AS userId,title,message,kind,amount,item_name AS itemName FROM island_mail WHERE request_id=?').get(requestId);
@@ -164,7 +164,7 @@ function adminIslandMail(before){return mailPage(db.prepare("SELECT m.id,m.user_
 
 function findIslanders(q){const term=String(q||'').trim();if(term.length<2||term.length>64)throw error(400,'请输入至少2个字符的昵称或通行证ID');const rows=db.prepare("SELECT u.id,u.nickname,CASE WHEN EXISTS(SELECT 1 FROM memberships WHERE user_id=u.id AND status='verified') THEN 'verified' ELSE 'visitor' END AS status FROM users u WHERE u.id LIKE ? OR u.nickname LIKE ? ORDER BY u.created_at DESC LIMIT 30").all('%'+term+'%','%'+term+'%');return {items:rows.map(row=>({...row,coins:balance(row.id)}))}}
 function resetIslanderKey(b){const id=String(b.userId||''),confirmed=b.confirmed===true,note=String(b.note||'').trim();if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id)||!confirmed||note.length<6||note.length>200)throw error(400,'请确认身份核验，并填写6至200字找回说明');return tx(()=>{const u=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(id);if(!u)throw error(404,'账户不存在');const recoveryKey=rand(32);db.prepare('UPDATE users SET secret_hash=? WHERE id=?').run(sha(recoveryKey),id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);auditAdmin('account.recovery.reset',{userId:id,reason:note});return {userId:id,nickname:u.nickname,recoveryKey,warning:'仅本次显示新密钥，旧密钥及所有旧会话立即失效。请通过核验过的渠道交付本人。'}})}
-function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nickname,g.amount,g.reason,g.created_at AS createdAt FROM admin_coin_grants g JOIN users u ON u.id=g.user_id ORDER BY g.created_at DESC LIMIT 100').all()}
+function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nickname,g.amount,g.reason,g.created_at AS createdAt FROM admin_coin_grants g JOIN users u ON u.id=g.user_id ORDER BY g.created_at DESC LIMIT 100').all().map(row=>({...row,amount:coinTenths(row.amount)/10}))}
 function session(id){const token=rand(36);db.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').run(sha(token),id,Date.now()+43200000);return token}
 function completedTaskCount(id){return db.prepare("SELECT COUNT(DISTINCT CASE WHEN task_id='letter' OR task_id LIKE 'letter:%' THEN 'letter' WHEN task_id='quiz' OR task_id LIKE 'quiz:%' THEN 'quiz' ELSE task_id END) AS n FROM tasks WHERE user_id=? AND task_id<>'report'").get(id).n}
 
@@ -199,7 +199,7 @@ function fuseCards(id,b){
   return {card:{id:card.id,rarity:card.rarity},profile:state(id),alreadyCompleted:false};
  });
 }
-function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,quiz:quiz.status(id),status:membership.get(id).status==='verified'?'islander':'visitor',membership:membership.get(id),taskProgress:{completed:completedTaskCount(id)},coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id).filter(x=>(!x.startsWith('letter:')||x==='letter:'+day())&&(!x.startsWith('quiz:')||x==='quiz:'+day())),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id),inventory:cardInventory(id),fusionDaily:fusionQuota.daily(id),fusions:db.prepare('SELECT source_a AS first,source_b AS second,result_card_id AS result, result_rarity AS rarity,created_at AS at FROM card_fusions WHERE user_id=? ORDER BY id DESC LIMIT 50').all(id)}}
+function state(id){const u=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);return {...u,quiz:quiz.status(id),status:membership.get(id).status==='verified'?'islander':'visitor',membership:membership.get(id),taskProgress:{completed:completedTaskCount(id)},coins:balance(id),ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id).map(row=>({...row,amount:coinTenths(row.amount)/10})),tasks:db.prepare('SELECT task_id FROM tasks WHERE user_id=?').all(id).map(x=>x.task_id).filter(x=>(!x.startsWith('letter:')||x==='letter:'+day())&&(!x.startsWith('quiz:')||x==='quiz:'+day())),bonuses:db.prepare('SELECT threshold FROM bonuses WHERE user_id=?').all(id).map(x=>x.threshold),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC').all(id).map(x=>x.day),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC').all(id),inventory:cardInventory(id),fusionDaily:fusionQuota.daily(id),fusions:db.prepare('SELECT source_a AS first,source_b AS second,result_card_id AS result, result_rarity AS rarity,created_at AS at FROM card_fusions WHERE user_id=? ORDER BY id DESC LIMIT 50').all(id)}}
 function getActivity(){const row=db.prepare('SELECT starts_at,ends_at FROM activity_settings WHERE id=1').get();const settings={startsAt:row?.starts_at??null,endsAt:row?.ends_at??null};const at=Date.now();return {...settings,timezone:'Asia/Shanghai',phase:activityPhase(settings,at),serverTime:new Date(at).toISOString()}}
 function requireActiveActivity(){const phase=getActivity().phase;if(phase!=='active')throw error(403,phase==='upcoming'?'活动尚未开始，暂不能登记、兑奖、签到或抽卡':'活动已结束，已有账户和收藏仍可查看')}
 function saveActivity(payload,guard=()=>{}){let settings;try{settings=validateActivity(payload)}catch(e){throw error(400,e.message)}return tx(()=>{guard();db.prepare('INSERT INTO activity_settings(id,starts_at,ends_at,updated_at) VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET starts_at=excluded.starts_at,ends_at=excluded.ends_at,updated_at=excluded.updated_at').run(settings.startsAt,settings.endsAt,now());auditAdmin('activity.update',settings);return getActivity()})}
@@ -234,7 +234,7 @@ const messageBoard=createMessageBoard(db,auditAdmin,tx);
 const maintenance=createMaintenance(db,operations,auditAdmin,tx);
 function adminAudit(){return db.prepare('SELECT id,action,details,created_at FROM admin_audit ORDER BY id DESC LIMIT 100').all().map(row=>({...row,details:JSON.parse(row.details)}))}
 function codeStats(){return db.prepare('SELECT task_id,COUNT(*) total,SUM(CASE WHEN redeemed_by IS NULL THEN 1 ELSE 0 END) unused,SUM(CASE WHEN redeemed_by IS NOT NULL THEN 1 ELSE 0 END) redeemed FROM codes GROUP BY task_id ORDER BY task_id').all()}
-function userDetail(id){if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id))throw error(400,'参与者编号无效');const user=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);if(!user)throw error(404,'岛民不存在');return {user,ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 200').all(id),tasks:db.prepare('SELECT task_id,redeemed_at FROM tasks WHERE user_id=? ORDER BY redeemed_at DESC').all(id),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC LIMIT 90').all(id),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id)}}
+function userDetail(id){if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id))throw error(400,'参与者编号无效');const user=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);if(!user)throw error(404,'岛民不存在');return {user,ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 200').all(id).map(row=>({...row,amount:coinTenths(row.amount)/10})),tasks:db.prepare('SELECT task_id,redeemed_at FROM tasks WHERE user_id=? ORDER BY redeemed_at DESC').all(id),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC LIMIT 90').all(id),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id)}}
 function overview(){return {users:db.prepare('SELECT COUNT(*) AS n FROM users').get().n,redeemed:db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE task_id<>'report'").get().n,draws:db.prepare('SELECT COUNT(*) AS n FROM draws').get().n,codesUnused:db.prepare('SELECT COUNT(*) AS n FROM codes WHERE redeemed_by IS NULL').get().n,announcementsPublished:db.prepare('SELECT COUNT(*) AS n FROM announcements WHERE published=1').get().n}}
 function listUsers(){return db.prepare("SELECT u.id,u.nickname,u.created_at,CASE WHEN EXISTS(SELECT 1 FROM memberships m WHERE m.user_id=u.id AND m.status='verified') THEN 'islander' ELSE 'visitor' END AS status,(SELECT COUNT(*) FROM tasks t WHERE t.user_id=u.id) tasks,(SELECT COUNT(*) FROM draws d WHERE d.user_id=u.id) draws FROM users u ORDER BY u.created_at DESC LIMIT 100").all().map(row=>({...row,coins:balance(row.id)}))}
 // Existing accounts have no verified-islander field: never delete all 'visitor' profiles.
@@ -247,6 +247,8 @@ function cleanupCandidates(){
  AND NOT EXISTS(SELECT 1 FROM quiz_attempts q WHERE q.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM island_mail m WHERE m.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM island_items i WHERE i.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM card_fusions f WHERE f.user_id=u.id)
+ AND NOT EXISTS(SELECT 1 FROM fusion_quota_grants g WHERE g.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM checkins c WHERE c.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM draws d WHERE d.user_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM bonuses b WHERE b.user_id=u.id)
@@ -403,6 +405,7 @@ else if(path==='/api/admin/v2/config'&&req.method==='POST'){data=adminV2Config.s
 else if(path==='/api/admin/fusion/quotas'&&req.method==='GET'){data=fusionQuota.query(url.searchParams.get('q'))}
 else if(path==='/api/admin/fusion/grants'&&req.method==='POST'){data=fusionQuota.grant(b)}
 else if(path==='/api/admin/fusion/grants'&&req.method==='GET'){data=fusionQuota.history(url.searchParams.get('userId'))}
+else if(path==='/api/admin/v2/status'&&req.method==='GET'){data={maintenance:maintenanceState(),activity:getActivity(),features:{pool:featureAccess.read('pool'),office:featureAccess.read('office')},coinsTotal:sumCoinRows(db.prepare('SELECT amount FROM ledger').iterate()),pending:{memberships:db.prepare("SELECT COUNT(*) AS n FROM memberships WHERE status='pending'").get().n,recovery:db.prepare("SELECT COUNT(*) AS n FROM account_recovery_requests WHERE status='pending'").get().n,works:db.prepare("SELECT COUNT(*) AS n FROM resident_works w WHERE w.status='submitted' AND NOT EXISTS(SELECT 1 FROM resident_work_reviews r WHERE r.work_id=w.id)").get().n}}}
 else if(path==='/api/admin/v2/fusion'&&req.method==='GET'){data={records:db.prepare('SELECT COUNT(*) AS n FROM card_fusions').get().n,inventoryWrites:false,source:'original-fusion-service'}}
 else if(path==='/api/admin/v2/read-model'&&req.method==='GET'){admin(req);data={schemaVersion:1,buildRevision:BUILD_REVISION,readOnly:true,overview:overview(),cards:getCards(),residents:{items:listUsers(),limit:100,scope:'latest'},audit:{items:adminAudit(),limit:100,scope:'latest'},legacyAdmin:'/admin',capabilities:{writes:false,fusion:false}}}
 else if(path==='/api/admin/assets'&&req.method==='GET'){admin(req);data=assetStatus()}
