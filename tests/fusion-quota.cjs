@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict');
+const {DatabaseSync}=require('node:sqlite');
+const {randomUUID}=require('node:crypto');
+(async()=>{
+ const {createFusionQuota}=await import('../server/fusion-quota.mjs');
+ const db=new DatabaseSync(':memory:');
+ db.exec('CREATE TABLE users(id TEXT PRIMARY KEY,nickname TEXT); CREATE TABLE card_fusions(id INTEGER PRIMARY KEY,user_id TEXT,created_at TEXT);');
+ db.exec("INSERT INTO users VALUES('BZI-test','测试'),('BZI-other','另一个');");
+ const tx=f=>{db.exec('BEGIN IMMEDIATE');try{const r=f();db.exec('COMMIT');return r}catch(e){db.exec('ROLLBACK');throw e}};
+ let time='2026-11-01T15:59:00.000Z',fail=false,audits=[];
+ const q=createFusionQuota({db,tx,now:()=>time,error:(s,m)=>Object.assign(Error(m),{status:s}),audit:(a,d)=>{if(fail)throw Error('audit failed');audits.push(d)}});
+ for(let i=1;i<=3;i++)db.prepare('INSERT INTO card_fusions VALUES(?,?,?)').run(i,'BZI-test',time);
+ assert.equal(q.daily('BZI-test').remaining,0);
+ const p={userId:'BZI-test',amount:2,reason:'补发',confirmed:true,requestId:randomUUID()};
+ q.grant(p);assert.equal(q.daily(p.userId).limit,5);assert.equal(q.daily(p.userId).remaining,2);
+ q.grant(p);assert.equal(audits.length,1);assert.equal(q.daily('BZI-other').extra,0);
+ assert.throws(()=>q.grant({...p,amount:3}),e=>e.status===409);
+ fail=true;assert.throws(()=>q.grant({...p,requestId:randomUUID()}),/audit failed/);assert.equal(q.daily(p.userId).extra,2);
+ fail=false;for(let i=4;i<=5;i++)db.prepare('INSERT INTO card_fusions VALUES(?,?,?)').run(i,p.userId,time);
+ assert.equal(q.daily(p.userId).remaining,0);
+ time='2026-11-01T16:00:00.000Z';assert.equal(q.daily(p.userId).extra,0);assert.equal(q.daily(p.userId).used,0);assert.equal(q.daily(p.userId).remaining,3);
+ assert.equal(q.history(p.userId).items.length,1);q.grant(p);assert.equal(q.daily(p.userId).extra,0);
+ for(const amount of [0,-1,101,1.5,'2'])assert.throws(()=>q.grant({...p,amount,requestId:randomUUID()}));
+ console.log('PASS fusion quota grants, idempotency, isolation, audit rollback, Beijing midnight reset');
+})().catch(e=>{console.error(e);process.exitCode=1});
