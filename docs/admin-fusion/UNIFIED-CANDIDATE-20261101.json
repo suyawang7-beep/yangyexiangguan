@@ -1,0 +1,13 @@
+{
+  "candidateRevision": "9efb9170c1a93974ee26898e7ba840c768387e20",
+  "productionBaseline": "11c9eee2178072d0960a376f0f809635cdb71a17",
+  "branch": "codex/admin-unified-20261101",
+  "sha256": "36c8a249842f7edd023514c1b554c04a16e96c6f064376dfd84cd90ff3c1c804",
+  "runtimeFilesVerified": 305,
+  "upgradePreservesAllOldRows": true,
+  "additiveQuotaTable": true,
+  "rollbackPreservesCoinsAndGrants": true,
+  "syntheticOnly": true,
+  "productionDeployed": false,
+  "requiresNewProductionApproval": true
+}
