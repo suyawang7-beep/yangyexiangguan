@@ -1,0 +1,45 @@
+{
+  "deployedAt": "2026-11-01T12:59:12.524Z",
+  "deployed": true,
+  "revision": "4c760dc2fcada201a4053cf7f6009e2fd81c4987",
+  "runtimeFilesVerified": 307,
+  "existingRowsUnchanged": true,
+  "additiveTables": 3,
+  "rollbackGuards": 2,
+  "oldRelease": "/opt/buzhi-production/releases/unified-51b37743ef341ed8099353547aa12b3a755e88a6",
+  "newRelease": "/opt/buzhi-production/releases/unified-4c760dc2fcada201a4053cf7f6009e2fd81c4987",
+  "topicModuleEnabled": false,
+  "archiveSha256": "c9ee430c5a8d59eee0e18e548c089884fb4c61b3d7d2671cba783ef01b166da4",
+  "backup": {
+    "revision": "4c760dc2fcada201a4053cf7f6009e2fd81c4987",
+    "backup": "/var/backups/buzhi-production/bulk-mail-4c760dc",
+    "archive": "/home/ubuntu/buzhi-bulk-backup-4c760dc.tar.gz",
+    "sha256": "9baa0da2c916cc036934f49a0670461f66347d6204523aac58f6cae6dc8d1c9f",
+    "previousRelease": "/opt/buzhi-production/releases/unified-51b37743ef341ed8099353547aa12b3a755e88a6",
+    "serviceStoppedForConsistentBackup": true
+  },
+  "offhostRestore": {
+    "sha256": "9baa0da2c916cc036934f49a0670461f66347d6204523aac58f6cae6dc8d1c9f",
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "restoredTables": 35,
+    "restoredFiles": {
+      "assets": 181,
+      "code": 306
+    },
+    "offhostDirectory": "C:/Users/A/Backups/buzhi-production/bulk-mail-4c760dc",
+    "restoredAt": "2026-11-01T12:57:38.610Z"
+  },
+  "checks": {
+    "publicStatus": 200,
+    "maintenance": false,
+    "existingCardsEqual": true,
+    "unauthorized": 403,
+    "bulkAPI": 200,
+    "retiredDirectGrants": 410,
+    "liveBatchesCreated": 0,
+    "productionBusinessWrites": 0,
+    "syntheticStage": "PASS",
+    "actualPackageUpgradeRollback": "PASS"
+  }
+}
