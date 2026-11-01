@@ -41,7 +41,7 @@ test('send retries compare all content including message and create one audit re
 });
 test('invalid amounts, ids and cursors are rejected without writes',async()=>{
  const count=db.prepare('SELECT count(*) n FROM island_mail').get().n;
- for(const amount of [0,-1,1.5,5001,'75',true])assert.equal((await api('admin/island-mail/send',gift(a.id,{amount}),admin)).status,400);
+ for(const amount of [0,-1,1.51,5001,'75',true])assert.equal((await api('admin/island-mail/send',gift(a.id,{amount}),admin)).status,400);
  for(const id of [true,'1',null,0,-1,1.2])assert.equal((await api('island-mail/claim',{id},a.token)).status,400);
  for(const cursor of ['0','-1','no','1.5','9007199254740992'])assert.equal((await api('island-mail?before='+cursor,undefined,a.token)).status,400);
  assert.equal(db.prepare('SELECT count(*) n FROM island_mail').get().n,count);
@@ -148,4 +148,14 @@ test('131.4 coin redemption is verified-only, one-per-islander, atomic, and capp
   assert.equal(await coins(c.token),before);
   assert.equal(db.prepare("SELECT count(*) n FROM coin_redemption_claims WHERE campaign_id='island-coin-1314-40' AND user_id=?").get(c.id).n,0);
  }finally{db.prepare("UPDATE coin_redemption_campaigns SET redeemed_count=2 WHERE id='island-coin-1314-40'").run()}
+});
+
+test('fractional mail credits once',async()=>{const initial=await coins(a.token),m=await send(gift(a.id,{amount:131.4}));const replies=await Promise.all([api('island-mail/claim',{id:m.id},a.token),api('island-mail/claim',{id:m.id},a.token)]);assert(replies.every(r=>r.status===200));assert.equal(replies.filter(r=>r.data.claimed).length,1);assert.equal(await coins(a.token),Math.round((initial+131.4)*10)/10)});
+
+test('fractional grants accumulate and draw deducts exactly, invalid precision never writes',async()=>{
+ const initial=await coins(a.token),body={userId:a.id,amount:131.4,reason:'精度验收赠币',requestId:randomUUID()};
+ for(let i=0;i<3;i++)assert.equal((await api('admin/coins/grant',{...body,requestId:randomUUID()},admin)).status,200);
+ assert.equal(await coins(a.token),Math.round((initial+394.2)*10)/10);
+ for(const amount of [0.01,1.51,-1,0,'131.4',5001])assert.equal((await api('admin/coins/grant',{...body,amount,requestId:randomUUID()},admin)).status,400);
+ const before=await coins(a.token);assert.equal((await api('draw',{},a.token)).status,200);assert.equal(await coins(a.token),Math.round((before-50)*10)/10);
 });

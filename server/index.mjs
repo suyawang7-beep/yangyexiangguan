@@ -1,3 +1,4 @@
+import {coinTenths,ledgerBalance,validCoinAmount} from './money.mjs';
 import {createAdminV2Config} from './admin-v2-config.mjs';
 import {createTopicAssets} from './topic-assets.mjs';
 import {serveAdminV2} from './admin-v2-pages.mjs';
@@ -106,12 +107,12 @@ function tx(f){db.exec('BEGIN IMMEDIATE');try{const out=f();db.exec('COMMIT');re
 function auth(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token)throw error(401,'请先登录');const s=db.prepare('SELECT user_id FROM sessions WHERE token_hash=? AND expires>?').get(sha(token),Date.now());if(!s)throw error(401,'登录已失效');return s.user_id}
 const topicAssets=process.env.ENABLE_TOPIC_ASSETS==='1'?createTopicAssets({db,assetDir:ASSET_DIR,slots:JSON.parse(readFileSync(new URL('./topic-asset-slots.json',import.meta.url),'utf8').replace(/^\uFEFF/,'')),audit:auditAdmin}):null;
 function admin(req){const token=/^Bearer (.+)$/.exec(req.headers.authorization||'')?.[1];if(!token||!eq(token,ADMIN))throw error(403,'无管理权限')}
-function balance(id){return db.prepare('SELECT COALESCE(SUM(amount),0) AS n FROM ledger WHERE user_id=?').get(id).n}
-function earn(id,amount,reason){db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(id,amount,reason,now())}
+function balance(id){return ledgerBalance(db,id)}
+function earn(id,amount,reason){db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(id,coinTenths(amount)/10,reason,now())}
 db.exec("CREATE TABLE IF NOT EXISTS admin_coin_grants (request_id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),amount INTEGER NOT NULL,reason TEXT NOT NULL,created_at TEXT NOT NULL)");
 function grantCoins(b){
  const userId=String(b.userId||'').trim(),amount=b.amount,reason=String(b.reason||'').trim(),requestId=String(b.requestId||'');
- if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||!Number.isSafeInteger(amount)||amount<1||amount>5000||reason.length<3||reason.length>150||!/^[0-9a-f-]{36}$/i.test(requestId))throw error(400,'请填写完整岛民ID、1至5000枚金币、3至150字的原因');
+ if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||!validCoinAmount(amount)||reason.length<3||reason.length>150||!/^[0-9a-f-]{36}$/i.test(requestId))throw error(400,'请填写完整岛民ID、0.1至5000枚金币、3至150字的原因');
  return tx(()=>{
   const previous=db.prepare('SELECT user_id AS userId,amount,reason FROM admin_coin_grants WHERE request_id=?').get(requestId);
   if(previous){if(previous.userId!==userId||previous.amount!==amount||previous.reason!==reason)throw error(409,'请求编号已被使用');return {alreadyProcessed:true,...previous,coins:balance(userId)}}
@@ -134,7 +135,7 @@ function islandItems(id,before){membership.requireVerified(id);return mailPage(d
 function sendIslandMail(b){
  const userId=String(b.userId||'').trim(),title=String(b.title||'').trim(),message=String(b.message||'').trim(),kind=String(b.kind||''),itemName=String(b.itemName||'').trim(),requestId=String(b.requestId||'');
  const amount=b.amount;
- if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||title.length<2||title.length>80||message.length>500||!['coins','item'].includes(kind)||!/^[0-9a-f-]{36}$/i.test(requestId)||kind==='coins'&&(!Number.isSafeInteger(amount)||amount<1||amount>5000)||kind==='item'&&(!itemName||itemName.length>80))throw error(400,'请核对岛民编号、信件标题与奖励内容');
+ if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||title.length<2||title.length>80||message.length>500||!['coins','item'].includes(kind)||!/^[0-9a-f-]{36}$/i.test(requestId)||kind==='coins'&&(!validCoinAmount(amount))||kind==='item'&&(!itemName||itemName.length>80))throw error(400,'请核对岛民编号、信件标题与奖励内容');
  return tx(()=>{
   const old=db.prepare('SELECT id,user_id AS userId,title,message,kind,amount,item_name AS itemName FROM island_mail WHERE request_id=?').get(requestId);
   if(old){if(old.userId!==userId||old.title!==title||old.message!==message||old.kind!==kind||old.amount!==(kind==='coins'?amount:0)||old.itemName!==(kind==='item'?itemName:''))throw error(409,'请求编号已被使用');return {...old,alreadyProcessed:true}}
@@ -160,7 +161,7 @@ function claimIslandMail(userId,id){
 }
 function adminIslandMail(before){return mailPage(db.prepare("SELECT m.id,m.user_id AS userId,u.nickname,m.title,m.message,m.kind,m.amount,m.item_name AS itemName,m.created_at AS createdAt,m.claimed_at AS claimedAt FROM island_mail m JOIN users u ON u.id=m.user_id WHERE m.id<? ORDER BY m.id DESC LIMIT 101").all(before))}
 
-function findIslanders(q){const term=String(q||'').trim();if(term.length<2||term.length>64)throw error(400,'请输入至少2个字符的昵称或通行证ID');const rows=db.prepare("SELECT u.id,u.nickname,COALESCE((SELECT SUM(amount) FROM ledger WHERE user_id=u.id),0) AS coins,CASE WHEN EXISTS(SELECT 1 FROM memberships WHERE user_id=u.id AND status='verified') THEN 'verified' ELSE 'visitor' END AS status FROM users u WHERE u.id LIKE ? OR u.nickname LIKE ? ORDER BY u.created_at DESC LIMIT 30").all('%'+term+'%','%'+term+'%');return {items:rows}}
+function findIslanders(q){const term=String(q||'').trim();if(term.length<2||term.length>64)throw error(400,'请输入至少2个字符的昵称或通行证ID');const rows=db.prepare("SELECT u.id,u.nickname,CASE WHEN EXISTS(SELECT 1 FROM memberships WHERE user_id=u.id AND status='verified') THEN 'verified' ELSE 'visitor' END AS status FROM users u WHERE u.id LIKE ? OR u.nickname LIKE ? ORDER BY u.created_at DESC LIMIT 30").all('%'+term+'%','%'+term+'%');return {items:rows.map(row=>({...row,coins:balance(row.id)}))}}
 function resetIslanderKey(b){const id=String(b.userId||''),confirmed=b.confirmed===true,note=String(b.note||'').trim();if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id)||!confirmed||note.length<6||note.length>200)throw error(400,'请确认身份核验，并填写6至200字找回说明');return tx(()=>{const u=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(id);if(!u)throw error(404,'账户不存在');const recoveryKey=rand(32);db.prepare('UPDATE users SET secret_hash=? WHERE id=?').run(sha(recoveryKey),id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);auditAdmin('account.recovery.reset',{userId:id,reason:note});return {userId:id,nickname:u.nickname,recoveryKey,warning:'仅本次显示新密钥，旧密钥及所有旧会话立即失效。请通过核验过的渠道交付本人。'}})}
 function coinGrantHistory(){return db.prepare('SELECT g.user_id AS userId,u.nickname,g.amount,g.reason,g.created_at AS createdAt FROM admin_coin_grants g JOIN users u ON u.id=g.user_id ORDER BY g.created_at DESC LIMIT 100').all()}
 function session(id){const token=rand(36);db.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').run(sha(token),id,Date.now()+43200000);return token}
@@ -234,7 +235,7 @@ function adminAudit(){return db.prepare('SELECT id,action,details,created_at FRO
 function codeStats(){return db.prepare('SELECT task_id,COUNT(*) total,SUM(CASE WHEN redeemed_by IS NULL THEN 1 ELSE 0 END) unused,SUM(CASE WHEN redeemed_by IS NOT NULL THEN 1 ELSE 0 END) redeemed FROM codes GROUP BY task_id ORDER BY task_id').all()}
 function userDetail(id){if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(id))throw error(400,'参与者编号无效');const user=db.prepare('SELECT id,nickname,created_at FROM users WHERE id=?').get(id);if(!user)throw error(404,'岛民不存在');return {user,ledger:db.prepare('SELECT amount,reason,created_at FROM ledger WHERE user_id=? ORDER BY id DESC LIMIT 200').all(id),tasks:db.prepare('SELECT task_id,redeemed_at FROM tasks WHERE user_id=? ORDER BY redeemed_at DESC').all(id),checkins:db.prepare('SELECT day FROM checkins WHERE user_id=? ORDER BY day DESC LIMIT 90').all(id),draws:db.prepare('SELECT card_id,rarity,created_at FROM draws WHERE user_id=? ORDER BY id DESC LIMIT 100').all(id)}}
 function overview(){return {users:db.prepare('SELECT COUNT(*) AS n FROM users').get().n,redeemed:db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE task_id<>'report'").get().n,draws:db.prepare('SELECT COUNT(*) AS n FROM draws').get().n,codesUnused:db.prepare('SELECT COUNT(*) AS n FROM codes WHERE redeemed_by IS NULL').get().n,announcementsPublished:db.prepare('SELECT COUNT(*) AS n FROM announcements WHERE published=1').get().n}}
-function listUsers(){return db.prepare("SELECT u.id,u.nickname,u.created_at,CASE WHEN EXISTS(SELECT 1 FROM memberships m WHERE m.user_id=u.id AND m.status='verified') THEN 'islander' ELSE 'visitor' END AS status,COALESCE((SELECT SUM(amount) FROM ledger l WHERE l.user_id=u.id),0) coins,(SELECT COUNT(*) FROM tasks t WHERE t.user_id=u.id) tasks,(SELECT COUNT(*) FROM draws d WHERE d.user_id=u.id) draws FROM users u ORDER BY u.created_at DESC LIMIT 100").all()}
+function listUsers(){return db.prepare("SELECT u.id,u.nickname,u.created_at,CASE WHEN EXISTS(SELECT 1 FROM memberships m WHERE m.user_id=u.id AND m.status='verified') THEN 'islander' ELSE 'visitor' END AS status,(SELECT COUNT(*) FROM tasks t WHERE t.user_id=u.id) tasks,(SELECT COUNT(*) FROM draws d WHERE d.user_id=u.id) draws FROM users u ORDER BY u.created_at DESC LIMIT 100").all().map(row=>({...row,coins:balance(row.id)}))}
 // Existing accounts have no verified-islander field: never delete all 'visitor' profiles.
 function cleanupCandidates(){
  const cutoff=new Date(Date.now()-24*3600000).toISOString();
