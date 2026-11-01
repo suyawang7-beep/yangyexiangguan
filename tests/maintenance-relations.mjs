@@ -19,11 +19,13 @@ try{
  for(const account of [a,b]){
   await verifyAccount(base,admin,account);
   assert.equal((await api('task-writing',{taskId:'memory',content:'这是一段仅写入隔离测试数据库的回忆文字内容'},account.token)).status,200);
-  assert.equal((await api('admin/coins/grant',{userId:account.id,amount:25,reason:'隔离关联数据测试',requestId:randomUUID()},admin)).status,200);
+  const gift=await api('admin/island-mail/send',{userId:account.id,kind:'coins',amount:25,title:'隔离关联赠送',message:'test',requestId:randomUUID()},admin);assert.equal(gift.status,200);assert.equal((await api('island-mail/claim',{id:gift.data.id},account.token)).status,200);
  }
  const member=(await api('membership',undefined,a.token)).data;
  assert.equal((await api('admin/memberships/review',{userId:a.id,action:'revoke',confirmed:true,verificationCode:member.verificationCode,note:'隔离测试转为游客'},admin)).status,200);
  db=new DatabaseSync(dbPath);
+ // Historical direct grants remain immutable compatibility fixtures, not live admin writes.
+ for(const account of [a,b])db.prepare('INSERT INTO admin_coin_grants VALUES(?,?,?,?,?)').run(randomUUID(),account.id,25,'historical compatibility','2000-01-01');
  for(const account of [a,b]){
   db.prepare('INSERT INTO resident_profiles VALUES(?,?,?,?)').run(account.id,'','隔离档案','2000-01-01');
   const work=db.prepare("INSERT INTO resident_works(user_id,title,body,kind,status,created_at,updated_at) VALUES(?,?,?,'story','submitted',?,?)").run(account.id,'隔离作品','测试正文','2000-01-01','2000-01-01');

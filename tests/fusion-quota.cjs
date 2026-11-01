@@ -21,5 +21,7 @@ const {randomUUID}=require('node:crypto');
  time='2026-11-01T16:00:00.000Z';assert.equal(q.daily(p.userId).extra,0);assert.equal(q.daily(p.userId).used,0);assert.equal(q.daily(p.userId).remaining,3);
  assert.equal(q.history(p.userId).items.length,1);q.grant(p);assert.equal(q.daily(p.userId).extra,0);
  for(const amount of [0,-1,101,1.5,'2'])assert.throws(()=>q.grant({...p,amount,requestId:randomUUID()}));
+ const claimed=tx(()=>q.claimMail({userId:p.userId,mailId:123,amount:2,reason:'claim next day'}));assert.equal(claimed.extra,2);assert.equal(q.history(p.userId).items[0].day,'2026-11-02');tx(()=>q.claimMail({userId:p.userId,mailId:123,amount:2,reason:'claim next day'}));assert.equal(q.daily(p.userId).extra,2);
+ time='2026-11-02T16:00:00.000Z';assert.equal(q.daily(p.userId).extra,0);tx(()=>q.claimMail({userId:p.userId,mailId:123,amount:2,reason:'claim next day'}));assert.equal(q.daily(p.userId).extra,0);
  console.log('PASS fusion quota grants, idempotency, isolation, audit rollback, Beijing midnight reset');
 })().catch(e=>{console.error(e);process.exitCode=1});

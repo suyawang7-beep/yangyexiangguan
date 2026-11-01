@@ -62,9 +62,12 @@ async function request(path,body,token){
  for(const token of [undefined,user.token])for(const path of ['admin/fusion/quotas?q='+user.id,'admin/fusion/grants'])assert([401,403].includes((await request(path,undefined,token)).status));
  const payload={userId:user.id,amount:2,reason:'quota test',confirmed:true,requestId:randomUUID()};
  assert([401,403].includes((await request('admin/fusion/grants',payload,user.token)).status));
- const pair=await Promise.all([request('admin/fusion/grants',payload,admin),request('admin/fusion/grants',payload,admin)]);
- assert(pair.every(r=>r.status===200),JSON.stringify(pair));assert.equal(pair.filter(r=>!r.data.alreadyCompleted).length,1);
- assert.equal((await request('admin/fusion/grants',{...payload,amount:3},admin)).status,409);
+ for(const path of ['admin/coins/grant','admin/fusion/grants'])assert.equal((await request(path,payload,admin)).status,410);
+ const mail={userId:user.id,title:'融卡补发测试',message:'test',kind:'fusion',amount:2,requestId:payload.requestId};
+ const sent=await request('admin/island-mail/send',mail,admin);assert.equal(sent.status,200,JSON.stringify(sent.data));
+ assert.equal((await request('me',undefined,user.token)).data.fusionDaily.limit,3);
+ const pair=await Promise.all([request('island-mail/claim',{id:sent.data.id},user.token),request('island-mail/claim',{id:sent.data.id},user.token)]);
+ assert(pair.every(r=>r.status===200),JSON.stringify(pair));assert.equal(pair.filter(r=>r.data.claimed).length,1);
  const quotaAfter=(await request('admin/fusion/quotas?q='+user.id,undefined,admin)).data.items[0];assert.equal(quotaAfter.used,3);assert.equal(quotaAfter.total,5);assert.equal(quotaAfter.remaining,2);
  const more=new DatabaseSync(dbPath);for(let j=0;j<8;j++)more.prepare('INSERT INTO draws(user_id,card_id,rarity,created_at) VALUES(?,?,?,?)').run(user.id,input[2].id,input[2].rarity,new Date().toISOString());more.close();
  const real=await Promise.all(Array.from({length:3},()=>request('fuse',{first:input[2].id,second:input[2].id,requestId:randomUUID()},user.token)));

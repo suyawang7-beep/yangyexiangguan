@@ -19,16 +19,18 @@ try{
  for(const account of [a,b]){
   await verifyAccount(base,admin,account);
   assert.equal((await api('task-writing',{taskId:'memory',content:'这是一段仅写入隔离测试数据库的回忆文字内容'},account.token)).status,200);
-  assert.equal((await api('admin/coins/grant',{userId:account.id,amount:25,reason:'隔离关联数据测试',requestId:randomUUID()},admin)).status,200);
+  const gift=await api('admin/island-mail/send',{userId:account.id,kind:'coins',amount:25,title:'隔离关联赠送',message:'test',requestId:randomUUID()},admin);assert.equal(gift.status,200);assert.equal((await api('island-mail/claim',{id:gift.data.id},account.token)).status,200);
  }
  for(const account of [a,b]){
- assert.equal((await api('admin/fusion/grants',{userId:account.id,amount:2,reason:'test',confirmed:true,requestId:randomUUID()},admin)).status,200);
+ const gift=await api('admin/island-mail/send',{userId:account.id,kind:'fusion',amount:2,title:'隔离关联融卡',message:'test',reason:'融卡关联原因测试',requestId:randomUUID()},admin);assert.equal(gift.status,200);assert.equal((await api('island-mail/claim',{id:gift.data.id},account.token)).status,200);
  const seed=new DatabaseSync(dbPath);for(let i=0;i<2;i++)seed.prepare('INSERT INTO draws(user_id,card_id,rarity,created_at) VALUES(?,?,?,?)').run(account.id,'N-1','N',new Date().toISOString());seed.close();
  assert.equal((await api('fuse',{first:'N-1',second:'N-1',requestId:randomUUID()},account.token)).status,200);
  }
  const member=(await api('membership',undefined,a.token)).data;
  assert.equal((await api('admin/memberships/review',{userId:a.id,action:'revoke',confirmed:true,verificationCode:member.verificationCode,note:'隔离测试转为游客'},admin)).status,200);
  db=new DatabaseSync(dbPath);
+ // Historical direct grants remain immutable compatibility fixtures, not live admin writes.
+ for(const account of [a,b])db.prepare('INSERT INTO admin_coin_grants VALUES(?,?,?,?,?)').run(randomUUID(),account.id,25,'historical compatibility','2000-01-01');
  for(const account of [a,b]){
   db.prepare('INSERT INTO resident_profiles VALUES(?,?,?,?)').run(account.id,'','隔离档案','2000-01-01');
   const work=db.prepare("INSERT INTO resident_works(user_id,title,body,kind,status,created_at,updated_at) VALUES(?,?,?,'story','submitted',?,?)").run(account.id,'隔离作品','测试正文','2000-01-01','2000-01-01');
@@ -40,11 +42,11 @@ try{
  const reviewRows=(connection,id)=>connection.prepare('SELECT * FROM resident_work_reviews WHERE work_id IN (SELECT id FROM resident_works WHERE user_id=?) ORDER BY work_id').all(id);
  const before=preserved(),beforeReviews=reviewRows(db,b.id);
  const quotaPreview=(await api('admin/visitors/preview-delete',{ids:[a.id]},admin)).data;
- assert.equal(quotaPreview.counts.cardFusions,1);assert.equal(quotaPreview.counts.fusionQuotaGrants,1);
- await api('admin/fusion/grants',{userId:a.id,amount:1,reason:'stale',confirmed:true,requestId:randomUUID()},admin);
+ assert.equal(quotaPreview.counts.fusionMailRewards,1);assert.equal(quotaPreview.counts.cardFusions,1);assert.equal(quotaPreview.counts.fusionQuotaGrants,1);
+ await api('admin/island-mail/send',{userId:a.id,kind:'fusion',amount:1,title:'预览后新赠送',message:'test',reason:'预览变化原因测试',requestId:randomUUID()},admin);
  assert.equal((await api('admin/visitors/delete',{token:quotaPreview.token,confirm:'确认删除所选游客'},admin)).status,409);
  const exported=(await api('admin/export',undefined,admin)).data.data;
- assert.equal(exported.cardFusions.length,2);assert.equal(exported.fusionQuotaGrants.length,3);
+ assert.equal(exported.cardFusions.length,2);assert.equal(exported.fusionQuotaGrants.length,2);
  const first=await api('admin/visitors/preview-delete',{ids:[a.id]},admin);assert.equal(first.status,200);
  db.prepare('UPDATE task_writings SET body=? WHERE user_id=?').run('预览后发生变化的隔离测试文字记录',a.id);
  assert.equal((await api('admin/visitors/delete',{token:first.data.token,confirm:'确认删除所选游客'},admin)).status,409,'Changed writings invalidate deletion preview');
@@ -58,7 +60,7 @@ try{
  const fresh=(await api('admin/visitors/preview-delete',{ids:[a.id]},admin)).data;
  const removed=await api('admin/visitors/delete',{token:fresh.token,confirm:'确认删除所选游客'},admin);assert.equal(removed.status,200,JSON.stringify(removed.data));assert.equal(removed.data.deleted,1);
  for(const table of ['card_fusions','fusion_quota_grants','users','task_writings','admin_coin_grants','resident_profiles','resident_works','account_recovery_requests'])assert.equal(db.prepare('SELECT COUNT(*) n FROM '+table+' WHERE '+(table==='users'?'id':'user_id')+'=?').get(a.id).n,0);
- const backup=new DatabaseSync(join(folder,'backups',removed.data.backup.name),{readOnly:true});for(const table of ['task_writings','admin_coin_grants','resident_profiles','resident_works','account_recovery_requests'])assert.equal(backup.prepare('SELECT COUNT(*) n FROM '+table+' WHERE user_id=?').get(a.id).n,1);assert.equal(reviewRows(backup,a.id)[0].decision,'rejected');assert.equal(backup.prepare('SELECT COUNT(*) n FROM card_fusions WHERE user_id=?').get(a.id).n,1);assert.equal(backup.prepare('SELECT COUNT(*) n FROM fusion_quota_grants WHERE user_id=?').get(a.id).n,2);backup.close();
+ const backup=new DatabaseSync(join(folder,'backups',removed.data.backup.name),{readOnly:true});for(const table of ['task_writings','admin_coin_grants','resident_profiles','resident_works','account_recovery_requests'])assert.equal(backup.prepare('SELECT COUNT(*) n FROM '+table+' WHERE user_id=?').get(a.id).n,1);assert.equal(backup.prepare('SELECT COUNT(*) n FROM island_mail_fusion_rewards WHERE mail_id IN (SELECT id FROM island_mail WHERE user_id=?)').get(a.id).n,2);assert.equal(backup.prepare('SELECT COUNT(*) n FROM island_mail_reward_notes WHERE mail_id IN (SELECT id FROM island_mail WHERE user_id=?)').get(a.id).n,2);assert.equal(reviewRows(backup,a.id)[0].decision,'rejected');assert.equal(backup.prepare('SELECT COUNT(*) n FROM card_fusions WHERE user_id=?').get(a.id).n,1);assert.equal(backup.prepare('SELECT COUNT(*) n FROM fusion_quota_grants WHERE user_id=?').get(a.id).n,1);backup.close();
  assert.equal(db.prepare('SELECT COUNT(*) n FROM resident_work_reviews').get().n,1);assert.equal(db.prepare('SELECT COUNT(*) n FROM resident_work_reviews WHERE work_id IN (SELECT id FROM resident_works WHERE user_id=?)').get(b.id).n,1);
  assert.deepEqual(reviewRows(db,b.id),beforeReviews);assert.deepEqual(preserved(),before,'Unselected verified account and all its records remain untouched');
  assert.equal((await api('me',undefined,b.token)).status,200);

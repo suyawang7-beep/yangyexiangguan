@@ -53,6 +53,8 @@ export function createOperations(db,dbPath,audit){
   try{
    // Explicit columns: no recovery hashes, sessions, or redemption-code credentials.
    const data={
+    mailRewardNotes:hasTable('island_mail_reward_notes')?db.prepare('SELECT mail_id,reason FROM island_mail_reward_notes ORDER BY mail_id').all():[],
+    fusionMailRewards:hasTable('island_mail_fusion_rewards')?db.prepare('SELECT mail_id,amount FROM island_mail_fusion_rewards ORDER BY mail_id').all():[],
     cardFusions:hasTable('card_fusions')?db.prepare('SELECT id,user_id,request_id,source_a,source_b,result_card_id,result_rarity,created_at FROM card_fusions ORDER BY id').all():[],
     fusionQuotaGrants:hasTable('fusion_quota_grants')?db.prepare('SELECT request_id,user_id,day,amount,reason,actor,created_at FROM fusion_quota_grants ORDER BY created_at,request_id').all():[],
     quizAttempts:db.prepare('SELECT user_id,day,group_index,score,answers_json,feedback_json,attempts,rewarded,created_at,updated_at FROM quiz_attempts ORDER BY day,user_id').all(),
@@ -73,6 +75,8 @@ export function createOperations(db,dbPath,audit){
     cardProfiles:db.prepare('SELECT card_id,name,story,oc_id,updated_at FROM card_profiles ORDER BY card_id').all(),
     islandMessages:db.prepare('SELECT id,user_id,body,anonymous,reply,created_at,replied_at,hidden FROM island_messages ORDER BY id').all()
    };
+   const fusionMail=new Map(data.fusionMailRewards.map(r=>[r.mail_id,r.amount])),notes=new Map(data.mailRewardNotes.map(r=>[r.mail_id,r.reason]));
+   data.islandMail=data.islandMail.map(row=>({...row,...(fusionMail.has(row.id)?{kind:'fusion',amount:fusionMail.get(row.id),item_name:''}:{}),...(notes.has(row.id)?{reason:notes.get(row.id)}:{})}));
    out={format:'buzhi-operations',version:1,exportedAt:new Date().toISOString(),timezone:'Asia/Shanghai',data};
    db.exec('COMMIT');
   }catch(e){db.exec('ROLLBACK');throw e}

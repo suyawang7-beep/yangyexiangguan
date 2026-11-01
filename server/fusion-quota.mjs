@@ -18,5 +18,13 @@ export function createFusionQuota({db,tx,now=()=>new Date().toISOString(),error,
    return {userId,requestId,alreadyCompleted:false,quota:daily(userId)};
   });
  }
- return {daily,query,grant,history};
+ // Caller owns the same transaction that marks the inbox reward claimed.
+ function claimMail({userId,mailId,amount,reason}){
+  if(!Number.isSafeInteger(mailId)||mailId<1||!Number.isSafeInteger(amount)||amount<1||amount>100)throw error(400,'融卡奖励无效');
+  const requestId='mail:'+mailId,previous=db.prepare('SELECT user_id,amount FROM fusion_quota_grants WHERE request_id=?').get(requestId);
+  if(previous){if(previous.user_id!==userId||previous.amount!==amount)throw error(409,'信箱奖励记录不一致');return daily(userId)}
+  const {day}=period(),createdAt=now();db.prepare('INSERT INTO fusion_quota_grants VALUES(?,?,?,?,?,?,?)').run(requestId,userId,day,amount,reason,'admin',createdAt);
+  audit('fusion.quota.claim',{actor:'admin',userId,mailId,amount,reason,day,requestId,createdAt});return daily(userId);
+ }
+ return {daily,query,grant,history,claimMail};
 }

@@ -111,6 +111,7 @@ test('two independent server processes racing on SQLite can credit one gift only
   const replies=await Promise.all(Array.from({length:12},(_,i)=>api('island-mail/claim',{id:m.id},a.token,i%2?otherBase:base)));
   assert(replies.every(r=>r.status===200));assert.equal(replies.filter(r=>r.data.claimed).length,1);assert.equal(await coins(a.token),initial+75);
   assert.equal(db.prepare("SELECT count(*) n FROM ledger WHERE user_id=? AND reason='岛民信箱：双进程金币测试'").get(a.id).n,1);
+  const f=await send(gift(a.id,{kind:'fusion',amount:2,title:'双进程融卡测试'})),before=(await api('me',undefined,a.token)).data.fusionDaily.extra;const raced=await Promise.all(Array.from({length:12},(_,i)=>api('island-mail/claim',{id:f.id},a.token,i%2?otherBase:base)));assert(raced.every(r=>r.status===200));assert.equal(raced.filter(r=>r.data.claimed).length,1);assert.equal((await api('me',undefined,a.token)).data.fusionDaily.extra,before+2);
  }finally{if(other.exitCode===null){const done=new Promise(r=>other.once('exit',r));other.kill();await done}}
 });
 
@@ -154,9 +155,9 @@ test('fractional mail credits once',async()=>{const initial=await coins(a.token)
 
 test('fractional grants accumulate and draw deducts exactly, invalid precision never writes',async()=>{
  const initial=await coins(a.token),body={userId:a.id,amount:131.4,reason:'精度验收赠币',requestId:randomUUID()};
- for(let i=0;i<3;i++)assert.equal((await api('admin/coins/grant',{...body,requestId:randomUUID()},admin)).status,200);
+ for(let i=0;i<3;i++){const m=await send(gift(a.id,{amount:131.4}));assert.equal((await api('island-mail/claim',{id:m.id},a.token)).status,200)}
  assert.equal(await coins(a.token),Math.round((initial+394.2)*10)/10);
- for(const amount of [0.01,1.51,-1,0,'131.4',5001])assert.equal((await api('admin/coins/grant',{...body,amount,requestId:randomUUID()},admin)).status,400);
+ for(const amount of [0.01,1.51,-1,0,'131.4',5001])assert.equal((await api('admin/island-mail/send',gift(a.id,{amount}),admin)).status,400);
  const before=await coins(a.token);assert.equal((await api('draw',{},a.token)).status,200);assert.equal(await coins(a.token),Math.round((before-50)*10)/10);
 });
 
@@ -179,6 +180,24 @@ test('visitor deletion preview sums signed ledger rows in tenths',async()=>{
  assert.deepEqual(db.prepare('SELECT * FROM ledger WHERE user_id=?').all(u.id),before);
 });
 
-test('automatic test cleanup excludes accounts with admin fusion quota grants',async()=>{const u=await account('自动化测试融卡补发',false);db.prepare('UPDATE users SET created_at=? WHERE id=?').run('2020-01-01T00:00:00.000Z',u.id);const grant=await api('admin/fusion/grants',{userId:u.id,amount:2,reason:'synthetic safety',confirmed:true,requestId:randomUUID()},admin);assert.equal(grant.status,200);const preview=await api('admin/test-cleanup',undefined,admin);assert(!preview.data.ids.includes(u.id));assert.equal(db.prepare('SELECT COUNT(*) n FROM fusion_quota_grants WHERE user_id=?').get(u.id).n,1);});
+test('automatic test cleanup excludes accounts with admin fusion quota grants',async()=>{const u=await account('自动化测试融卡补发',false);db.prepare('UPDATE users SET created_at=? WHERE id=?').run('2020-01-01T00:00:00.000Z',u.id);await send(gift(u.id,{kind:'fusion',amount:2}));const preview=await api('admin/test-cleanup',undefined,admin);assert(!preview.data.ids.includes(u.id));assert.equal(db.prepare('SELECT COUNT(*) n FROM fusion_quota_grants WHERE user_id=?').get(u.id).n,0);});
 
 test('legacy binary noise is normalized in all displayed histories without rewriting rows',async()=>{const value=0.30000000000000004;db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)').run(a.id,value,'historical noise',new Date().toISOString());const user=(await api('me',undefined,a.token)).data;assert.equal(user.ledger.find(x=>x.reason==='historical noise').amount,0.3);const detail=(await api('admin/user?id='+a.id,undefined,admin)).data;assert.equal(detail.ledger.find(x=>x.reason==='historical noise').amount,0.3);db.prepare('INSERT INTO admin_coin_grants VALUES(?,?,?,?,?)').run(randomUUID(),a.id,value,'historical grant',new Date().toISOString());assert.equal((await api('admin/coins/history',undefined,admin)).data.find(x=>x.reason==='historical grant').amount,0.3);const mail=await send(gift(a.id,{amount:0.3,title:'historical noise mail'}));db.prepare('UPDATE island_mail SET amount=? WHERE id=?').run(value,mail.id);assert.equal((await api('island-mail',undefined,a.token)).data.items.find(x=>x.id===mail.id).amount,0.3);assert.equal(db.prepare("SELECT amount FROM ledger WHERE reason='historical noise'").get().amount,value);assert.equal(db.prepare('SELECT amount FROM island_mail WHERE id=?').get(mail.id).amount,value);});
+
+test('fusion inbox reward credits only on owner claim, audit failure rolls back and restart never creates items',async()=>{
+ for(const amount of [0,-1,1.2,101,'2'])assert.equal((await api('admin/island-mail/send',gift(a.id,{kind:'fusion',amount}),admin)).status,400);
+ const initial=(await api('me',undefined,a.token)).data.fusionDaily.extra;
+ const m=await send(gift(a.id,{kind:'fusion',amount:2,title:'融卡信箱奖励',reason:'额外融卡赠送原因'}));
+ assert.equal((await api('me',undefined,a.token)).data.fusionDaily.extra,initial);
+ const row=(await api('island-mail',undefined,a.token)).data.items.find(x=>x.id===m.id);assert.equal(row.kind,'fusion');assert.equal(row.amount,2);assert.equal(row.reason,'额外融卡赠送原因');
+ assert.equal((await api('admin/island-mail/send',gift(a.id,{kind:'fusion',amount:2,title:'融卡信箱奖励',reason:'不同赠送原因',requestId:db.prepare('SELECT request_id FROM island_mail WHERE id=?').get(m.id).request_id}),admin)).status,409);
+ assert.equal((await api('island-mail/claim',{id:m.id},b.token)).status,404);
+ db.exec("CREATE TRIGGER fail_fusion_claim_audit BEFORE INSERT ON admin_audit WHEN NEW.action='fusion.quota.claim' BEGIN SELECT RAISE(ABORT,'audit unavailable'); END");
+ try{assert.equal((await api('island-mail/claim',{id:m.id},a.token)).status,500);assert.equal(db.prepare('SELECT claimed_at FROM island_mail WHERE id=?').get(m.id).claimed_at,null);assert.equal((await api('me',undefined,a.token)).data.fusionDaily.extra,initial)}finally{db.exec('DROP TRIGGER fail_fusion_claim_audit')}
+ db.exec("CREATE TRIGGER fail_fusion_credit BEFORE INSERT ON fusion_quota_grants BEGIN SELECT RAISE(ABORT,'credit unavailable'); END");try{assert.equal((await api('island-mail/claim',{id:m.id},a.token)).status,500);assert.equal(db.prepare('SELECT claimed_at FROM island_mail WHERE id=?').get(m.id).claimed_at,null)}finally{db.exec('DROP TRIGGER fail_fusion_credit')}
+ const claims=await Promise.all(Array.from({length:8},()=>api('island-mail/claim',{id:m.id},a.token)));assert(claims.every(r=>r.status===200));assert.equal(claims.filter(r=>r.data.claimed).length,1);assert.equal(claims[0].data.fusionDaily.extra,initial+2);
+ await stop();await start();assert.equal(db.prepare('SELECT COUNT(*) n FROM island_items WHERE mail_id=?').get(m.id).n,0);
+ assert.equal((await api('island-mail',undefined,a.token)).data.items.find(x=>x.id===m.id).kind,'fusion');
+ for(const path of ['admin/coins/grant','admin/fusion/grants']){assert.equal((await api(path,{userId:a.id,amount:2},a.token)).status,403);assert.equal((await api(path,{userId:a.id,amount:2},admin)).status,410)}
+ const out=(await api('admin/export',undefined,admin)).data.data;assert(out.fusionMailRewards.some(x=>x.mail_id===m.id));assert.equal(out.islandMail.find(x=>x.id===m.id).kind,'fusion');assert.equal(out.islandMail.find(x=>x.id===m.id).reason,'额外融卡赠送原因');assert.equal(db.prepare('SELECT reason FROM fusion_quota_grants WHERE request_id=?').get('mail:'+m.id).reason,'额外融卡赠送原因');
+});

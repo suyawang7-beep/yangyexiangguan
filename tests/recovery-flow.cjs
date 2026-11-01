@@ -21,7 +21,7 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  const {verifyAccount}=require('./helpers/membership.cjs');await verifyAccount(base,admin,a);
  assert.equal((await api('task-writing',{taskId:'memory',content:'这是重置密钥前必须保留的隔离测试回忆文字'},a.token)).status,200);
  assert.equal((await api('checkin',{},a.token)).status,200);assert.equal((await api('draw',{},a.token)).status,200);
- assert.equal((await api('admin/coins/grant',{userId:a.id,amount:25,reason:'隔离测试赠送记录',requestId:randomUUID()},admin)).status,200);
+ const mail=await api('admin/island-mail/send',{userId:a.id,kind:'coins',amount:25,title:'隔离测试赠送记录',message:'test',requestId:randomUUID()},admin);assert.equal(mail.status,200);assert.equal((await api('island-mail/claim',{id:mail.data.id},a.token)).status,200);
  assert.equal((await api('admin/codes',{taskId:'live',count:1},admin)).status,200);
  db.prepare('INSERT INTO bonuses(user_id,threshold) VALUES(?,?)').run(a.id,3);
  const before=preserved(),profile=(await api('me',undefined,a.token)).data;
