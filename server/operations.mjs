@@ -16,6 +16,7 @@ export async function streamBackup(res,file){
 }
 
 export function createOperations(db,dbPath,audit){
+ const hasTable=table=>!!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table);
  const folder=resolve(dirname(dbPath),'backups');
  function listBackups(){
   if(!existsSync(folder))return [];
@@ -52,6 +53,8 @@ export function createOperations(db,dbPath,audit){
   try{
    // Explicit columns: no recovery hashes, sessions, or redemption-code credentials.
    const data={
+    cardFusions:hasTable('card_fusions')?db.prepare('SELECT id,user_id,request_id,source_a,source_b,result_card_id,result_rarity,created_at FROM card_fusions ORDER BY id').all():[],
+    fusionQuotaGrants:hasTable('fusion_quota_grants')?db.prepare('SELECT request_id,user_id,day,amount,reason,actor,created_at FROM fusion_quota_grants ORDER BY created_at,request_id').all():[],
     quizAttempts:db.prepare('SELECT user_id,day,group_index,score,answers_json,feedback_json,attempts,rewarded,created_at,updated_at FROM quiz_attempts ORDER BY day,user_id').all(),
     memberships:db.prepare('SELECT user_id,status,submitted_at,reviewed_at FROM memberships ORDER BY user_id').all(),
     users:db.prepare('SELECT u.id,u.nickname,u.created_at FROM users u ORDER BY u.rowid').all().map(row=>({...row,coins:ledgerBalance(db,row.id)})),
