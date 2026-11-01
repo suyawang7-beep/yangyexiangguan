@@ -1,7 +1,7 @@
 {
   "generator": "tools/build-admin-operations.mjs",
   "inputs": {
-    "admin/index.html": "00d1d351c1061df507579698a04e8ea7832a614f2bb316c929482468f02e5934",
+    "admin/index.html": "a8f060c57f9ce4e7d89723fd20a61ff1f7e6e8742cd57233c39c769e1501ccde",
     "admin/membership.js": "5e08546f76bb032021efa7d72b69b1cefdc48efd084b280e29e1bcac3bf05025",
     "admin/maintenance.js": "ae3c86fa110f42c121ff24df180b627d2d48ff0043df8d2d7121923e3afd7f1b",
     "admin/messages.js": "f4974ef7cc5cdeeb7af7ba7d07a8386a33ce7c309d715bb6c70ddd43165f876a",
@@ -9,6 +9,7 @@
     "admin/account-recovery.js": "b1b4b3a59f44c4025db7109cf098d476f9822cfa15a4a6ebf714b05d495466ec",
     "admin/task-writings.js": "87571c7cffb4ac6515f953d1be60887296dd074b25c38cdc139cb86273273af5",
     "admin/quiz-results.js": "9f7b1f5d16eac08b873b6169c39f6ab11e9cc9b785f030131621fd8feeb56ec1",
-    "admin/feature-access.js": "88b00531e66e00109d43446c5d0dfe074a05435cab163accbc98d87f49c3124d"
+    "admin/feature-access.js": "88b00531e66e00109d43446c5d0dfe074a05435cab163accbc98d87f49c3124d",
+    "admin/mail-batches.js": "ca85a09e0ba10d67f72c34071aeedc7021e94208c8f83a096d6c6e17e8b766ac"
   }
 }

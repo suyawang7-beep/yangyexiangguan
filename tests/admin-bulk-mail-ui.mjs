@@ -1,0 +1,4 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+for(const file of ['admin/index.html','admin/v2/operations.html']){const html=readFileSync(file,'utf8');for(const id of ['islandGiftScope','islandBatchPreview','islandBatchConfirm','islandBatchContinue','islandBatchRetry','islandBatchRecords','islandBatchLookup','islandBatchFind'])assert(html.includes('id="'+id+'"'),file+' missing '+id)}
+const code=readFileSync('admin/v2/operations.js','utf8');assert(code.includes("perform(prefix+'/preview'"));assert(code.includes('expectedRevision:current.revision'));assert(code.includes("perform(prefix+'/process'"));assert(code.includes("perform(prefix+'/retry'"));assert(code.includes('isBulkMailPending'));assert(!code.includes('innerHTML=batch'));
+console.log('PASS unified bulk composer, preview, confirmed snapshot, progress, retry and cross-form guard');

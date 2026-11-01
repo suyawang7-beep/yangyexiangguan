@@ -53,6 +53,9 @@ export function createOperations(db,dbPath,audit){
   try{
    // Explicit columns: no recovery hashes, sessions, or redemption-code credentials.
    const data={
+    mailBatches:hasTable('island_mail_batches')?db.prepare('SELECT id,gift,revision,actor,created_at,confirmed_at FROM island_mail_batches ORDER BY created_at,id').all():[],
+    mailBatchRecipients:hasTable('island_mail_batch_recipients')?db.prepare('SELECT batch_id,user_id,verified,status,mail_id,error_code FROM island_mail_batch_recipients ORDER BY batch_id,user_id').all():[],
+    mailBatchRetries:hasTable('island_mail_batch_retries')?db.prepare('SELECT request_id,batch_id,created_at FROM island_mail_batch_retries ORDER BY created_at,request_id').all():[],
     mailRewardNotes:hasTable('island_mail_reward_notes')?db.prepare('SELECT mail_id,reason FROM island_mail_reward_notes ORDER BY mail_id').all():[],
     fusionMailRewards:hasTable('island_mail_fusion_rewards')?db.prepare('SELECT mail_id,amount FROM island_mail_fusion_rewards ORDER BY mail_id').all():[],
     cardFusions:hasTable('card_fusions')?db.prepare('SELECT id,user_id,request_id,source_a,source_b,result_card_id,result_rarity,created_at FROM card_fusions ORDER BY id').all():[],

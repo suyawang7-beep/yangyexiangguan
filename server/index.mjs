@@ -1,3 +1,4 @@
+import {createMailBatches} from './mail-batches.mjs';
 import {coinTenths,ledgerBalance,validCoinAmount,sumCoinRows} from './money.mjs';
 import {createFusionQuota} from './fusion-quota.mjs';
 import {createAdminV2Config} from './admin-v2-config.mjs';
@@ -27,7 +28,7 @@ import {fileURLToPath} from 'node:url';
 
 const SITE_HTML=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const ADMIN_PAGES=new Set(['island-mail','quiz-results','task-writings','messages','overview','activity','codes','announcements','visual','code-statistics','test-cleanup','users','user-details','audit','characters','cards','assets','asset-check','backups','members','visitors','site-maintenance','coins','office','recovery','residents','account-recovery']);
-const ADMIN_SCRIPTS=new Set(['quiz-results.js','task-writings.js','messages.js','navigation.js','membership.js','maintenance.js','residents.js','account-recovery.js','feature-access.js']);
+const ADMIN_SCRIPTS=new Set(['quiz-results.js','task-writings.js','messages.js','navigation.js','membership.js','maintenance.js','residents.js','account-recovery.js','feature-access.js','mail-batches.js']);
 const ADMIN_HTML=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const PORT=Number(process.env.PORT||4178),HOST=process.env.HOST||'127.0.0.1',DB_PATH=resolve(process.env.DB_PATH||'./data/island.sqlite'),ADMIN=process.env.ADMIN_TOKEN||'';
 const BUILD_REVISION=/^[a-f0-9]{7,40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA||'')?process.env.RAILWAY_GIT_COMMIT_SHA:'unknown';
@@ -127,13 +128,17 @@ function mailCursor(value){if(value===null)return Number.MAX_SAFE_INTEGER;if(!/^
 function mailPage(rows,key='id'){return {items:rows.slice(0,100).map(row=>Object.hasOwn(row,'amount')?projectMail({...row,amount:coinTenths(row.amount)/10}):row),nextBefore:rows.length>100?rows[99][key]:null}}
 function mailList(id,before){membership.requireVerified(id);return {...mailPage(db.prepare("SELECT id,title,message,kind,amount,item_name AS itemName,created_at AS createdAt,claimed_at AS claimedAt FROM island_mail WHERE user_id=? AND id<? ORDER BY id DESC LIMIT 101").all(id,before)),coins:balance(id),unclaimed:db.prepare("SELECT COUNT(*) AS n FROM island_mail WHERE user_id=? AND claimed_at IS NULL").get(id).n}}
 function islandItems(id,before){membership.requireVerified(id);return mailPage(db.prepare("SELECT mail_id AS mailId,item_name AS itemName,acquired_at AS acquiredAt FROM island_items WHERE user_id=? AND mail_id<? ORDER BY mail_id DESC LIMIT 101").all(id,before),'mailId')}
-function sendIslandMail(b){
+function validateIslandMail(b){
  const userId=String(b.userId||'').trim(),title=String(b.title||'').trim(),message=String(b.message||'').trim(),kind=String(b.kind||''),itemName=String(b.itemName||'').trim(),requestId=String(b.requestId||'');
  const amount=typeof b.amount==='number'?coinTenths(b.amount)/10:b.amount,reason=typeof b.reason==='string'?b.reason.trim():'';
  if(kind==='fusion'&&(reason.length<3||!message.trim()))throw error(400,'融卡次数邮件必须填写赠送原因和留言');
  if(b.reason!==undefined&&(typeof b.reason!=='string'||reason.length<3||reason.length>150))throw error(400,'请填写3至150字的赠送原因');
  if(!/^BZI-[A-Za-z0-9_-]{8,100}$/.test(userId)||title.length<2||title.length>80||message.length>500||!['coins','item','fusion'].includes(kind)||!/^[0-9a-f-]{36}$/i.test(requestId)||kind==='coins'&&(!validCoinAmount(amount))||kind==='fusion'&&(!Number.isSafeInteger(b.amount)||b.amount<1||b.amount>100)||kind==='item'&&(!itemName||itemName.length>80))throw error(400,'请核对岛民编号、信件标题与奖励内容');
- return tx(()=>{
+ return {userId,title,message,kind,itemName,requestId,amount,reason};
+}
+function sendIslandMail(b,withinTransaction=false){
+ const {userId,title,message,kind,itemName,requestId,amount,reason}=validateIslandMail(b);
+ const work=()=>{
   const stored=db.prepare('SELECT id,user_id AS userId,title,message,kind,amount,item_name AS itemName FROM island_mail WHERE request_id=?').get(requestId);const old=stored?projectMail(stored):null;
   if(old){if(old.reason!==reason||old.userId!==userId||old.title!==title||old.message!==message||old.kind!==kind||old.amount!==(['coins','fusion'].includes(kind)?amount:0)||old.itemName!==(kind==='item'?itemName:''))throw error(409,'请求编号已被使用');return {...old,alreadyProcessed:true}}
   const user=db.prepare('SELECT id,nickname FROM users WHERE id=?').get(userId);if(!user)throw error(404,'岛民不存在');
@@ -142,8 +147,9 @@ function sendIslandMail(b){
   if(reason)db.prepare('INSERT INTO island_mail_reward_notes(mail_id,reason) VALUES(?,?)').run(result.lastInsertRowid,reason);
   auditAdmin('mail.send',{reason,id:Number(result.lastInsertRowid),userId,kind,amount:['coins','fusion'].includes(kind)?amount:0,itemName:kind==='item'?itemName:''});
   return {id:Number(result.lastInsertRowid),userId,nickname:user.nickname,alreadyProcessed:false}
- })
+ };return withinTransaction?work():tx(work);
 }
+const mailBatches=createMailBatches({db,tx,error,now,audit:auditAdmin,validate:validateIslandMail,send:b=>sendIslandMail(b,true)});
 function claimIslandMail(userId,id){
  membership.requireVerified(userId);
  if(!Number.isSafeInteger(id)||id<1)throw error(400,'邮件编号无效');
@@ -342,6 +348,8 @@ else if(path==='/api/island-mail'&&req.method==='GET')data=mailList(auth(req),ma
 else if(path==='/api/island-items'&&req.method==='GET')data=islandItems(auth(req),mailCursor(url.searchParams.get('before')));
 else if(path==='/api/island-mail/claim'&&req.method==='POST')data=claimIslandMail(auth(req),b.id);
 else if(path==='/api/admin/island-mail'&&req.method==='GET'){admin(req);data=adminIslandMail(mailCursor(url.searchParams.get('before')))}
+else if(path==='/api/admin/island-mail/batches'&&req.method==='GET'){admin(req);data=url.searchParams.has('id')?mailBatches.status(url.searchParams.get('id')):mailBatches.list()}
+else if(/^\/api\/admin\/island-mail\/batches\/(preview|confirm|process|retry)$/.test(path)&&req.method==='POST'){admin(req);data=mailBatches[path.split('/').pop()](b)}
 else if(path==='/api/admin/island-mail/send'&&req.method==='POST'){admin(req);data=sendIslandMail(b)}
 
 else if(path==='/api/password'&&req.method==='POST')data=updatePassword(auth(req),b);
