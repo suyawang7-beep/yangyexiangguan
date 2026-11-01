@@ -30,7 +30,7 @@ export function createFeatureAccess(
       timezone: "Asia/Shanghai",
     };
   }
-  function save(payload) {
+  function save(payload, guard = () => {}) {
     if (
       !payload ||
       typeof payload !== "object" ||
@@ -54,6 +54,7 @@ export function createFeatureAccess(
       throw error(400, e.message);
     }
     return tx(() => {
+      guard();
       db.prepare(
         "INSERT INTO feature_access(feature,enabled,starts_at,ends_at,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(feature) DO UPDATE SET enabled=excluded.enabled,starts_at=excluded.starts_at,ends_at=excluded.ends_at,updated_at=excluded.updated_at",
       ).run(
