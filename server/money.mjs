@@ -6,11 +6,13 @@ export function coinTenths(amount){
  return tenths;
 }
 export function validCoinAmount(amount){try{return coinTenths(amount)>0&&amount<=5000}catch{return false}}
-export function ledgerBalance(db,userId){
+export function sumCoinRows(rows){
  let total=0;
- for(const row of db.prepare('SELECT amount FROM ledger WHERE user_id=?').iterate(userId)){
+ for(const row of rows){
   total+=coinTenths(row.amount);
   if(!Number.isSafeInteger(total))throw Object.assign(new Error('金币余额超出安全范围'),{status:409});
  }
  return total/10;
 }
+
+export function ledgerBalance(db,userId){return sumCoinRows(db.prepare('SELECT amount FROM ledger WHERE user_id=?').iterate(userId))}

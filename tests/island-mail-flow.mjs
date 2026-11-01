@@ -159,3 +159,22 @@ test('fractional grants accumulate and draw deducts exactly, invalid precision n
  for(const amount of [0.01,1.51,-1,0,'131.4',5001])assert.equal((await api('admin/coins/grant',{...body,amount,requestId:randomUUID()},admin)).status,400);
  const before=await coins(a.token);assert.equal((await api('draw',{},a.token)).status,200);assert.equal(await coins(a.token),Math.round((before-50)*10)/10);
 });
+
+test('export balances and amounts use tenths without rewriting history',async()=>{
+ const u=await account('导出金币精度',false),insert=db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)');
+ for(let i=0;i<40;i++)insert.run(u.id,131.4,'precision fixture',new Date().toISOString());
+ insert.run(u.id,0.1+0.2,'legacy binary noise',new Date().toISOString());
+ const before=db.prepare('SELECT * FROM ledger WHERE user_id=?').all(u.id);
+ const result=await api('admin/export',undefined,admin);assert.equal(result.status,200);
+ assert.equal(result.data.data.users.find(x=>x.id===u.id).coins,5306.3);
+ assert.equal(result.data.data.ledger.find(x=>x.reason==='legacy binary noise').amount,0.3);
+ assert.deepEqual(db.prepare('SELECT * FROM ledger WHERE user_id=?').all(u.id),before);
+});
+test('visitor deletion preview sums signed ledger rows in tenths',async()=>{
+ const u=await account('游客金币精度',false),insert=db.prepare('INSERT INTO ledger(user_id,amount,reason,created_at) VALUES(?,?,?,?)');
+ for(let i=0;i<40;i++)insert.run(u.id,131.4,'preview precision',new Date().toISOString());
+ insert.run(u.id,-50,'preview deduction',new Date().toISOString());
+ const before=db.prepare('SELECT * FROM ledger WHERE user_id=?').all(u.id);
+ const result=await api('admin/visitors/preview-delete',{ids:[u.id]},admin);assert.equal(result.status,200);assert.equal(result.data.counts.coins,5256);
+ assert.deepEqual(db.prepare('SELECT * FROM ledger WHERE user_id=?').all(u.id),before);
+});
