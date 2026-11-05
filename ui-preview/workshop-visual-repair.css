@@ -32,3 +32,6 @@ body.effects-paused *,body.effects-paused *::before,body.effects-paused *::after
 .machine>.device-caption{display:none}
 
 html.effects-paused *,html.effects-paused *::before,html.effects-paused *::after{animation-play-state:paused!important}
+
+/* Painted prop replaces the vector silhouette; original SVG remains available. */
+.ritual-device{height:450px;object-fit:contain;transform:none;filter:drop-shadow(0 17px 13px #10253d66)}.machine:after{opacity:.3}.device-halo,.machine>.wing-layer{display:none}

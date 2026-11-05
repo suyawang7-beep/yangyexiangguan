@@ -28,3 +28,7 @@ workshop-live.js及official-card.js/css未改，完整文件哈希记录visual-r
 验证：node tests/winged-workshop-browser.cjs 在隔离 SQLite 中通过 1440/390 两个视口；一张材料禁用、两张有效材料可直接启动；服务端成功但响应丢失后刷新重试仅保留一次融合记录；动效暂停、减少动效和无横向溢出通过。node --check 两个修改脚本通过。截图为 winged-repaired-1440.png、winged-repaired-390.png。测试截图无卡面上传的合成环境不等于正式卡面缺失。
 
 本轮未部署、未访问生产库。手机观测笺空间仍偏窄，后续视觉验收可继续调整，不属于本轮业务校验通过的保证。
+
+
+### 绘制版装置
+引入 Work 最新 wing-ritual-device-painted.png，装饰脚本仅替换装置资源 URL；使用 object-fit:contain，隐藏旧 wing-layer 防止叠加。原 SVG 保留回退。未改业务控制器及正式环境。
