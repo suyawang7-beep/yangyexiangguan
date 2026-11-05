@@ -17,3 +17,14 @@ workshop-live.js及official-card.js/css未改，完整文件哈希记录visual-r
 按Work本轮追加补丁，保留已有修复并追加背景brightness(.66)/saturate(.78)、奶白标题/深字面板与中央装置。新增assets/wing-ritual-device.svg，静态矢量通过原受控/assets SVG路由引用；去掉补丁中重复内嵌SVG数据，不增加fetch或业务逻辑。仅隐藏旧platform/machine-stand/device-halo/tracks，实际材料和结果节点仍由原live控制器处理。
 
 1440/390真实浏览器确认SVG加载、旧底座display:none、背景亮度、字体加载、无横向溢出、卡册裁切、暂停伪元素与减少动态；原融合响应丢失/刷新/原UUID重试回归以及fusion-quota-integration再次通过。正式卡及live控制器哈希不变。截图已更新为本轮合成环境。未部署生产，未操作真实账号或资产。
+
+
+## 最新补丁：直接融合与底座精简
+
+已移除独立检查按钮，按钮继续受 busy、pending 与 valid() 控制；fuse() 提交前再次校验。只修改控制器按钮绑定和提示，没有整份覆盖 Work 的控制器。原 valid()、fuse() 文本逐字一致，见 direct-fusion-preservation.json。因此此前整文件哈希不再代表当前控制器；official-card.js/css 未改。
+
+采用最新平滑承托 SVG，移除竖条及大菱形，隐藏 device-caption；加入柜体厚度、阴影、水母贴纸及前景薄雾。暂停状态保存在 documentElement，不受业务 render 重置 body class 影响，包含伪元素暂停与 reduced-motion 支持。保留本地背景、岛标和装置静态资源路径。
+
+验证：node tests/winged-workshop-browser.cjs 在隔离 SQLite 中通过 1440/390 两个视口；一张材料禁用、两张有效材料可直接启动；服务端成功但响应丢失后刷新重试仅保留一次融合记录；动效暂停、减少动效和无横向溢出通过。node --check 两个修改脚本通过。截图为 winged-repaired-1440.png、winged-repaired-390.png。测试截图无卡面上传的合成环境不等于正式卡面缺失。
+
+本轮未部署、未访问生产库。手机观测笺空间仍偏窄，后续视觉验收可继续调整，不属于本轮业务校验通过的保证。

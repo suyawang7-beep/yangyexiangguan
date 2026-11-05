@@ -1,0 +1,9 @@
+{
+  "validationUnchanged": true,
+  "settlementUnchanged": true,
+  "validationSha256": "bf5b33d62106c329b7ef3ccb8fa144bd68ba0ac9f488f46d8a418f6787514cb2",
+  "settlementSha256": "79d68d003ca5118353b1fa8aac1c4a84832cec5d7bff10212e97442a07347c09",
+  "noSeparateCheckButton": true,
+  "startupStillValidates": true,
+  "deployed": false
+}
