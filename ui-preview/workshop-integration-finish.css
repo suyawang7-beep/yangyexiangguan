@@ -1,0 +1,59 @@
+/* Integration candidate: shared island materials, distinct workshop composition. */
+:root{--ink:#244e68;--muted:#466c82;--cream:#f2f1e7;--line:#89aab85c}
+.atelier-world{background-image:linear-gradient(90deg,#e4eff038,transparent 35%,#d9edf020),var(--scene)}
+.atelier-world:after{background:linear-gradient(#d7eaf222,transparent 45%,#bad8e31c)}
+.title h1{font-size:34px;letter-spacing:3px;color:#244e68;font-weight:500}
+.title p{font-size:11px;letter-spacing:2px}.title>span{font-size:12px;color:#345e76}
+.collection-cabinet,.result-cabinet{background:linear-gradient(125deg,#f1f2e9f5,#dae9eaf0);border-color:#e5f2ef;backdrop-filter:blur(8px);box-shadow:0 2px 0 #8baab4,5px 14px 24px #214d6629}
+.collection-cabinet{left:3.5%;width:290px;transform:rotate(-.5deg);padding:18px 20px}.result-cabinet{transform:rotate(.7deg)}
+.cabinet-note,.shelf-foot,.pool-note small{color:#3f6379;font-size:11px}.cabinet-note{line-height:1.7}.shelf-tabs button{font-size:12px;min-height:36px}
+.cabinet-header>span{font-size:11px;color:#3f6379}.card-rack{gap:20px 14px;max-height:355px}
+.card-face{border:3px solid #e8efe9;background:linear-gradient(130deg,#e9f0e9,#bbd2dc);color:#294f6b;box-shadow:0 1px 0 #f6fcf4,2px 4px 0 #668b9f,4px 8px 11px #173f5b33}
+.card-face:before{inset:5px;border-color:#577f96;opacity:.7}.card-face:after{opacity:.7}
+.card-face[data-rarity=N]{--card-ink:#567c80}.card-face[data-rarity=R]{--card-ink:#3d7196}.card-face[data-rarity=SR]{--card-ink:#696c97}.card-face[data-rarity=SSR]{--card-ink:#8f7543}.card-face[data-rarity=UR]{--card-ink:#8d6841}
+.card-grade{top:10px;left:9px;min-width:25px;padding:2px 5px;border:1px solid var(--card-ink);background:#edf3e8de;border-radius:2px;font:600 11px/1.2 Georgia;text-align:center;letter-spacing:.5px}
+.card-sea{position:absolute;inset:0;color:var(--card-ink);opacity:.38}.card-sea svg{width:100%;height:100%}
+.card-illustration{inset:24% 15% 27%;color:var(--card-ink)}
+:where(.card-face)>.card-title{bottom:14%;font:500 13px/1.4 'Microsoft YaHei',sans-serif;letter-spacing:1px;background:#e7eee7d9;color:#284f68;padding:3px 0}
+.card-id{bottom:7.5%;font-size:6px;color:#3e6178}.card-placeholder{font-size:5px;color:#3e6178;opacity:1}
+.rack-meta{display:block;padding-top:9px;line-height:1.6}.rack-meta b{display:block;font-size:12px;font-weight:600;color:#244e68}.rack-meta span{display:block;font-size:11px;color:#3d6479}
+.rack-item:disabled{opacity:.62}.rack-item[aria-pressed=true] .card-face{box-shadow:0 0 0 3px #3e7899,0 0 0 5px #d6f2f1,4px 9px 15px #1d506847}
+.selected-number{width:25px;height:25px;background:#2f6687;font-size:12px;font-weight:600;box-shadow:0 2px 5px #23496144}
+.empty-card{border:2px solid #6f98ad;background:linear-gradient(125deg,#d9ebeced,#b7d5e1e0);color:#315f7b;box-shadow:inset 0 0 0 5px #e2f2ee66,0 6px 11px #214c6733;backdrop-filter:blur(5px)}
+.empty-card b{color:#3f7592}.empty-card small{font-size:8px;color:#3e6980}
+.device-halo{border:2px solid #6c99b1;background:linear-gradient(110deg,#e6f5f333,transparent 45%);box-shadow:inset 0 0 0 5px #d7eff044,0 8px 22px #244d6926}
+.machine-stand{background:linear-gradient(90deg,#608da4,#c6dce0 24%,#e5eadd 42%,#93b9ca 80%,#4d7c98);border-bottom:6px solid #3e6c86;box-shadow:inset 0 3px 0 #f5f7eb}
+.machine-stand:after{content:'羽翼炼金';position:absolute;top:27px;left:0;right:0;text-align:center;font:12px 'SimSun',serif;letter-spacing:4px;color:#355d75}
+.machine-stand span{bottom:13px;color:#345c72;font-size:6px}.device-caption{top:304px;color:#305d79;font-size:9px}
+.platform{background:radial-gradient(ellipse at 35% 20%,#eff2e5,#b5ced7 78%);border:2px solid #e7ede3;box-shadow:0 5px 0 #769bad,0 10px 0 #cfdbd8,0 17px 0 #4e7891,0 23px 0 #315d79,0 31px 14px #21476055,0 43px 25px #244e6838}
+.platform:after{content:'';position:absolute;inset:7px 13px;border:1px solid #779cab80;border-radius:50%;pointer-events:none}
+.material-slot{background:#c4dbe5dc;border:2px solid #759bb1;box-shadow:0 3px 0 #48728b,3px 8px 11px #254b6538;backdrop-filter:blur(5px)}
+.material-slot.filled{border:1px solid #5b879e;background:#a6c6d6}.empty-slot{color:#2d5b77;font-size:12px}.remove-card:after{color:#284e68;background:#e8f2e7e6;border-radius:2px}
+.tracks{filter:drop-shadow(0 3px 0 #527f99)}.tracks>path:first-of-type{stroke:#aecbd9;stroke-width:11}.tracks>path:nth-of-type(2){stroke:#4f7f9c;stroke-width:2}.tracks>path:nth-of-type(3){stroke:#7aa6bd;stroke-width:6}.tracks>path:nth-of-type(4){stroke:#d9eee9;stroke-width:2}
+.wing-layer{opacity:.16}.wing-layer svg{filter:drop-shadow(0 2px 2px #3e718d55)}.wing-layer use{stroke:#6397b5;stroke-width:1}
+.slot-label{font-size:11px;font-weight:600;color:#2c5972}.stage-status>span{background:#e5f1e9e8;color:#315c75;font-size:11px}.stage-status p{color:#31586f;font-size:12px}
+.result-info>span{font-size:11px;color:#3f667c}.result-info p{font-size:12px;color:#3d6278}.pool-note{font-size:11px}#history-button{font-size:12px;min-height:42px}
+.action-dock{background:#edf2e7f5;border-color:#d3e5e4;box-shadow:0 3px 0 #769aaa,0 10px 23px #244e6829}.quota small{font-size:11px}.quota>span{font-size:9px;color:#3c6075}.action-buttons button{font-size:12px}.action-buttons .primary{background:#316d8e;border-color:#316d8e}.action-dock>p{font-size:10px;color:#3c6177}
+button:disabled{opacity:.58}.mock-badge{color:#315c75}footer{color:#355f77}
+@media(max-width:1200px) and (min-width:761px){.collection-cabinet{width:235px;left:2%;padding:15px}.rack-meta b{font-size:11px}.result-info p{font-size:11px}}
+@media(max-width:760px){
+ .title{top:94px;width:330px}.title p{font-size:10px;letter-spacing:1px}.title h1{font-size:27px;letter-spacing:2px;line-height:1.4;margin-bottom:5px}.title>span{font-size:11px;max-width:300px;line-height:1.6}
+ .fusion-theatre{top:153px;transform:translateX(-50%) scale(.52)}.stage-status{top:428px}.stage-status h2{font-size:26px}.stage-status p{font-size:21px;line-height:1.5}.stage-status>span{font-size:19px}
+ .collection-cabinet{left:16px;right:16px;width:auto;bottom:159px;padding:10px 12px 7px;transform:none}.cabinet-header h2{font-size:17px}.shelf-tabs button{font-size:11px;min-height:34px;padding:4px 5px}.card-rack{gap:14px;max-height:none;padding:11px 3px 8px;scroll-padding-inline:3px}.rack-item{width:108px;flex-basis:108px}.rack-item:nth-child(even){transform:none}
+ .rack-item :where(.card-face)>.card-title{font-size:12px;letter-spacing:1px}.rack-item .card-grade{font-size:11px;left:9px;top:9px}.rack-meta{padding-top:7px}.rack-meta b{font-size:12px;white-space:nowrap}.rack-meta span{font-size:11px}.card-id{font-size:5px}.card-placeholder{font-size:4px}
+ .rack-item[aria-pressed=true] .card-face{box-shadow:0 0 0 2px #3e7899,0 0 0 4px #d6f2f1,3px 6px 10px #1d506847}.selected-number{width:25px;height:25px}
+ .result-cabinet{top:177px;right:17px;width:84px;padding:6px;transform:rotate(3deg);background:#e1ece7ed}.result-info h3{font-size:10px;line-height:1.6}#history-button{font-size:9px;min-height:29px}.result-card{width:43px}.result-card .card-grade{padding:0;min-width:0;font-size:6px;left:3px;top:4px}.result-card :where(.card-face)>.card-title{font-size:5px;padding:0}
+ .action-dock{bottom:43px;padding:10px 12px;grid-template-columns:100px 1fr}.quota small{font-size:11px}.quota strong{font-size:26px}.quota>span{font-size:9px;line-height:1.4}.action-buttons button{font-size:12px;min-height:46px;padding:8px}.action-dock>p{font-size:9px;line-height:1.5;margin-top:6px}
+ .empty-slot{font-size:20px}.slot-label{font-size:20px}.machine .remove-card:after{font-size:20px}.machine :where(.card-face)>.card-title{font-size:18px}.machine .card-grade{font-size:16px}.device-caption{font-size:14px}.machine-stand:after{font-size:17px}.machine-stand span{font-size:9px}.machine-stand{border-bottom-width:7px}header>button{font-size:10px}footer{font-size:8px}
+}
+@media(max-width:760px) and (max-height:810px){.fusion-theatre{top:145px;transform:translateX(-50%) scale(.47)}.collection-cabinet{bottom:157px}.rack-item{width:96px;flex-basis:96px}.rack-meta b{font-size:11px}.rack-meta span{font-size:10px}.title{top:87px}.title h1{font-size:25px}}
+
+.machine-stand:after{content:none}
+@media(min-width:761px){.action-dock{bottom:49px}.stage-status p{font-size:11px;line-height:1.5}}
+@media(max-width:760px) and (min-height:811px){.rack-item{width:100px;flex-basis:100px}}
+
+.mobile-status{display:none}
+@media(max-width:760px){.desktop-status{display:none}.mobile-status{display:inline}.result-cabinet{top:188px;width:100px;padding:8px}.result-card{display:none}.result-info h3{font-size:12px;line-height:1.5;margin:0 0 3px}#history-button{font-size:10px;min-height:27px}.card-rack{padding-top:9px;padding-bottom:5px}}
+@media(max-width:760px) and (min-height:811px){.rack-item{width:104px;flex-basis:104px}}
+
+@media(max-width:760px){.stage-status{top:445px}.stage-status>span{display:none}.result-cabinet{top:178px}.action-dock{bottom:39px}}

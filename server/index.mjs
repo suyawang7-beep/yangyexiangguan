@@ -322,7 +322,7 @@ if(maintenanceState().enabled&&!path.startsWith('/admin')&&!path.startsWith('/ap
  if(req.method!=='GET'&&req.method!=='HEAD')throw error(503,'小岛正在维护中');
 }
 if(req.method==='GET'&&path==='/membership-client.js'){const body=readFileSync(new URL('../client/membership.js',import.meta.url),'utf8');res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});return res.end(body)}
-const pageNames=new Set(['resident.html','index.html','passport.html','verify.html','office.html','checkin.html','draw.html','collection.html','mailbox.html','guide.html','islanders.html']);
+const pageNames=new Set(['resident.html','index.html','passport.html','verify.html','office.html','checkin.html','draw.html','fusion.html','collection.html','mailbox.html','guide.html','islanders.html']);
 const previewRoot=fileURLToPath(new URL('../ui-preview/',import.meta.url)).replace(/[\\/]$/,'');
 const suffix=path==='/'?'index.html':path.startsWith('/ui-preview/')?path.slice('/ui-preview/'.length):path.slice(1);
 if(req.method==='GET'&&!path.startsWith('/api/')&&pageNames.has(suffix)&&path!=='/legacy'){

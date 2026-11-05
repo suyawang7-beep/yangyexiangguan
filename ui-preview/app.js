@@ -155,11 +155,7 @@
     if(!name||!managedAssets[name])return icon(card.motif);
     const image=document.createElement('img');image.dataset.officialCard='true';image.alt=card.name;image.src=assetUrl(name);image.style.cssText='display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit';applyAssetLayout(image,name);return image.outerHTML;
   }
-  function cardMarkup(card, { owned = true, quantity = 0, interactive = false } = {}) {
-    const tag = interactive ? 'button' : 'div';
-    return `<${tag} ${interactive ? `type="button" data-card="${card.id}" aria-label="${esc(card.name)}，${card.rarity}，${owned ? `已拥有${quantity}张` : '未获得'}"` : ''} class="memory-card ${owned ? '' : 'locked'}" data-rarity="${card.rarity}">
-      ${quantity ? `<span class="quantity">× ${quantity}</span>` : ''}<div class="card-inner"><div class="card-topline"><span class="card-number">${card.id} / 2026</span><span class="rarity">${card.rarity}</span></div><div class="card-picture">${cardPicture(card)}</div><div class="card-nameplate"><span class="card-crest" aria-hidden="true">✧</span><div class="card-title">${esc(card.name)}</div><p class="card-subtitle">BUZHI · CELESTIAL ARCHIVE</p></div><div class="card-bottomline"><span>${owned ? 'BIRTHDAY COLLECTION' : '等待相遇'}</span><span>10.20 ✦</span></div></div></${tag}>`;
-  }
+  function cardMarkup(card, options={}){return window.BziOfficialCard.render(card,options,cardPicture)}
   function ledgerMarkup() {
     return state.ledger.length ? `<ul class="ledger">${state.ledger.slice(0, 6).map((entry) => `<li><span>${esc(entry.label)}</span><b class="${entry.amount < 0 ? 'negative' : ''}">${entry.amount > 0 ? '+' : ''}${entry.amount}</b></li>`).join('')}</ul>` : '<p class="small muted">还没有收支，庆典的故事等你开启。</p>';
   }
@@ -280,7 +276,7 @@
     TASKS=LIVE_TASKS;
     const tokenAtStart=liveToken,revisionAtStart=profileRevision;
     renderPage();
-    const accessTask=liveApi('feature-access').then(features=>{livePool=features.pool;if(livePool.enabled===false)PATHS.draw[1]='羽翼融卡工坊';renderPage();if(livePool.enabled===false){document.querySelectorAll('a[href="draw.html"]').forEach(a=>{a.textContent='融卡工坊'});if(PAGE==='draw')document.title='融卡工坊 · 不吱岛'}}).catch(()=>{if(PAGE==='draw')toast('暂时无法读取卡池状态，请刷新重试。')});
+    const accessTask=liveApi('feature-access').then(features=>{livePool=features.pool;if(livePool.enabled===false){PATHS.draw[0]='fusion.html';PATHS.draw[1]='羽翼融卡工坊'};renderPage();if(livePool.enabled===false){document.querySelectorAll('a[href="draw.html"]').forEach(a=>{a.textContent='融卡工坊';a.href='fusion.html'});if(PAGE==='draw')document.title='融卡工坊 · 不吱岛'}}).catch(()=>{if(PAGE==='draw')toast('暂时无法读取卡池状态，请刷新重试。')});
     const artworkTask=loadManagedArtwork();
     const catalogTask=(async()=>{
       try{
@@ -379,7 +375,7 @@
   }
   function renderDraw() {
     if(LIVE&&!livePool)return heading('04','Island workshop','正在核对开放状态','请稍候；已有收藏仍可查看。');
-    if(LIVE&&livePool.enabled===false)return heading('04','Winged memories','羽翼融卡工坊','卡池抽卡已关闭，用已有回忆卡片继续融卡。')+fusionMarkup().replace('<details ','<details open ')+link('collection','查看我的收藏','btn');
+    if(LIVE&&livePool.enabled===false){location.replace('/fusion.html');return '';}
     const first = state.history.length === 0;
     const pool=drawPoolInfo();
     return `<section class="postal-experience" aria-labelledby="postal-title">
