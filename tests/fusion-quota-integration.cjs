@@ -23,6 +23,7 @@ async function request(path,body,token){
  const registered=await request('register',{nickname:'融卡测试岛民',password:'temporary-test-password'});
  assert.equal(registered.status,200);
  const user=registered.data;await verifyAccount(base,admin,user);
+ const settings=(await request('admin/v2/config',undefined,admin)).data;const pool=settings.features.pool;assert.equal((await request('admin/v2/config',{action:'feature',confirmed:true,expectedRevision:settings.revision,payload:{feature:'pool',enabled:false,startsAt:pool.startsAt,endsAt:pool.endsAt}},admin)).status,200);assert.equal((await request('draw',{},user.token)).status,403,'pool closure blocks draws but must allow following real fusions');
  const catalog=await request('catalog');assert.equal(catalog.status,200);
  const byRarity=Object.groupBy(catalog.data.cards,c=>c.rarity);
  for(const rarity of ['N','R','SR','SSR','UR'])assert((byRarity[rarity]||[]).length>0,'Missing '+rarity);

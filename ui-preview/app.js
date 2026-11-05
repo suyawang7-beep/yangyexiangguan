@@ -3,6 +3,7 @@
   'use strict';
 
   const LIVE = window.__BUZHI_PRODUCTION__ === true;
+  let livePool=null;
   const PAGE = document.body.dataset.page || 'home';
   const KEY = 'buzhi-ui-preview-v3';
   const EVENT = { name: '菜菜生日会', birthday: '2026年10月20日', period: '10月18日 — 10月25日' };
@@ -144,7 +145,7 @@
   function updateWallet() {
     document.querySelectorAll('[data-balance]').forEach((el) => { el.textContent = state.balance; });
   }
-  const link = (key, label = PATHS[key][1], className = 'btn') => `<a class="${className}" href="${PATHS[key][0]}">${label}${icon('arrow')}</a>`;
+  const link = (key, label = PATHS[key][1], className = 'btn') => `<a class="${className}" href="${PATHS[key][0]}">${key==='draw'&&livePool?.enabled===false?'前往融卡工坊':label}${icon('arrow')}</a>`;
   const heading = (number, english, title, text) => `<div class="page-heading"><div><div class="eyebrow">${english}</div><h1>${title}</h1><p>${text}</p></div><span class="page-number" aria-hidden="true">${number}</span></div>`;
   function needPassport(title = '先领取一张生日通行证') {
     return `<section class="glass empty-state">${icon('ticket')}<h2>${title}</h2><p>用一个昵称和一枚庆典头像，记下这次登岛的身份。<br>首次领取，送你恰好够抽一次卡的 50 金币。</p><div class="actions">${link('passport', '去领取通行证', 'btn primary')}${link('home', '先回码头', 'btn')}</div></section>`;
@@ -279,6 +280,7 @@
     TASKS=LIVE_TASKS;
     const tokenAtStart=liveToken,revisionAtStart=profileRevision;
     renderPage();
+    const accessTask=liveApi('feature-access').then(features=>{livePool=features.pool;if(livePool.enabled===false)PATHS.draw[1]='羽翼融卡工坊';renderPage()}).catch(()=>{if(PAGE==='draw')toast('暂时无法读取卡池状态，请刷新重试。')});
     const artworkTask=loadManagedArtwork();
     const catalogTask=(async()=>{
       try{
@@ -298,7 +300,7 @@
         else toast('暂时无法读取账户，登录状态已保留，请刷新重试。');
       }
     })():Promise.resolve();
-    await Promise.allSettled([artworkTask,catalogTask,ocTask,profileTask]);
+    await Promise.allSettled([accessTask,artworkTask,catalogTask,ocTask,profileTask]);
   }
   function activeAsset(name,fallback){
     if(!LIVE)return fallback;
@@ -306,7 +308,7 @@
   }
   function renderShell() {
     document.title = `${PATHS[PAGE][1]} · 不吱岛`;
-    const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: '抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
+    const navItem = (key, mobile = false) => `<a href="${PATHS[key][0]}" ${PAGE === key ? 'aria-current="page"' : ''}>${mobile ? icon(PATHS[key][2]) : ''}${mobile ? ({ home: '首页', office: '任务', draw: livePool?.enabled===false?'融卡':'抽卡', collection: '收藏', checkin: '签到' }[key]) : PATHS[key][1]}</a>`;
     document.querySelector('#app').innerHTML = `<div class="world" data-motion="on"><div class="ocean" aria-hidden="true"></div><div class="ambient" aria-hidden="true"></div><i class="bubble b1" aria-hidden="true"></i><i class="bubble b2" aria-hidden="true"></i><i class="bubble b3" aria-hidden="true"></i>
       <a class="skip-link" href="#main">跳到页面内容</a><header class="site-header"><a class="brand" href="index.html" aria-label="不吱岛，返回首页"><span class="brand-mark"><img src="assets/island-mark.svg" alt="" aria-hidden="true" width="44" height="44"></span><span><strong>不吱岛</strong><small>BUZHI ISLAND</small></span></a><nav class="desktop-nav" aria-label="主要导航">${['home', 'office', 'draw', 'collection', 'islanders', 'guide', 'mailbox', 'checkin'].map((key) => navItem(key)).join('')}</nav><nav class="mobile-secondary-nav" aria-label="更多岛上地点"><a href="islanders.html">岛民回廊</a><a href="mailbox.html">岛主信箱</a><a href="guide.html">登岛导览</a><a href="passport.html#membershipApplication">岛民认证</a></nav><div class="header-actions"><a href="resident.html" style="font-size:13px;padding:9px 13px;border:1px solid #b4d8ef;border-radius:30px;background:#ffffff99;color:#497ba0;text-decoration:none">🏝️ 个人中心</a><span class="wallet" aria-label="当前金币">${icon('coin')}<strong data-balance aria-live="polite">${state.balance}</strong></span><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="切换页面动效">${icon('wave')}<span>动效 · 开</span></button></div></header>
       <div class="container"><div class="demo-line"><span><i class="status-dot"></i>${LIVE ? '不吱岛 · 账户数据安全保存' : '本地演示 · 数据仅保存在此浏览器'}</span><span>不吱岛 · 菜菜与吱吱</span></div><div class="storage-alert" id="storage-alert" role="alert" hidden></div><main id="main" tabindex="-1"></main><footer class="site-footer"><div><strong>不吱岛 · 菜菜 ＆ 吱吱</strong><br>从雪啾国出发，在这里与你相遇。</div><div>${LIVE ? '生日回忆 · 与你相遇' : '插画与卡面为示意 · 庆典账户数据由服务器保存'}</div></footer></div><nav class="mobile-nav" aria-label="手机主要导航">${['home', 'office', 'draw', 'collection', 'checkin'].map((key) => navItem(key, true)).join('')}</nav><div class="toast" id="toast" role="status" hidden></div><dialog class="detail-dialog" id="card-detail" aria-labelledby="card-detail-title"></dialog></div>`;
@@ -376,6 +378,8 @@
     return {ready:!LIVE||liveCatalogReady,total,counts,first:counts.SSR+counts.SR,description:`UR、SSR、SR、R、N，当前公开${total}张卡片，剩余${remaining}张待开放。正常卡池每张概率均为1/${total}。`};
   }
   function renderDraw() {
+    if(LIVE&&!livePool)return heading('04','Island workshop','正在核对开放状态','请稍候；已有收藏仍可查看。');
+    if(LIVE&&livePool.enabled===false)return heading('04','Winged memories','羽翼融卡工坊','卡池抽卡已关闭，用已有回忆卡片继续融卡。')+fusionMarkup().replace('<details ','<details open ')+link('collection','查看我的收藏','btn');
     const first = state.history.length === 0;
     const pool=drawPoolInfo();
     return `<section class="postal-experience" aria-labelledby="postal-title">
@@ -421,7 +425,7 @@
     const title = heading('05', 'Keep the moments that matter', '回忆收藏室', '不是每一个瞬间都会重来，但我们可以把它好好收起来。');
     const owned = Object.values(state.collection).filter((entry) => entry.quantity > 0).length;
     const total = Object.values(state.collection).reduce((n, entry) => n + (Number(entry.quantity) || 0), 0);
-    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">去邮局，再寄一份期待 ↗</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div>${fusionMarkup()}<div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
+    return title + `<section class="glass collection-summary"><div><strong>${LIVE&&!liveCatalogReady?'…':owned}<span> / ${CARDS.length}</span></strong><span>种生日回忆</span></div><div><strong>${LIVE&&!liveCatalogReady?'…':total}</strong><span>张珍藏卡片</span></div><a class="summary-action" href="draw.html">${livePool?.enabled===false?'前往融卡工坊 ↗':'去邮局，再寄一份期待 ↗'}</a></section><div class="filter-bar"><div class="filter-tabs" aria-label="拥有状态">${[['all', '全部回忆'], ['owned', '已拥有'], ['missing', '待相遇']].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${filters.ownership === id}">${label}</button>`).join('')}</div><div class="filter-controls"><input id="card-search" type="search" placeholder="寻找一张回忆…" aria-label="搜索卡名或角色"><select id="rarity-filter" aria-label="筛选稀有度"><option value="all">全部稀有度</option>${['UR', 'SSR', 'SR', 'R', 'N'].map((r) => `<option>${r}</option>`).join('')}</select></div></div>${fusionMarkup()}<div class="collection-grid" id="collection-grid"></div><p class="collection-note">未获得的卡片以淡色展示。点击卡片可以阅读故事，查看角色与持有数量。</p><div class="section-heading"><div><div class="eyebrow">Your postmarks</div><h2>最近的开信记录</h2></div><small>每一次相遇，都有迹可循</small></div><div class="glass history-list">${state.history.length ? state.history.slice(0, 8).map((entry) => {
       const card = CARDS.find((item) => item.id === entry.cardId);
       return card ? `<div class="history-row"><span class="rarity">${esc(entry.rarity||card.rarity)}</span><p>${esc(card.name)}</p><span class="muted">${entry.first ? '初次赴约' : '生日回忆'}</span><time>${timeText(entry.at)}</time></div>` : '';
     }).join('') : '<p class="small muted">还没有开信记录。去肥啾邮局，拆开你的第一份生日回忆吧。</p>'}</div>`;
