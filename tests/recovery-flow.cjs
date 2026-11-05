@@ -33,7 +33,9 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  const key=reset.data.recoveryKey;assert.match(key,/^[A-Za-z0-9_-]{43}$/);
  assert.equal(db.prepare('SELECT secret_hash FROM users WHERE id=?').get(a.id).secret_hash,createHash('sha256').update(key).digest('hex'));
  assert.notEqual(db.prepare('SELECT secret_hash FROM users WHERE id=?').get(a.id).secret_hash,key);
- assert.equal((await api('login',{id:a.id,recoveryKey:key})).status,200,'Raw reset API key works');
+ assert.equal((await api('login',{id:a.id,recoveryKey:key,method:'recovery'})).status,200,'Raw reset API key works');
+ assert.equal((await api('login',{id:a.id,password:'Isolated-test-password-2026!',method:'password'})).status,200,'Resetting recovery key must preserve the actual password');
+ assert.equal((await api('login',{id:a.id,password:key,method:'password'})).status,401,'An admin-delivered recovery key is not the password');
  assert.equal((await api('login',{id:a.id,recoveryKey:a.recoveryKey})).status,401);
  assert.equal((await api('me',undefined,a.token)).status,401,'Old sessions revoked');
  assert.equal((await api('me',undefined,b.token)).status,200,'Other accounts retain sessions');
@@ -58,9 +60,9 @@ async function stop(){if(server&&server.exitCode===null){const done=new Promise(
  assert.equal(await page.locator('#islanderRecoveryKey').count(),0,'Logging out removes the plaintext recovery credential from the DOM');
  await page.locator('#token').fill(admin);await page.locator('#enter').click();
  assert.equal(await page.locator('#islanderRecoveryResult').textContent(),'','A new admin login cannot reveal the previous recovery key');
- await page.goto(base+'/passport.html');await page.locator('#passport-returning-tab').click();await page.locator('#returning-id').fill(a.id);await page.locator('#returning-key').fill(delivered);
+ await page.goto(base+'/passport.html');await page.locator('#passport-returning-tab').click();await page.locator('#returning-id').fill(a.id);await page.locator('#returning-method').selectOption('recovery');await page.locator('#returning-key').fill(delivered);
  const request=page.waitForRequest(r=>r.url().endsWith('/api/login')&&r.method()==='POST');const loginResponse=page.waitForResponse(r=>r.url().endsWith('/api/login'));
- await page.locator('#live-login button[type=submit]').click();assert.deepEqual((await request).postDataJSON(),{id:a.id,password:delivered,recoveryKey:delivered});const logged=await loginResponse;assert.equal(logged.status(),200);assert.deepEqual((await logged.json()).profile,profile);
+ await page.locator('#live-login button[type=submit]').click();assert.deepEqual((await request).postDataJSON(),{id:a.id,method:'recovery',recoveryKey:delivered});const logged=await loginResponse;assert.equal(logged.status(),200);assert.deepEqual((await logged.json()).profile,profile);
  // A completed server reset may arrive after the administrator has logged out.
  const late=await context.newPage();await late.goto(base+'/admin/recovery');await late.locator('#token').fill(admin);await late.locator('#enter').click();
  await late.locator('#islanderSearchText').fill(a.id);await late.locator('#islanderSearchButton').click();await late.getByRole('button',{name:'账户找回',exact:true}).click();

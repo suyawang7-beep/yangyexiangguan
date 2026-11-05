@@ -732,11 +732,14 @@
       login.querySelectorAll('input').forEach(input => { input.readOnly = true; input.autocomplete = 'off'; });
       login.querySelectorAll('button').forEach(button => { button.disabled = true; });
     }
+    const loginFeedback=document.createElement('p');loginFeedback.id='login-feedback';loginFeedback.className='small';loginFeedback.setAttribute('role','alert');login.querySelector('form').append(loginFeedback);
+    let loginPending=false;
     login.querySelector('form').onsubmit = async event => {
-      event.preventDefault(); if (!LIVE) return;
-      const form = event.currentTarget;
+      event.preventDefault(); if (!LIVE||loginPending) return;
+      const form = event.currentTarget,method=form.elements.method.value,button=form.querySelector('button[type=submit]');loginPending=true;button.disabled=true;loginFeedback.textContent='正在核对账号…';
       try { const data = await liveApi('login', { id: form.elements.id.value.trim(), method:form.elements.method.value, ...(form.elements.method.value==='password'?{password:form.elements.key.value}:{recoveryKey:form.elements.key.value.trim()}) }); liveToken = data.token; sessionStorage.setItem('buzhi-online-token', liveToken); takeProfile(data.profile); }
-      catch (err) { toast(err.message); }
+      catch (err) { loginFeedback.textContent=err.status===401?(method==='password'?'密码登录未通过。请核对完整BZI编号（区分大小写）和原密码；管理员发来的恢复密钥请切换登录方式使用。':'恢复密钥登录未通过。请核对完整BZI编号与最新恢复密钥；重发后旧密钥会失效。'):err.message;toast(err.message); }
+      finally{loginPending=false;button.disabled=false;}
     };
     select(0);
   }
