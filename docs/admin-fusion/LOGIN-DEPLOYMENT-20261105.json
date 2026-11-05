@@ -1,0 +1,41 @@
+{
+  "deployedAt": "2026-11-05T09:15:14.420Z",
+  "deployed": true,
+  "revision": "5aedcba6bf0dff273a047bec41f4500a4c9052c3",
+  "runtimeFilesVerified": 307,
+  "existingRowsUnchanged": true,
+  "additiveTables": 0,
+  "rollbackGuards": 2,
+  "oldRelease": "/opt/buzhi-production/releases/unified-4c760dc2fcada201a4053cf7f6009e2fd81c4987",
+  "newRelease": "/opt/buzhi-production/releases/unified-5aedcba6bf0dff273a047bec41f4500a4c9052c3",
+  "topicModuleEnabled": false,
+  "packageSha256": "2413ae5198d0bdaa95e10c9abc850f56f072e8712e836ba03f442bf53c560e55",
+  "backup": {
+    "revision": "5aedcba6bf0dff273a047bec41f4500a4c9052c3",
+    "backup": "/var/backups/buzhi-production/login-5aedcba",
+    "archive": "/home/ubuntu/buzhi-login-backup-5aedcba.tar.gz",
+    "sha256": "2336936fa509575ce7eed8ae358b8f705f140dcb8db78b072278d1797fe0adb9",
+    "previousRelease": "/opt/buzhi-production/releases/unified-4c760dc2fcada201a4053cf7f6009e2fd81c4987",
+    "serviceStoppedForConsistentBackup": true
+  },
+  "offhost": {
+    "sha256": "2336936fa509575ce7eed8ae358b8f705f140dcb8db78b072278d1797fe0adb9",
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "restoredTables": 38,
+    "restoredFiles": {
+      "assets": 181,
+      "code": 308
+    },
+    "offhostDirectory": "C:/Users/A/Backups/buzhi-production/login-5aedcba",
+    "restoredAt": "2026-11-05T09:14:02.372Z"
+  },
+  "checks": {
+    "actualPackageLoginTests": "PASS",
+    "isolatedTencentStage": "PASS",
+    "publicVersionAndScripts": "PASS",
+    "productionBusinessWrites": 0,
+    "realPasswordsReset": 0,
+    "maintenance": false
+  }
+}
