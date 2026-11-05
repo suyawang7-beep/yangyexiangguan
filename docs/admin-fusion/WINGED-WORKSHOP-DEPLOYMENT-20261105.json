@@ -1,0 +1,38 @@
+{
+  "deployed": true,
+  "revision": "df9b20bd56cf94e7b61253a258e45ff4e631e6be",
+  "runtimeFilesVerified": 316,
+  "existingRowsUnchanged": true,
+  "additiveTables": 0,
+  "rollbackGuards": 2,
+  "oldRelease": "/opt/buzhi-production/releases/unified-63af4098fedd262bf56e200fa627188f79d9f998",
+  "newRelease": "/opt/buzhi-production/releases/unified-df9b20bd56cf94e7b61253a258e45ff4e631e6be",
+  "topicModuleEnabled": false,
+  "packageSha256": "00ad093d30e1e36032a5c0867583a3e6cf793f622bae0193dea4538f8b9b9b10",
+  "backup": {
+    "revision": "df9b20bd56cf94e7b61253a258e45ff4e631e6be",
+    "backup": "/var/backups/buzhi-production/winged-df9b20b",
+    "archive": "/home/ubuntu/buzhi-winged-backup-df9b20b.tar.gz",
+    "sha256": "7738c17557549f76901b190760e18ca129f27aeb713013cdf6d64de5dc02d1f0",
+    "previousRelease": "/opt/buzhi-production/releases/unified-63af4098fedd262bf56e200fa627188f79d9f998",
+    "serviceStoppedForConsistentBackup": true
+  },
+  "restore": {
+    "sha256": "7738c17557549f76901b190760e18ca129f27aeb713013cdf6d64de5dc02d1f0",
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "restoredTables": 38,
+    "restoredFiles": {
+      "assets": 181,
+      "code": 308
+    },
+    "offhostDirectory": "C:/Users/A/Backups/buzhi-production/winged-df9b20b",
+    "restoredAt": "2026-11-05T10:35:46.745Z"
+  },
+  "publicBrowser": [
+    1440,
+    390
+  ],
+  "productionBusinessWrites": 0,
+  "poolRemainsClosed": true
+}
