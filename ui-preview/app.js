@@ -678,7 +678,7 @@
     const login = document.createElement('section');
     login.id = 'returning-islander-panel'; login.className = 'glass panel';
     login.setAttribute('role', 'tabpanel'); login.setAttribute('aria-labelledby', 'passport-returning-tab');
-    login.innerHTML = '<h2>找回你的生日通行证</h2><p class="small muted">使用岛民编号与自己设置的密码登录；旧岛民也可先用原恢复密钥登录并设置新密码。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登录密码／原恢复密钥</label><input id="returning-key" name="key" required type="password" autocomplete="off" placeholder="输入密码，旧岛民也可使用原密钥"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示</button></div><button class="btn primary full" type="submit">登录不吱岛 →</button><p class="small muted">旧恢复密钥仍可用于账户迁移，请勿向他人透露。</p></form>';
+    login.innerHTML = '<h2>找回你的生日通行证</h2><p class="small muted">使用岛民编号与自己设置的密码登录；旧岛民也可先用原恢复密钥登录并设置新密码。</p><form id="live-login" class="returning-islander-form"><div class="form-field"><label for="returning-method">登录方式</label><select id="returning-method" name="method"><option value="password">使用登录密码</option><option value="recovery">使用原恢复密钥</option></select></div><div class="form-field"><label for="returning-id">岛民参与者编号</label><input id="returning-id" name="id" required autocomplete="username" placeholder="BZI-..." spellcheck="false"></div><div class="form-field"><label for="returning-key">登录密码</label><input id="returning-key" name="key" required type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false" placeholder="输入自己设置的密码"><button type="button" class="btn text" id="toggle-returning-key" aria-pressed="false">显示</button></div><button class="btn primary full" type="submit">登录不吱岛 →</button><p class="small muted">旧恢复密钥仍可用于账户迁移，请勿向他人透露。</p></form>';
     if (LIVE) {
       const recovery = document.createElement('div');
       recovery.className = 'glass panel';
@@ -722,6 +722,8 @@
       const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : ['ArrowLeft', 'ArrowRight'].includes(event.key) ? 1 - current : null;
       if (next !== null) { event.preventDefault(); select(next, true); }
     });
+    const methodField=login.querySelector('#returning-method');
+    methodField.onchange=()=>{keyField.value='';keyField.type='password';keyField.autocomplete=methodField.value==='password'?'current-password':'off';login.querySelector('label[for="returning-key"]').textContent=methodField.value==='password'?'登录密码':'原恢复密钥（不是密码）';keyField.placeholder=methodField.value==='password'?'输入自己设置的密码':'输入原恢复密钥';keyToggle.textContent='显示';keyToggle.setAttribute('aria-pressed','false');};
     keyToggle.onclick = () => { const visible = keyField.type === 'password'; keyField.type = visible ? 'text' : 'password'; keyToggle.textContent = visible ? '隐藏密钥' : '显示密钥'; keyToggle.setAttribute('aria-pressed', String(visible)); };
     if (!LIVE) {
       const note = document.createElement('p'); note.className = 'small passport-preview-note';
@@ -733,7 +735,7 @@
     login.querySelector('form').onsubmit = async event => {
       event.preventDefault(); if (!LIVE) return;
       const form = event.currentTarget;
-      try { const data = await liveApi('login', { id: form.elements.id.value.trim(), password: form.elements.key.value, recoveryKey: form.elements.key.value.trim() }); liveToken = data.token; sessionStorage.setItem('buzhi-online-token', liveToken); takeProfile(data.profile); }
+      try { const data = await liveApi('login', { id: form.elements.id.value.trim(), method:form.elements.method.value, ...(form.elements.method.value==='password'?{password:form.elements.key.value}:{recoveryKey:form.elements.key.value.trim()}) }); liveToken = data.token; sessionStorage.setItem('buzhi-online-token', liveToken); takeProfile(data.profile); }
       catch (err) { toast(err.message); }
     };
     select(0);
