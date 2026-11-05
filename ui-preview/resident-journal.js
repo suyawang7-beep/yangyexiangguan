@@ -17,7 +17,7 @@
  const items=make('section','resident-card journal-items');items.id='journal-items';items.setAttribute('aria-labelledby','journal-items-title');const itemHeading=$('#island-items-list').previousElementSibling;itemHeading.id='journal-items-title';itemHeading.textContent='小岛纪念架';const itemCopy=make('p','resident-muted','每一件小物，都记得被你收下的那一天。');items.append(itemHeading,itemCopy,$('#island-items-list'),$('#island-items-more'));
  const journey=make('section','resident-card journal-journey');journey.setAttribute('aria-labelledby','journal-journey-title');journey.innerHTML='<h2 id="journal-journey-title">在小岛留下的足迹</h2><p class="resident-muted">从第一次相遇，到慢慢攒下的回忆。</p><ol id="journal-journey" class="journal-timeline"></ol>';
  grid.append(mail,collection,items,journey);opening.after(grid);
- const secondary=make('section','journal-secondary');secondary.setAttribute('aria-labelledby','journal-desk-title');secondary.innerHTML='<div class="journal-desk-heading"><div><h2 id="journal-desk-title">我的书桌</h2><p class="resident-muted">故事草稿、人物羁绊与个人资料，安稳地放在这里。</p></div><a class="resident-btn" href="islanders.html">拜访岛民回廊</a></div>';
+ const secondary=make('section','journal-secondary');secondary.id='my-desk';secondary.setAttribute('aria-labelledby','journal-desk-title');secondary.innerHTML='<div class="journal-desk-heading"><div><p class="journal-desk-overline">MY LITTLE DESK · 海岛书页</p><h2 id="journal-desk-title">我的书桌</h2><p class="resident-muted">故事草稿、人物羁绊与个人资料，安稳地放在这里。</p></div><div class="journal-desk-actions"><a class="resident-btn primary" href="resident.html">返回个人中心</a><a class="resident-btn" href="islanders.html">拜访岛民回廊</a></div></div>';
  const tabs=$('.resident-tabs');tabs.setAttribute('role','group');tabs.setAttribute('aria-label','书桌内容');
  tabs.querySelector('[data-tab="profile"]').classList.remove('resident-hidden');tabs.querySelector('[data-tab="profile"]').textContent='个人资料';tabs.querySelector('[data-tab="works"]').textContent='创作工坊';tabs.querySelector('[data-tab="relations"]').textContent='我的羁绊';tabs.prepend(tabs.querySelector('[data-tab="works"]'));
  const syncTabs=()=>tabs.querySelectorAll('button').forEach(button=>{button.setAttribute('aria-pressed',String(button.classList.contains('active')));button.setAttribute('aria-controls',button.dataset.tab)});tabs.addEventListener('click',syncTabs);syncTabs();
@@ -25,6 +25,19 @@
  const password=$('#password-form').closest('section'),accountPanel=make('details','resident-card journal-account');accountPanel.innerHTML='<summary>登录与账户安全<span>管理我的登录密码</span></summary>';password.classList.add('journal-account-body');accountPanel.append(password);
  secondary.append(tabs,$('#works'),$('#relations'),profile,accountPanel);center.append(secondary);
  const footer=make('footer','journal-footer');footer.innerHTML='<img src="assets/island-mark.svg" alt="" width="28" height="28"><p>今天的海风，也替你收藏好了。</p><a href="index.html">回到不吱岛</a>';center.append(footer);center.tabIndex=-1;
+ // Keep the dashboard free of desk forms. The desk is a distinct same-page navigation view.
+ // No second user session, no new API, and no duplication of form event handlers.
+ const deskLink=$('#desk-nav-link');
+ function syncResidentView(){
+  const onDesk=window.location.hash==='#my-desk';
+  opening.classList.toggle('resident-hidden',onDesk);
+  grid.classList.toggle('resident-hidden',onDesk);
+  secondary.classList.toggle('resident-hidden',!onDesk);
+  document.body.dataset.residentView=onDesk?'desk':'home';
+  if(deskLink){if(onDesk)deskLink.setAttribute('aria-current','page');else deskLink.removeAttribute('aria-current')}
+ }
+ window.addEventListener('hashchange',syncResidentView);
+ syncResidentView();
  const skip=make('a','journal-skip','跳到我的岛屿生活');skip.href='#center';$('.resident-wrap').prepend(skip);
  const brand=$('.resident-nav>a');brand.className='journal-brand';brand.innerHTML='<img src="assets/island-mark.svg" alt="" width="32" height="32">不吱岛<span>回到海风里</span>';
  const valid=value=>typeof value==='string'&&value.length>0&&Number.isFinite(Date.parse(value));

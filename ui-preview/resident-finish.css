@@ -1,0 +1,180 @@
+/* 不吱岛 2.0 · 个人中心收尾美术层
+   独立覆盖层，不改居民写接口、认领、卡池、融卡次数或身份状态。 */
+body[data-page="resident"]{
+  --finish-ink:#31586f;--finish-edge:#bdd5db;--finish-sky:#eaf6f9;
+  background:
+    radial-gradient(ellipse at 88% 9%,#e0dff7 0,transparent 39%),
+    radial-gradient(ellipse at 5% 59%,#d4f0f1 0,transparent 52%),
+    linear-gradient(160deg,#f2fbfa 0%,#e6f2f5 52%,#f2f5f9 100%);
+}
+body[data-page="resident"] .resident-nav{
+  background:linear-gradient(130deg,#ffffffdc,#ecf8fbe6 57%,#eff4ffcc);
+  border-color:#ffffff;
+  box-shadow:inset 0 1px 0 #fff,0 8px 0 -6px #a4c9d044,0 13px 32px #477a9115;
+}
+body[data-page="resident"] .resident-nav .links a{
+  border-radius:10px;padding:6px 10px;color:#446c83;
+  text-decoration:none;transition:background-color .15s,color .15s;
+}
+body[data-page="resident"] .resident-nav .links a:hover,
+body[data-page="resident"] .resident-nav .links a[aria-current="page"]{
+  background:#fdfefbe3;color:#28566f;box-shadow:inset 0 0 0 1px #c9dee3;
+}
+body[data-page="resident"] .resident-card{
+  border:1px solid #ffffffef;
+  box-shadow:inset 0 1px 0 #ffffffeb,0 16px 38px #497b8e13,0 2px 0 #bfd8de2b;
+}
+body[data-page="resident"] .journal-identity{
+  overflow:hidden;isolation:isolate;
+  background:
+    radial-gradient(ellipse at 110% -16%,#e3f4fabd 0,transparent 53%),
+    linear-gradient(150deg,#fffefa,#f3faf9 62%,#e5f2f6);
+}
+body[data-page="resident"] .journal-identity::after{
+  content:"✧";position:absolute;right:20px;top:4px;font-size:56px;
+  color:#9bc3ce70;pointer-events:none;z-index:-1;
+}
+body[data-page="resident"] .journal-avatar{
+  background:linear-gradient(155deg,#fffefa,#d9edf2);outline-color:#b2cdd2;
+  box-shadow:inset 0 2px 2px #fff,0 7px 0 -3px #9ebcc36b,0 10px 17px #648f9b1a;
+}
+body[data-page="resident"] .journal-collection{
+  background:
+    radial-gradient(ellipse at 80% 5%,#ffffffb0,transparent 55%),
+    linear-gradient(153deg,#f2fbfd,#e1f0f2 70%,#deedf4);
+  box-shadow:inset 0 1px 0 #fff,0 16px 35px #557f9016;
+}
+body[data-page="resident"] .journal-memory figure{
+  border:1px solid #ffffff;
+  box-shadow:0 1px 0 #d6e5e8,0 8px 0 -5px #c2d7dd,0 17px 28px #345a7325;
+}
+body[data-page="resident"] .journal-memory-stage{
+  background:radial-gradient(ellipse at 50% 72%,#d4e7e9a1 0,transparent 64%);
+  border-radius:18px;
+}
+body[data-page="resident"] .journal-mail{
+  background:
+    linear-gradient(90deg,transparent 27px,#f0e9df8c 28px,transparent 29px),
+    linear-gradient(158deg,#fffef9,#f9f7f0);
+  border-color:#fff9ef;
+}
+body[data-page="resident"] .journal-mail .sea-envelope{
+  background:linear-gradient(155deg,#fffefa,#f5f7f1)!important;
+  box-shadow:inset 0 1px 0 white,0 6px 15px #8c8d7921!important;
+}
+body[data-page="resident"] .journal-items{
+  position:relative;overflow:hidden;
+  background:linear-gradient(145deg,#fbfcf8,#eaf4f2);
+  border-color:#e8f5ef;
+}
+body[data-page="resident"] .journal-items::after{
+  content:"✦";position:absolute;right:25px;top:17px;
+  font-size:33px;color:#91b8b368;pointer-events:none;
+}
+body[data-page="resident"] #island-items-list{
+  border:1px dashed #c9dcd7;border-radius:17px;
+  padding:17px;min-height:106px;background:linear-gradient(137deg,#fffefaad,#edf7f2a8);
+  box-shadow:inset 0 1px 8px #8caaa513;
+}
+body[data-page="resident"] .journal-journey{
+  background:linear-gradient(150deg,#fdfefbdb,#edf6f7bb);
+  border:1px solid #d6e4e6;
+}
+body[data-page="resident"] .journal-secondary{
+  position:relative;isolation:isolate;overflow:hidden;
+  padding:clamp(20px,3vw,38px);
+  margin:24px 0 0;border:1px solid #ffffff;
+  border-radius:30px;
+  background:
+    radial-gradient(ellipse at 96% 4%,#e6f3f8 0,transparent 40%),
+    repeating-linear-gradient(0deg,transparent 0 30px,#a8c7c71a 31px,#a8c7c71a 32px,transparent 33px 34px),
+    linear-gradient(150deg,#fffef9,#f0f9f8 58%,#ebf2f7);
+  box-shadow:inset 0 1px 0 #ffffff,0 22px 46px #376b801a,0 6px 0 -3px #bed5d57b;
+}
+body[data-page="resident"] .journal-secondary::after{
+  content:"✧";position:absolute;right:24px;top:3px;
+  font-size:68px;color:#a9cccf76;pointer-events:none;z-index:-1;
+}
+body[data-page="resident"] .journal-desk-heading{
+  padding:0 0 20px;margin-bottom:18px;border-bottom:1px solid #c8dddf;
+}
+body[data-page="resident"] .journal-desk-overline{
+  margin:0 0 6px;color:#779caa;font-size:11px;letter-spacing:.15em;
+}
+body[data-page="resident"] .journal-desk-heading h2{
+  font-size:clamp(30px,3.2vw,41px);color:#375e75;
+  text-shadow:0 1px 0 #ffffff;
+}
+body[data-page="resident"] .journal-desk-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+body[data-page="resident"] .journal-secondary .resident-tabs{
+  padding:6px;border:1px solid #d7e4e4;border-radius:17px;
+  background:#f5faf8bb;box-shadow:inset 0 2px 7px #b8d1d125;
+}
+body[data-page="resident"] .journal-secondary .resident-tabs button{
+  border:1px solid transparent;background:transparent;border-radius:12px;
+}
+body[data-page="resident"] .journal-secondary .resident-tabs button.active{
+  border-color:#b9d0d8;
+  background:linear-gradient(145deg,#588ba0,#47768c);
+  box-shadow:0 5px 10px #486f812d,inset 0 1px 0 #ffffff3e;
+}
+body[data-page="resident"] .journal-secondary .resident-card{
+  background:linear-gradient(145deg,#fffefaeb,#f6faf9e8);
+  border-color:#e6efeb;box-shadow:0 10px 25px #688d9012,inset 0 1px 0 #fff;
+}
+body[data-page="resident"] .journal-secondary .resident-field :is(input,textarea,select){
+  border:1px solid #c2d7d6;border-radius:14px;
+  background:linear-gradient(155deg,#ffffff,#f7fbf9);
+  box-shadow:inset 0 2px 8px #9ac3cb20,0 1px 0 #fff;
+}
+body[data-page="resident"] .journal-secondary .resident-work{
+  border:1px solid #e2eae2;border-left:4px solid #abcac2;
+  border-radius:14px;background:#fffefa;box-shadow:0 5px 16px #789c9512;
+}
+body[data-page="resident"] .journal-account{
+  border-radius:17px;box-shadow:inset 0 1px 0 #fff;
+}
+body[data-page="resident"] .journal-secondary .resident-btn{
+  box-shadow:inset 0 1px 0 #ffffffb5,0 4px 12px #638b9b18;
+}
+body[data-page="resident"] .journal-secondary .resident-btn.primary{
+  box-shadow:inset 0 1px 0 #ffffff42,0 5px 14px #406d8125;
+}
+body[data-page="resident"] #my-desk{scroll-margin-top:18px}
+body[data-page="resident"] .resident-hidden{display:none!important}
+@media(max-width:860px){
+ body[data-page="resident"] .resident-nav .links{gap:6px 8px}
+ body[data-page="resident"] .resident-nav .links a{font-size:13px;padding:6px 8px}
+}
+@media(max-width:680px){
+ /* The previous mobile design hid every navigation item.
+    Show the desk entry on both desktop and mobile to prevent an unreachable view. */
+ body[data-page="resident"] .resident-nav .links{
+  display:grid!important;order:3;width:100%;
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;
+  border-top:1px solid #d6e9ec;padding-top:10px;
+ }
+ body[data-page="resident"] .resident-nav .links a{
+  display:flex;justify-content:center;text-align:center;
+  min-width:0;min-height:40px;font-size:12px;padding:7px 5px;
+  border:1px solid #d5e8ea;background:#ffffff7d;border-radius:11px;
+ }
+ body[data-page="resident"] .journal-secondary{
+  padding:18px 14px;border-radius:21px;margin-top:15px;
+ }
+ body[data-page="resident"] .journal-desk-heading{display:block;padding:0 3px 12px}
+ body[data-page="resident"] .journal-desk-heading h2{font-size:30px}
+ body[data-page="resident"] .journal-desk-actions{justify-content:flex-start;margin-top:12px}
+ body[data-page="resident"] .journal-desk-actions .resident-btn{font-size:12px;padding:8px 11px;min-height:42px}
+ body[data-page="resident"] .journal-secondary .resident-card{padding:18px 14px}
+ body[data-page="resident"] #island-items-list{padding:10px;min-height:80px}
+ body[data-page="resident"] .resident-card{box-shadow:inset 0 1px 0 #fff,0 8px 24px #477b8a12}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-page="resident"] .resident-nav .links a{transition:none!important}
+}
+@media(prefers-contrast:more){
+ body[data-page="resident"] .resident-nav .links a,
+ body[data-page="resident"] .journal-secondary .resident-card,
+ body[data-page="resident"] #island-items-list{border-color:#648b9c}
+}
