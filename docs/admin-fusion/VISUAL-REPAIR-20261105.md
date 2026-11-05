@@ -32,3 +32,7 @@ workshop-live.js及official-card.js/css未改，完整文件哈希记录visual-r
 
 ### 绘制版装置
 引入 Work 最新 wing-ritual-device-painted.png，装饰脚本仅替换装置资源 URL；使用 object-fit:contain，隐藏旧 wing-layer 防止叠加。原 SVG 保留回退。未改业务控制器及正式环境。
+
+
+### 海面与飞鸟
+引入 workshop-sea-life.css/js，首页工坊场景增加局部波光与三只小海鸟；纯装饰层 aria-hidden、pointer-events:none，不调用 API。暂停和 reduced-motion 纳入现有浏览器测试。固定蒙版坐标针对当前背景，不保证未来更换或裁切背景后仍与海域精确对齐。未部署。
