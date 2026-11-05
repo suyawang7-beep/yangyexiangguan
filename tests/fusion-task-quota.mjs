@@ -1,0 +1,21 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {createFusionQuota} from '../server/fusion-quota.mjs';
+test('task quota sources, atomic claims, replay and Beijing expiry',()=>{
+ const db=new DatabaseSync(':memory:');db.exec("PRAGMA foreign_keys=ON;CREATE TABLE users(id TEXT PRIMARY KEY);CREATE TABLE card_fusions(user_id TEXT,created_at TEXT);INSERT INTO users VALUES ('a'),('b')");
+ let clock='2026-11-05T15:59:59.000Z',failAudit=false;const err=(status,message)=>Object.assign(Error(message),{status});
+ const q=createFusionQuota({db,now:()=>clock,error:err,audit:()=>{if(failAudit)throw Error('audit failed')}});
+ const tx=fn=>{db.exec('BEGIN IMMEDIATE');try{const r=fn();db.exec('COMMIT');return r}catch(e){db.exec('ROLLBACK');throw e}};
+ const reward={userId:'a',rewardKey:'checkin:2026-11-05',amount:1,reason:'每日登岛'};
+ assert.throws(()=>q.claimTask(reward),/事务/);
+ tx(()=>q.claimTask(reward));tx(()=>q.claimTask(reward));
+ tx(()=>q.claimMail({userId:'a',mailId:1,amount:2,reason:'补发'}));
+ assert.equal(q.daily('a').taskExtra,1);assert.equal(q.daily('a').adminExtra,2);assert.equal(q.daily('a').limit,6);assert.equal(q.daily('b').limit,3);
+ assert.throws(()=>tx(()=>q.claimTask({...reward,userId:'b'})),/不一致/);
+ failAudit=true;assert.throws(()=>tx(()=>q.claimTask({...reward,rewardKey:'diary:2026-W45'})),/audit failed/);assert.equal(q.daily('a').limit,6);failAudit=false;
+ assert.throws(()=>tx(()=>q.claimTask({...reward,amount:0})));assert.throws(()=>tx(()=>q.claimTask({...reward,amount:101})));
+ clock='2026-11-05T16:00:00.000Z';assert.equal(q.daily('a').limit,3);tx(()=>q.claimTask(reward));assert.equal(q.daily('a').limit,3);
+ tx(()=>q.claimTask({...reward,rewardKey:'checkin:2026-11-06'}));assert.equal(q.daily('a').taskExtra,1);assert.equal(q.daily('a').remaining,4);assert.equal(q.daily('a').resetAt,'2026-11-06T16:00:00.000Z');
+ assert.equal(db.prepare('SELECT count(*) n FROM fusion_quota_grants').get().n,3);db.close();
+});
