@@ -21,3 +21,6 @@
 首批实现：server/fusion-quota.mjs 新增内部 claimTask（无公开发奖 API），daily 增加 taskExtra/adminExtra，兼容旧 extra/limit 字段；没有新建数据表。rewardKey 必须由后续任务服务生成全局唯一领取事件编号，不能接受客户端自行指定；任务服务必须先验证证据、周期与领取人，再在同一事务标记领取并调用。现阶段无调用方，不代表六项委托已接入。
 
 验证：node --test tests/fusion-task-quota.mjs 通过（事务要求、来源、跨账号事件冲突、幂等、审计失败回滚、次日失效）；node tests/fusion-quota-integration.cjs 通过（材料、事务、幂等及历史）。测试仅使用临时或内存数据库。现有生产版本本轮未重新核实、无 SSH、无部署。
+
+
+2026-11-06：已实现委托及称号首版、特别委托配置审核、原生v2模块和390/1440浏览器测试。以 docs/admin-fusion/LONG-TERM-OPERATIONS-20261106.md 的细分状态为准；探索仍禁发、免审核验证未接入，生产隔离部署和全量旧功能覆盖尚未完成。

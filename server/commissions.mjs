@@ -1,0 +1,26 @@
+import {createSpecialCommissions} from './special-commissions.mjs';
+import {createHash} from 'node:crypto';
+const TASKS=[{id:'checkin',name:'每日登岛',period:'day',reward:1},{id:'quiz',name:'岛民默契试炼',period:'day',reward:1},{id:'diary',name:'岛屿观察日记',period:'week',reward:1},{id:'exploration',name:'海岛探索计划',period:'week',reward:1},{id:'creative',name:'岛民创作工坊',period:'week',reward:2},{id:'special',name:'岛主特别委托',period:'special',reward:1}];
+export function commissionPeriod(at){
+ const date=new Date(Date.parse(at)+28800000),day=date.toISOString().slice(0,10);
+ date.setUTCDate(date.getUTCDate()-((date.getUTCDay()+6)%7));
+ return {day,week:date.toISOString().slice(0,10)};
+}
+export function createCommissions({db,tx,now,error,audit,quota,verify,requireOpen}){
+ db.exec(`CREATE TABLE IF NOT EXISTS commission_diaries(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id TEXT NOT NULL REFERENCES users(id),week TEXT NOT NULL,body TEXT NOT NULL,content_hash TEXT NOT NULL,created_at TEXT NOT NULL,UNIQUE(user_id,week),UNIQUE(user_id,content_hash));
+ CREATE TABLE IF NOT EXISTS commission_claims(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id TEXT NOT NULL REFERENCES users(id),task_id TEXT NOT NULL,period TEXT NOT NULL,evidence TEXT NOT NULL,amount INTEGER NOT NULL,claimed_at TEXT NOT NULL,UNIQUE(user_id,task_id,period),UNIQUE(user_id,task_id,evidence));`);
+ const ready=id=>{verify(id);requireOpen()};
+ function evidence(id,task,p){
+  if(task==='checkin')return db.prepare('SELECT day FROM checkins WHERE user_id=? AND day=?').get(id,p.day)?.day;
+  if(task==='quiz')return db.prepare('SELECT day FROM quiz_attempts WHERE user_id=? AND day=? AND score>=3').get(id,p.day)?.day;
+  if(task==='diary')return db.prepare('SELECT id FROM commission_diaries WHERE user_id=? AND week=?').get(id,p.week)?.id?.toString();
+  if(task==='creative')return db.prepare("SELECT w.id FROM resident_works w JOIN resident_work_reviews r ON r.work_id=w.id WHERE w.user_id=? AND w.status='submitted' AND r.decision='approved' AND w.updated_at<=r.reviewed_at AND NOT EXISTS(SELECT 1 FROM commission_claims c WHERE c.user_id=w.user_id AND c.task_id='creative' AND c.evidence=CAST(w.id AS TEXT)) ORDER BY r.reviewed_at,w.id LIMIT 1").get(id)?.id?.toString();
+  return null;
+ }
+ const special=createSpecialCommissions({db,tx,now,error,audit,quota,ready});
+ function list(id){verify(id);const p=commissionPeriod(now());return {name:'岛民事务所 · 海风委托簿',timezone:'Asia/Shanghai',...p,quota:quota.daily(id),items:TASKS.map(t=>{const period=p[t.period]||'',claimed=!!db.prepare('SELECT 1 FROM commission_claims WHERE user_id=? AND task_id=? AND period=?').get(id,t.id,period);return {...t,claimed,available:!['exploration','special'].includes(t.id),completed:claimed||!!evidence(id,t.id,p),unavailableReason:t.id==='exploration'?'对应互动尚未接入服务端完成验证':t.id==='special'?'暂无已发布的特别委托':null}})}}
+ function checkin(id){ready(id);return tx(()=>{ready(id);const {day}=commissionPeriod(now());const inserted=db.prepare('INSERT OR IGNORE INTO checkins(user_id,day) VALUES(?,?)').run(id,day);if(inserted.changes)audit('commission.checkin',{userId:id,day});return list(id)})}
+ function diary(id,b){ready(id);const body=typeof b.content==='string'?b.content.trim():'',normalized=body.normalize('NFKC').replace(/[\s\p{P}\p{S}]/gu,'');if([...normalized].length<30||[...body].length>2000)throw error(400,'日记至少30字，最多2000字');const hash=createHash('sha256').update(normalized).digest('hex');return tx(()=>{ready(id);const {week}=commissionPeriod(now());if(db.prepare('SELECT 1 FROM commission_diaries WHERE user_id=? AND content_hash=?').get(id,hash))throw error(409,'请勿重复提交相同日记');if(db.prepare('SELECT 1 FROM commission_diaries WHERE user_id=? AND week=?').get(id,week))throw error(409,'本周已提交日记');db.prepare('INSERT INTO commission_diaries(user_id,week,body,content_hash,created_at) VALUES(?,?,?,?,?)').run(id,week,body,hash,now());audit('commission.diary',{userId:id,week});return list(id)})}
+ function claim(id,b){ready(id);if(typeof b.taskId==='string'&&b.taskId.startsWith('special:'))return special.claim(id,b);const task=TASKS.find(t=>t.id===b.taskId);if(!task)throw error(400,'委托不存在');if(task.id==='exploration')throw error(409,'探索尚未接入服务端完成验证');if(task.id==='special')throw error(409,'暂无已发布的特别委托');return tx(()=>{ready(id);const p=commissionPeriod(now()),period=p[task.period];if(db.prepare('SELECT 1 FROM commission_claims WHERE user_id=? AND task_id=? AND period=?').get(id,task.id,period))return {...list(id),alreadyClaimed:true};const proof=evidence(id,task.id,p);if(!proof)throw error(409,'尚未完成委托或审核未通过');const result=db.prepare('INSERT INTO commission_claims(user_id,task_id,period,evidence,amount,claimed_at) VALUES(?,?,?,?,?,?)').run(id,task.id,period,proof,task.reward,now());quota.claimTask({userId:id,rewardKey:'commission:'+result.lastInsertRowid,amount:task.reward,reason:task.name});audit('commission.claim',{userId:id,taskId:task.id,period,amount:task.reward});return list(id)})}
+ const baseList=list;return {list:id=>{const data=baseList(id),items=special.items(id);return {...data,items:[...data.items.filter(t=>t.id!=='special'||!items.length),...items]}},checkin,diary,claim,configure:special.configure,adminList:special.adminList,submitSpecial:special.submitSpecial,reviewSpecial:special.reviewSpecial};
+}

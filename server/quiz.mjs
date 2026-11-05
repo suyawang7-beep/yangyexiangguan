@@ -711,12 +711,12 @@ export function dailyQuiz(at=Date.now()){
  return {date,groupIndex:index,title:titles[index],nextUpdateAt:new Date(Date.parse(date+'T00:00:00+08:00')+86400000).toISOString(),questions:QUIZ_BANK.slice(index*5,index*5+5)};
 }
 function shuffled(options){const out=options.map(o=>({...o}));for(let i=out.length-1;i>0;i--){const j=randomInt(i+1);[out[i],out[j]]=[out[j],out[i]]}return out}
-export function createQuiz(db,{membership,requireActiveActivity,tx,earn,state,awardTaskStages}){
+export function createQuiz(db,{membership,requireActiveActivity,tx,earn,state,awardTaskStages,longTerm=false}){
  db.exec("CREATE TABLE IF NOT EXISTS quiz_attempts(user_id TEXT NOT NULL REFERENCES users(id),day TEXT NOT NULL,group_index INTEGER NOT NULL,score INTEGER NOT NULL,answers_json TEXT NOT NULL,feedback_json TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 1,rewarded INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,PRIMARY KEY(user_id,day))");
- function rewarded(id,date){return !!db.prepare("SELECT 1 FROM tasks WHERE user_id=? AND (task_id=? OR (task_id='quiz' AND date(redeemed_at,'+8 hours')=?))").get(id,'quiz:'+date,date)}
+ function rewarded(id,date){if(longTerm)return !!db.prepare("SELECT 1 FROM commission_claims WHERE user_id=? AND task_id='quiz' AND period=?").get(id,date);return !!db.prepare("SELECT 1 FROM tasks WHERE user_id=? AND (task_id=? OR (task_id='quiz' AND date(redeemed_at,'+8 hours')=?))").get(id,'quiz:'+date,date)}
  function latest(id,date){const r=db.prepare('SELECT score,feedback_json,rewarded,attempts FROM quiz_attempts WHERE user_id=? AND day=?').get(id,date);return r?{score:r.score,passed:r.score>=3,rewarded:!!r.rewarded,feedback:JSON.parse(r.feedback_json),attempts:r.attempts}:null}
  function status(id){const {date,nextUpdateAt}=dailyQuiz();return{date,rewarded:rewarded(id,date),nextUpdateAt}}
- function today(id){membership.requireVerified(id);const d=dailyQuiz();return{date:d.date,groupIndex:d.groupIndex,title:d.title,timezone:'Asia/Shanghai',nextUpdateAt:d.nextUpdateAt,reward:25,passScore:3,rewarded:rewarded(id,d.date),latest:latest(id,d.date),questions:d.questions.map(q=>({id:q.id,prompt:q.prompt,options:shuffled(q.options)}))}}
+ function today(id){membership.requireVerified(id);const d=dailyQuiz();return{date:d.date,groupIndex:d.groupIndex,title:d.title,timezone:'Asia/Shanghai',nextUpdateAt:d.nextUpdateAt,reward:longTerm?0:25,fusionReward:longTerm?1:0,passScore:3,rewarded:rewarded(id,d.date),latest:latest(id,d.date),questions:d.questions.map(q=>({id:q.id,prompt:q.prompt,options:shuffled(q.options)}))}}
  function submit(id,b){
   membership.requireVerified(id);requireActiveActivity();
   return tx(()=>{
@@ -729,9 +729,9 @@ export function createQuiz(db,{membership,requireActiveActivity,tx,earn,state,aw
    if(rewarded(id,d.date))return{date:d.date,...latest(id,d.date),alreadyRewarded:true,rewardGranted:0,profile:state(id)};
    const feedback=d.questions.map(q=>({questionId:q.id,prompt:q.prompt,correct:supplied.get(q.id)===q.correct,selectedText:q.options.find(o=>o.id===supplied.get(q.id)).text,correctText:q.options.find(o=>o.id===q.correct).text,explanation:q.explanation}));
    const score=feedback.filter(q=>q.correct).length,passed=score>=3,stamp=new Date().toISOString();
-   db.prepare('INSERT INTO quiz_attempts(user_id,day,group_index,score,answers_json,feedback_json,attempts,rewarded,created_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?,?) ON CONFLICT(user_id,day) DO UPDATE SET score=excluded.score,answers_json=excluded.answers_json,feedback_json=excluded.feedback_json,attempts=quiz_attempts.attempts+1,rewarded=excluded.rewarded,updated_at=excluded.updated_at').run(id,d.date,d.groupIndex,score,JSON.stringify(b.answers),JSON.stringify(feedback),passed?1:0,stamp,stamp);
-   if(passed){db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(id,'quiz:'+d.date,stamp);earn(id,25,'每日默契小测 '+d.date);awardTaskStages(id)}
-   return{date:d.date,score,passed,rewarded:passed,feedback,rewardGranted:passed?25:0,profile:state(id)};
+   db.prepare('INSERT INTO quiz_attempts(user_id,day,group_index,score,answers_json,feedback_json,attempts,rewarded,created_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?,?) ON CONFLICT(user_id,day) DO UPDATE SET score=excluded.score,answers_json=excluded.answers_json,feedback_json=excluded.feedback_json,attempts=quiz_attempts.attempts+1,rewarded=excluded.rewarded,updated_at=excluded.updated_at').run(id,d.date,d.groupIndex,score,JSON.stringify(b.answers),JSON.stringify(feedback),passed&&!longTerm?1:0,stamp,stamp);
+   if(passed&&!longTerm){db.prepare('INSERT INTO tasks VALUES(?,?,?)').run(id,'quiz:'+d.date,stamp);earn(id,25,'每日默契小测 '+d.date);awardTaskStages(id)}
+   return{date:d.date,score,passed,rewarded:longTerm?false:passed,feedback,rewardGranted:passed&&!longTerm?25:0,fusionRewardAvailable:longTerm&&passed,profile:state(id)};
   });
  }
  function adminList(params){
