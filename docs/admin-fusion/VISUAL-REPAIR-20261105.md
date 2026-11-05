@@ -36,3 +36,7 @@ workshop-live.js及official-card.js/css未改，完整文件哈希记录visual-r
 
 ### 海面与飞鸟
 引入 workshop-sea-life.css/js，首页工坊场景增加局部波光与三只小海鸟；纯装饰层 aria-hidden、pointer-events:none，不调用 API。暂停和 reduced-motion 纳入现有浏览器测试。固定蒙版坐标针对当前背景，不保证未来更换或裁切背景后仍与海域精确对齐。未部署。
+
+
+### 最终方向：静态海面与装置本体动效
+用户否决雨滴波纹。正式候选未引入水面 WebGL 试验文件；停止独立试用服务，并移除 sea-life 中旧 CSS 水层创建，只留三只飞鸟。最新装饰脚本将绘制 PNG 包装为 altar-motion-frame，增加轻悬浮、alpha 蒙版反光及底部聚光，支持融合中、成功、暂停、隐藏页面及减少动效状态。原 valid/fuse 业务未改。
