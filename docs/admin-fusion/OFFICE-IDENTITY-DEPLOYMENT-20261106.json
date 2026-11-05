@@ -1,0 +1,40 @@
+{
+  "deployed": true,
+  "revision": "c8183cd31f58c2d1ca9e23642c8119ba68b55064",
+  "runtimeFilesVerified": 333,
+  "existingRowsUnchanged": true,
+  "additiveTables": 0,
+  "longTermOperations": true,
+  "rollbackGuards": 2,
+  "oldRelease": "/opt/buzhi-production/releases/unified-1336300f8aa64bd1eba521f82ec9cfbd70ef8a2e",
+  "newRelease": "/opt/buzhi-production/releases/unified-c8183cd31f58c2d1ca9e23642c8119ba68b55064",
+  "topicModuleEnabled": false,
+  "backup": {
+    "revision": "c8183cd31f58c2d1ca9e23642c8119ba68b55064",
+    "backup": "/var/backups/buzhi-production/longterm-c8183cd",
+    "archive": "/home/ubuntu/buzhi-longterm-backup-c8183cd.tar.gz",
+    "sha256": "cb653b064021ba052ad5d5e61c3393e88d9f0fe42f888ca331a739bb1a607bc9",
+    "previousRelease": "/opt/buzhi-production/releases/unified-1336300f8aa64bd1eba521f82ec9cfbd70ef8a2e",
+    "serviceStoppedForConsistentBackup": true
+  },
+  "restore": {
+    "sha256": "cb653b064021ba052ad5d5e61c3393e88d9f0fe42f888ca331a739bb1a607bc9",
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "restoredTables": 46,
+    "restoredFiles": {
+      "assets": 181,
+      "code": 332
+    },
+    "offhostDirectory": "C:/Users/A/Backups/buzhi-production/longterm-c8183cd",
+    "restoredAt": "2026-11-05T18:41:20.608Z"
+  },
+  "publicChecks": [
+    "office-welcome-present",
+    "office-titles-absent",
+    "resident-owned-titles-script-present",
+    "painted-device-present",
+    "collection-workshop-entry"
+  ],
+  "productionUserTestWrites": 0
+}
