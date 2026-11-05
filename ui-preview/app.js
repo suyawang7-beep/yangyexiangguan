@@ -280,7 +280,7 @@
     TASKS=LIVE_TASKS;
     const tokenAtStart=liveToken,revisionAtStart=profileRevision;
     renderPage();
-    const accessTask=liveApi('feature-access').then(features=>{livePool=features.pool;if(livePool.enabled===false)PATHS.draw[1]='羽翼融卡工坊';renderPage()}).catch(()=>{if(PAGE==='draw')toast('暂时无法读取卡池状态，请刷新重试。')});
+    const accessTask=liveApi('feature-access').then(features=>{livePool=features.pool;if(livePool.enabled===false)PATHS.draw[1]='羽翼融卡工坊';renderPage();if(livePool.enabled===false){document.querySelectorAll('a[href="draw.html"]').forEach(a=>{a.textContent='融卡工坊'});if(PAGE==='draw')document.title='融卡工坊 · 不吱岛'}}).catch(()=>{if(PAGE==='draw')toast('暂时无法读取卡池状态，请刷新重试。')});
     const artworkTask=loadManagedArtwork();
     const catalogTask=(async()=>{
       try{
