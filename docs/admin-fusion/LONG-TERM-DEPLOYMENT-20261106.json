@@ -1,0 +1,56 @@
+{
+  "deployed": true,
+  "revision": "1336300f8aa64bd1eba521f82ec9cfbd70ef8a2e",
+  "runtimeFilesVerified": 331,
+  "existingRowsUnchanged": true,
+  "additiveTables": 8,
+  "longTermOperations": true,
+  "rollbackGuards": 2,
+  "oldRelease": "/opt/buzhi-production/releases/unified-df9b20bd56cf94e7b61253a258e45ff4e631e6be",
+  "newRelease": "/opt/buzhi-production/releases/unified-1336300f8aa64bd1eba521f82ec9cfbd70ef8a2e",
+  "topicModuleEnabled": false,
+  "backup": {
+    "revision": "1336300f8aa64bd1eba521f82ec9cfbd70ef8a2e",
+    "backup": "/var/backups/buzhi-production/longterm-1336300",
+    "archive": "/home/ubuntu/buzhi-longterm-backup-1336300.tar.gz",
+    "sha256": "9b36541e1aca49a437dbf2a3f45cdb2d80f198f4024a2418a4a7bfd5b07e47ea",
+    "previousRelease": "/opt/buzhi-production/releases/unified-df9b20bd56cf94e7b61253a258e45ff4e631e6be",
+    "serviceStoppedForConsistentBackup": true
+  },
+  "restore": {
+    "sha256": "9b36541e1aca49a437dbf2a3f45cdb2d80f198f4024a2418a4a7bfd5b07e47ea",
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "restoredTables": 38,
+    "restoredFiles": {
+      "assets": 181,
+      "code": 317
+    },
+    "offhostDirectory": "C:/Users/A/Backups/buzhi-production/longterm-1336300",
+    "restoredAt": "2026-11-05T17:39:22.212Z"
+  },
+  "publicRoutesVerified": [
+    "/health",
+    "/office.html",
+    "/admin/v2/",
+    "/admin/v2/title-management.js",
+    "/admin/v2/commission-management.js",
+    "/fusion.html",
+    "/assets/material-cradle-painted.png"
+  ],
+  "office": {
+    "enabled": true,
+    "startsAt": null,
+    "endsAt": null,
+    "phase": "active",
+    "auditedVersionedChange": true
+  },
+  "pool": "paused",
+  "productionAccountOrAssetTestWrites": 0,
+  "incomplete": [
+    "exploration-completion-verifier",
+    "no-review-special-completion-verifier",
+    "arbitrary-special-participation-conditions",
+    "personal-center-title-display"
+  ]
+}
