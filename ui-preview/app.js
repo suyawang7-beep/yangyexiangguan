@@ -402,11 +402,7 @@
 
   function fusionMarkup(){
     const limit=Number(latestLiveProfile?.fusionDaily?.limit??3),used=Number(latestLiveProfile?.fusionDaily?.used||0),remain=Math.max(0,limit-used);
-    const valid=CARDS.filter(c=>['N','R','SR'].includes(c.rarity)&&(state.collection[c.id]?.quantity||0)>0);
-    const options=valid.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name)+'（'+c.rarity+' · '+(state.collection[c.id]?.quantity||0)+'张）</option>').join('');
-    return '<details class="glass sea-fusion" id="sea-fusion"><summary class="sea-fusion-launch"><span class="sea-fusion-shell" aria-hidden="true">🐚</span><span><strong>海风融卡坊</strong><small>两张回忆，凝成一张新的相遇</small></span><span class="sea-fusion-badge">'+(LIVE?'今日融卡：已使用 '+used+'/'+limit+' 次，剩余 '+remain+' 次':'每日3次')+'</span><span class="sea-fusion-chevron" aria-hidden="true">⌄</span></summary><div class="sea-fusion-interior"><div class="sea-fusion-stage" aria-hidden="true"><span class="sea-fusion-card">✦</span><span class="sea-fusion-vortex">✧</span><span class="sea-fusion-card">✦</span></div><p class="small muted">每日基础3次，岛主当日补发次数额外计入，次日北京时间00:00刷新。消耗2张同等级材料卡，随机获得1张卡（可能与材料同级或降级）。N→N/SR/SSR/UR；R→N/R/SSR/UR；SR→N/R/SR/SSR/UR。</p>'+
-    (LIVE&&liveToken?'<button type="button" class="btn secondary" id="fusion-refresh-quota">刷新融卡次数</button>':'')+
-    (!LIVE?'<p class="small muted">正式网站登录后可使用融卡。</p>':!liveToken?'<p class="small">请先登录岛民通行证。</p>':!remain?'<p class="sea-fusion-done">今天的海风已经歇息啦，明天再来融合回忆 ♡</p>':valid.length?'<form id="card-fusion-form"><div class="filter-controls"><label>第一张卡<select required name="first"><option value="">选择卡片</option>'+options+'</select></label><label>第二张卡<select required name="second"><option value="">选择卡片</option>'+options+'</select></label></div><p id="fusion-message" class="small muted" role="status">两张卡必须同等级；相同卡片需要持有至少2张。</p><button class="btn primary" type="submit">✦ 开始融卡</button></form>':'<p class="small muted">目前没有可用于融合的N、R或SR卡。</p>')+'</div></details>';
+    return '<section class="glass sea-fusion" id="sea-fusion"><a class="sea-fusion-launch" href="/fusion.html"><span class="sea-fusion-shell" aria-hidden="true">✧</span><span><strong>羽翼融卡工坊</strong><small>前往海岸炼金殿，融合两张回忆</small></span><span class="sea-fusion-badge">'+(LIVE&&liveToken?'今日已使用 '+used+'/'+limit+' 次，剩余 '+remain+' 次':'进入工坊')+'</span><span aria-hidden="true">↗</span></a></section>';
   }
   function showFusionReveal(card){
     const previous=document.querySelector('#fusion-reveal');previous?.remove();
