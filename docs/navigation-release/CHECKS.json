@@ -1,0 +1,46 @@
+[
+  {
+    "width": 1440,
+    "page": "fusion.html",
+    "status": "PASS"
+  },
+  {
+    "width": 1440,
+    "page": "weather/",
+    "status": "PASS"
+  },
+  {
+    "width": 1100,
+    "page": "fusion.html",
+    "status": "PASS"
+  },
+  {
+    "width": 1100,
+    "page": "weather/",
+    "status": "PASS"
+  },
+  {
+    "width": 820,
+    "page": "fusion.html",
+    "status": "PASS"
+  },
+  {
+    "width": 820,
+    "page": "weather/",
+    "status": "PASS"
+  },
+  {
+    "width": 390,
+    "page": "fusion.html",
+    "status": "PASS"
+  },
+  {
+    "width": 390,
+    "page": "weather/",
+    "status": "PASS"
+  },
+  {
+    "page": "collection.html",
+    "grouping": "PASS"
+  }
+]
