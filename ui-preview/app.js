@@ -1022,7 +1022,7 @@
       ['🌸','花汐岛','花田、温室与创作聚会','bloom']
     ];
     return `<section class="guide-explorer" id="voyage" aria-label="不吱岛登岛地图">
-      <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
+      <header class="guide-map-heading"><div><span class="room-label">不吱岛 · 群岛散步指南</span><h1>一起逛逛不吱岛</h1><p>不急着抵达，先让海风带路。小屏左右滑动，看看整片群岛。</p><a class="guide-destination" href="/weather/">去云端气象台观测心情 ↗</a></div><button class="map-overview" id="voyage-overview" type="button" aria-pressed="true">${icon('home')} 全岛地图</button></header>
       <div class="voyage-map" tabindex="0" role="region" aria-label="群岛地图，可左右滚动"><div class="guide-map-stage">
         <svg class="guide-map-art" viewBox="0 0 1584 993" role="img" aria-label="不吱岛群岛全景：山峦、海滩、住宅、灯塔与主岛庆典广场"><defs>
           <clipPath id="guide-harbor-water" clipPathUnits="userSpaceOnUse"><path d="M450 820h140v60H450Z M590 850h130v55H590Z M915 820h120v60H915Z"/></clipPath>

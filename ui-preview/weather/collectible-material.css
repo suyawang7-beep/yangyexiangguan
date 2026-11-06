@@ -1,0 +1,23 @@
+/* Brushed silver instrument, laminated observation terminal and archival report. */
+.weather-orb{border-color:#d7edf1;box-shadow:inset 3px 3px 8px #ffffffc4,inset -8px -12px 25px #396b8c61,inset 0 0 0 5px #e6f7f529,inset 0 0 0 9px #355b7224,0 2px 0 #f8fff6,0 6px 2px #63899b38,0 18px 28px #23465b3d}
+.orb-glint{opacity:.72;background:radial-gradient(ellipse at 29% 13%,#fffff6bf 0,transparent 14%),linear-gradient(119deg,transparent 14%,#ffffff6b 15%,#ffffff19 22%,transparent 26%,transparent 65%,#bee6f254 78%,transparent 84%);box-shadow:inset -3px -4px 10px #30526c45}
+.orb-rim{box-shadow:inset 0 0 0 1px #f7fff2b0,inset 0 0 0 7px #d6eff329,inset 0 -11px 18px #33678132}
+.orb-collar{background:linear-gradient(90deg,#426b80,#dfebe4 28%,#a9c3cb 70%,#47697d);box-shadow:inset 0 2px 1px #f1ffed,0 2px 0 #49738a,0 5px 8px #1b3e5e4d}
+.pedestal{background:repeating-linear-gradient(90deg,#ffffff0b 0 1px,transparent 1px 3px),linear-gradient(90deg,#638798,#e0e8da 27%,#b6cdd0 63%,#4b7086);filter:drop-shadow(0 7px 5px #1b48614d)}
+.pedestal-face{margin:4px 12px;border-top:1px solid #fbffed99;border-bottom:1px solid #33576940;background:linear-gradient(120deg,#fffff222,transparent 35%,#43637a13)}
+.plinth{background:radial-gradient(ellipse at 36% 21%,#fffcec,#d4e2d8 44%,#8aadb8 90%);border:1px solid #e6f1e7;box-shadow:inset 0 3px 2px #fffde7,inset 0 -3px 5px #4c72863b,0 3px 0 #7195a4,0 8px 0 #41687d,0 10px 0 #c2d8d8,0 16px 0 #547a8f,0 27px 22px #2449614a}
+.observation-panel{isolation:isolate;border:1px solid #d8e7e3;border-radius:5px 28px 5px 5px;background:repeating-linear-gradient(0deg,#526b7907 0 1px,transparent 1px 4px),linear-gradient(124deg,#f5f4e6f7,#dceae5f5 70%,#c1d8dbf5);box-shadow:inset 1px 2px 1px #fffef0,inset -1px -2px 4px #5b81942b,0 2px 0 #9ab4b8,0 5px 0 #e4e8db,0 8px 0 #698c9c,7px 20px 29px #23455e40}
+.observation-panel:before{left:-9px;top:22px;bottom:18px;width:7px;background:linear-gradient(90deg,#4d7184,#bfd4d6 55%,#ebf0e0);border:1px solid #6d919f;box-shadow:-2px 3px 5px #3555682b}
+.observation-panel:after{content:'';position:absolute;inset:6px;z-index:-1;pointer-events:none;border:1px solid #ffffff94;border-radius:2px 22px 2px 2px;background:linear-gradient(117deg,#ffffff40,transparent 20%,transparent 64%,#b4d7dd20 67%,transparent 82%);box-shadow:inset 0 0 13px #7199a01a}
+.folio-top{border-bottom:2px solid #7c9ca950;color:#3f6378;text-shadow:0 1px #fffef0}
+.folio-bottom{border-top-color:#7295a68a}
+body[data-phase=result] .observation-panel{background:repeating-linear-gradient(0deg,#56697609 0 1px,transparent 1px 4px),linear-gradient(120deg,#fbf4e0f7,#e4ebddf7 72%,#c7dad9f7)}
+.weather-index{background:linear-gradient(105deg,#91b5c51c,#fcfff151);border-top:1px solid #6e95a448;border-bottom:1px solid #f9fff2;box-shadow:inset 0 2px 5px #456b8410;padding:7px 8px}
+blockquote{background:linear-gradient(110deg,#fafff466,#bad3d520);box-shadow:inset 2px 0 0 #89a8b3,inset 0 1px 0 #fffff0a6}
+.report-image-wrap{border:1px solid #86a7b2;background:linear-gradient(135deg,#91b2be,#d4e5e3);box-shadow:inset 0 3px 12px #25495c42;padding:12px}
+.report-image-wrap img{box-shadow:0 2px 0 #f9f4e1,1px 4px 0 #8da8ac,3px 9px 15px #294c605e}
+body[data-weather=night] .observation-panel,body[data-weather=rain] .observation-panel{border-color:#bad1da;box-shadow:inset 1px 2px 1px #f0f8f2,inset -2px -2px 7px #7593ae42,0 2px 0 #819dae,0 5px 0 #c6d8df,0 8px 0 #4a687e,7px 20px 29px #19354e70}
+body[data-weather=night] .orb-glint{background:radial-gradient(ellipse at 72% 19%,#e7f1ffb3,transparent 18%),linear-gradient(120deg,transparent 12%,#e5f4ff63 17%,transparent 31%,transparent 70%,#afc8f340 80%,transparent 85%)}
+@media(hover:hover){.observation-panel:hover{translate:0 -2px;box-shadow:inset 1px 2px 1px #fffef0,inset -1px -2px 4px #5b81942b,0 2px 0 #9ab4b8,0 5px 0 #e4e8db,0 8px 0 #698c9c,7px 24px 33px #23455e4d}.weather-orb:hover{filter:brightness(1.035)}}
+@media(max-width:760px){.observation-panel{border-radius:5px 22px 5px 5px}.observation-panel:after{inset:4px;border-radius:2px 18px 2px 2px}.observation-panel:before{left:-5px;width:3px}.weather-index{padding:4px 6px}.report-image-wrap{padding:9px}}
+@media(prefers-reduced-motion:reduce){.observation-panel:hover{translate:none}}
