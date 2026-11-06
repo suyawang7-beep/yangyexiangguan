@@ -1,0 +1,10 @@
+{
+ "baseline":"1deac8bda4266f1df38b6b86772abe498ee46a1b",
+ "githubMain":"59be3efec4b38718a6245bf7aa39a533de08a7fe",
+ "productionAccess":"read-only",
+ "productionDeployed":false,
+ "filesPassing":["tests/admin-frontend-sync.mjs","tests/admin-frontend-sync-browser.cjs","tests/weather-content.mjs","tests/admin-v2-components.mjs","tests/admin-v2-readonly.mjs","tests/admin-v2-writes.mjs","tests/admin-feature-access.cjs","tests/commissions-http.mjs"],
+ "syntheticWritesOnly":true,
+ "fullRegressionRepeated":false,
+ "schemaMigration":false
+}

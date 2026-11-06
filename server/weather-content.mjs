@@ -29,5 +29,6 @@ export function createWeatherContent({db,assetDir,audit=()=>{}}){
   }catch(e){db.exec('ROLLBACK');throw e}
  }
  function file(name,admin=false){if(!/^[a-f0-9]{64}\.webp$/.test(name))fail(404,'素材不存在');const r=read(),url='/assets/weather-scenes/'+name;if(r.published.scene!==url&&!(admin&&r.draft.scene===url))fail(404,'背景未发布');const f=join(assetDir,'weather-scenes',name);if(!existsSync(f))fail(404,'素材缺失');return readFileSync(f)}
- return {read,draft:b=>change(b),publish:b=>change(b,true),publicConfig:()=>read().published,file};
+ function scenePreview(){const scene=read().draft.scene,defaultScene=scene===defaults.scene;const bytes=defaultScene?readFileSync(new URL('../ui-preview/assets/weather-coastal-scene-20261107.png',import.meta.url)):file(scene.split('/').pop(),true);return {dataUrl:'data:image/'+(defaultScene?'png':'webp')+';base64,'+bytes.toString('base64')}}
+ return {read,scenePreview,draft:b=>change(b),publish:b=>change(b,true),publicConfig:()=>read().published,file};
 }

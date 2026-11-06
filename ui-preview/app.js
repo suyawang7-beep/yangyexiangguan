@@ -361,7 +361,9 @@
     const today = dateKey();
     const checked = state.checkins.includes(today);
     const streak = streakCount();
-    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>每天一次 · 签到 +10 金币</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3>${memorialCard(streak)}<p class="small muted">${streak >= 7 ? '七日纪念已点亮！这张卡只作签到纪念，不计入随机抽卡池。' : '连续签到7天点亮七日纪念卡，只作签到纪念，不计入随机抽卡池。'}</p><p class="small muted">错过一天会重新计算连续天数，已经获得的金币不会消失。</p></aside></div><div class="info-note">${LIVE ? '签到日期与金币奖励由服务器记录。' : '签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。'}</div>`;
+    const longTerm = LIVE && latestLiveProfile?.longTermOperations === true;
+    const reward = longTerm ? '每日登岛委托 · 当日融卡次数 +1，签到后主动领取' : '每天一次 · 签到 +10 金币';
+    return title + `<div class="checkin-layout"><section class="glass panel"><div class="checkin-head"><div><h2>${checked ? '今天的脚印，已经留下啦' : '今天，也来岛上坐坐'}</h2><p>${esc(state.passport.nickname)} · ${today.replaceAll('-', '.')} · 按北京时间记录</p></div><div class="sun-emblem">${icon('sun')}</div></div><div class="days">${Array.from({ length: 7 }, (_, index) => `<div class="day ${index < Math.min(streak, 7) ? 'done' : ''} ${index === Math.min(streak, 6) && !checked ? 'current' : ''}"><span>第 ${index + 1} 天</span><strong>${longTerm ? (index < streak ? '✓' : '·') : index === 6 ? '✦' : '+10'}</strong>${icon(index < streak ? 'check' : longTerm ? 'sun' : index === 6 ? 'cards' : 'coin')}</div>`).join('')}</div><div class="checkin-summary"><p>已经连续陪伴小岛 <strong>${streak}</strong> 天<br>${reward}${longTerm ? '<br><a href="/office.html">前往事务所领取今日奖励</a>' : ''}</p><button class="btn ${checked ? '' : 'primary'}" id="checkin-button" ${checked ? 'disabled' : ''}>${checked ? '✓ 今天已签到' : '留下今天的脚印'} ${icon(checked ? 'check' : 'sun')}</button></div></section><aside class="glass sidebar-card"><h3>第七天的小惊喜</h3>${memorialCard(streak)}<p class="small muted">${streak >= 7 ? '七日纪念已点亮！这张卡只作签到纪念，不计入随机抽卡池。' : '连续签到7天点亮七日纪念卡，只作签到纪念，不计入随机抽卡池。'}</p><p class="small muted">${longTerm ? '错过一天会重新计算连续天数，历史登岛记录仍会保留。' : '错过一天会重新计算连续天数，已经获得的金币不会消失。'}</p></aside></div><div class="info-note">${longTerm ? '签到只记录登岛；奖励需在事务所主动领取，领取当天有效，不发放签到金币。' : LIVE ? '签到日期与金币奖励由服务器记录。' : '签到次数与金币仅用于本地预览。活动正式开放后，日期与奖励将由服务器统一确认。'}</div>`;
   }
 
   function drawBack() {
@@ -825,7 +827,7 @@
     });
   }
   function bindLiveCheckin(){
-    document.querySelector('#checkin-button')?.addEventListener('click',async()=>{try{takeProfile(await liveApi('checkin',{}));toast('今日签到成功，10 金币已保存')}catch(err){toast(err.message)}});
+    document.querySelector('#checkin-button')?.addEventListener('click',async()=>{try{const profile=await liveApi('checkin',{});takeProfile(profile);toast(profile.longTermOperations?'今日签到已记录，请到事务所领取当日融卡次数。':'今日签到成功，10 金币已保存')}catch(err){toast(err.message)}});
   }
   function bindLiveDraw(){
     document.querySelector('#draw-button')?.addEventListener('click',async()=>{

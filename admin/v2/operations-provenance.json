@@ -1,7 +1,7 @@
 {
   "generator": "tools/build-admin-operations.mjs",
   "inputs": {
-    "admin/index.html": "a8f060c57f9ce4e7d89723fd20a61ff1f7e6e8742cd57233c39c769e1501ccde",
+    "admin/index.html": "030cb7bc1cc64317cc198194ffc1b4e7894925929c417de0b3f17282dca7c758",
     "admin/membership.js": "5e08546f76bb032021efa7d72b69b1cefdc48efd084b280e29e1bcac3bf05025",
     "admin/maintenance.js": "ae3c86fa110f42c121ff24df180b627d2d48ff0043df8d2d7121923e3afd7f1b",
     "admin/messages.js": "f4974ef7cc5cdeeb7af7ba7d07a8386a33ce7c309d715bb6c70ddd43165f876a",

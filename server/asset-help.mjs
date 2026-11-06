@@ -1,4 +1,5 @@
 import {TODAY_CARDS} from './card-release.mjs';
+import {PLANNED_SIXTY_CARDS} from './card-expansion-planned.mjs';
 // These descriptions follow the actual artwork hosts in app.js and effects.js.
 // Keep page names user-facing; card and OC identities come from their own editors.
 const HELP = {
@@ -18,9 +19,9 @@ const HELP = {
     recommendation: '按 1584 × 993 画布对齐主岛地标：码头 (580,755)、事务所 (855,510)、邮局 (500,568)、收藏室 (855,638)、庆典广场 (675,612)。保留群岛、海面和开放港口，不在航道上加围墙。'
   },
   'decor/office-background.webp': {
-    label: '岛民事务所内容背景', pages: ['岛民事务所'], region: '任务列表与右侧进度、金币账本共同所在的内容区域',
-    description: '在任务和侧栏后方以低透明度、柔化的独立底层显示，与全站液态玻璃融合；不降低任务文字透明度，不影响上方标题。领取通行证后才显示任务内容区。',
-    recommendation: '建议使用低对比的公告板、纸张或岛屿环境图，让任务文字、进度与按钮清晰可读。'
+    label: '旧版事务所背景（当前委托簿不使用）', pages: ['旧版事务所（备用）'], region: '旧版金币任务页的内容底层，当前海风委托簿不读取此素材位',
+    description: '此素材保留供旧版备用页面使用。当前常驻海风委托簿使用独立场景样式，上传到此位置不会改变现行委托簿背景。',
+    recommendation: '此位置仅供旧版备用；当前委托簿场景需要单独接入素材配置后再开放替换。'
   },
   'decor/checkin-background.webp': {
     label: '每日签到内容背景', pages: ['每日签到'], region: '七日签到面板与右侧七日纪念角共同所在的区域',
@@ -59,6 +60,7 @@ function characterHelp(label) {
 HELP['characters/caicai.webp'] = characterHelp('菜菜');
 HELP['characters/zhizhi.webp'] = characterHelp('吱吱');
 
+const expansion=new Map([...TODAY_CARDS,...PLANNED_SIXTY_CARDS].map(card=>[card.id,card]));
 const CARD_IDS = [
   'UR-1', ...Array.from({length:2},(_,i)=>'SSR-'+(i+1)),
   ...Array.from({length:4},(_,i)=>'SR-'+(i+1)),
@@ -68,15 +70,15 @@ const CARD_IDS = [
   ...Array.from({length:2},(_,i)=>'SR-'+(i+5)),
   ...Array.from({length:5},(_,i)=>'R-'+(i+5)),
   ...Array.from({length:6},(_,i)=>'N-'+(i+6)),
-  ...Array.from({length:18},(_,i)=>'LOCK-'+String(i+33).padStart(2,'0'))
+  ...[...expansion.keys()].sort((a,b)=>Number(a.slice(5))-Number(b.slice(5)))
 ];
 for(const [index,id] of CARD_IDS.entries()){
-  const unreleased=index>=32&&!TODAY_CARDS.some(c=>c.id===id);
+  const unreleased=index>=32&&expansion.get(id)?.unreleased!==false;
   HELP['cards/'+id+'.webp']={
     label:(unreleased?'待开放 · ':'')+id+' 回忆卡插画',
-    pages:unreleased?['后台卡片管理（暂不公开）']:['肥啾邮局','回忆收藏室'],
+    pages:unreleased?['后台卡片管理（暂不公开）']:['肥啾邮局','回忆收藏室','羽翼融卡工坊'],
     region:unreleased?'第 '+(index+1)+' 号预留卡位，仅管理员可编辑':'第 '+(index+1)+' 张公开卡片的中央插画框'+(index<8?'，也出现在邮局下方前八张预览中':''),
-    description:unreleased?'第 '+(index+1)+' 号卡位属于50张总容量中尚未开放的4张。现在可以预先上传与填写资料，但不会在公开卡池、抽卡结果或收藏列表展示。未来需另行开放才会显示。':'此图用于该编号卡片的抽卡结果、收藏列表与详情。卡框、编号、稀有度、卡名由网页绘制，不要烘焙进图片。上传不会改变抽卡概率、历史持有数或原账户数据。',
+    description:unreleased?'此卡位尚未开放，可预先上传与填写资料；不会在公开卡池、抽卡结果或收藏列表展示，开放状态以服务端目录为准。':'此图用于该编号卡片的抽卡结果、收藏列表、详情及融卡材料与结果。卡框、编号、稀有度、卡名由网页绘制，不要烘焙进图片。上传不会改变抽卡概率、历史持有数或原账户数据。',
     recommendation:'上传主体居中、周围留白的插画，优先 WebP；通过下方位置X/Y、缩放和裁切调整显示。卡名、稀有度、故事和关联人物在「卡片管理」修改。'
   };
 }

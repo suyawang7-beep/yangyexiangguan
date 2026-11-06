@@ -75,7 +75,7 @@ export function createFeatureAccess(
   function requireActive(feature) {
     const value = read(feature);
     if (value.phase === "active") return;
-    const name = feature === "pool" ? "卡池抽卡" : "岛民事务所金币任务";
+    const name = feature === "pool" ? "卡池抽卡" : "岛民事务所 · 海风委托簿";
     const status = {
       paused: "已暂停",
       upcoming: "尚未开放",
