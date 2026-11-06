@@ -1,0 +1,16 @@
+[
+  {
+    "width": 1440,
+    "fusion": "PASS",
+    "weather": "PASS",
+    "inventoryAndLostResponse": "PASS",
+    "syntheticOnly": true
+  },
+  {
+    "width": 390,
+    "fusion": "PASS",
+    "weather": "PASS",
+    "inventoryAndLostResponse": "not repeated",
+    "syntheticOnly": true
+  }
+]

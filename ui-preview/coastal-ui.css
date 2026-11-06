@@ -1,0 +1,7 @@
+/* Shared presentation contract. Never filters canonical card artwork or text. */
+@font-face{font-family:'Buzhi Rounded';src:url('assets/fonts/buzhi-rounded.woff2') format('woff2');font-display:swap;font-weight:400}
+:root{--coastal-ocean:#a8d8f0;--coastal-ice:#c9f4ff;--coastal-pearl:#f5fbff;--coastal-ink:#285777;--coastal-muted:#506f86;--coastal-action:#2d6994;--coastal-ease:cubic-bezier(.23,1,.32,1);--coastal-shadow:0 16px 42px #366d8b1a}
+body[data-coastal="fusion"],.coastal-weather{font-family:'Buzhi Rounded','PingFang SC','Microsoft YaHei',sans-serif;color:var(--coastal-ink)}
+body[data-coastal="fusion"] button,.coastal-weather button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body[data-coastal="fusion"] button:focus-visible,.coastal-weather button:focus-visible,body[data-coastal="fusion"] a:focus-visible,.coastal-weather a:focus-visible{outline:3px solid #286c99;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){body[data-coastal="fusion"] *,.coastal-weather *{scroll-behavior:auto!important}}
