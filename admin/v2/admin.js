@@ -1,3 +1,4 @@
+import {mountSouvenirManagement} from './souvenir-management.js';
 import {mountCommissionManagement} from './commission-management.js';
 import {mountTitleManagement} from './title-management.js';
 import {mountOperations} from './operations.js';
@@ -7,7 +8,7 @@ let operations=null,operationsNode=null,operationRoute=null;
 let dashboard=null;
 let token='',data=null,config=null,fusion=null,assets=[],page='overview',loading=false,generation=0;
 const api=connectAdmin(()=>token);
-const modules=[['overview','◈','管理总览'],['cards','▤','卡牌与卡池'],['fusion','✧','融卡管理'],['residents','♧','岛民管理'],['activity','⚑','活动与内容'],['assets','▧','素材管理'],['commissions','⚑','海风委托簿'],['titles','♧','岛民称号'],['safety','≋','记录与安全']];
+const modules=[['overview','◈','管理总览'],['cards','▤','卡牌与卡池'],['fusion','✧','融卡管理'],['residents','♧','岛民管理'],['activity','⚑','活动与内容'],['assets','▧','素材管理'],['souvenirs','◇','纪念品素材'],['commissions','⚑','海风委托簿'],['titles','♧','岛民称号'],['safety','≋','记录与安全']];
 const legacy={cards:[['cards','卡牌资料'],['characters','OC人物关联']],residents:[['users','全部岛民'],['user-details','岛民详情与流水'],['coins','金币寄送与历史'],['members','认证审核'],['account-recovery','账号找回审核'],['recovery','查找与找回'],['visitors','游客管理'],['residents','居民物语与创作']],activity:[['office','事务所任务管理'],['activity','总活动时间'],['codes','兑换码与临时委托'],['code-statistics','兑换统计'],['announcements','公告草稿与发布'],['island-mail','信箱及物品寄送'],['messages','留言'],['quiz-results','默契小测记录'],['task-writings','文字任务']],assets:[['assets','素材上传及恢复'],['asset-check','素材检查']],safety:[['audit','完整审计'],['backups','备份与导出'],['site-maintenance','维护模式'],['visual','视效管理'],['test-cleanup','测试记录清理']]};
 function links(name){return '<section class="panel"><h2>选择要办理的事项</h2><p>点击后展开对应操作，每次只显示一项。</p><div class="integration-links">'+(legacy[name]||[]).map(([route,title])=>'<button type="button" data-operation="'+route+'">'+escape(title)+'</button>').join('')+'</div></section>';}
 const groupFor=route=>Object.entries(legacy).find(([,items])=>items.some(([r])=>r===route))?.[0]||(['assets','asset-check'].includes(route)?'assets':null);
@@ -30,6 +31,7 @@ function render(){
  if(page==='fusion')body='<section class="panel"><h2>融卡次数与邮件领取</h2><p>基础额度每天3次，北京时间00:00刷新；管理员补发次数只能寄入信箱；任务次数在委托完成后主动领取，岛民领取后计入领取日额度，当晚北京时间24:00失效。寄送前后不会直接修改当前额度。</p><form id="quota-search" class="toolbar"><label>昵称或BZI编号<input name="q" required minlength="2" placeholder="输入岛民昵称或BZI编号"></label><button type="submit">查询次数</button></form><p id="quota-status" role="status"></p><div id="quota-results"></div></section>';
 
  if(page==='commissions')body='<section class="panel" id="commission-management"></section>';
+ if(page==='souvenirs')body='<section class="panel" id="souvenir-management"></section>';
  if(page==='titles')body='<section class="panel" id="title-management"></section>';
  if(page==='assets')body=links('assets');
  if(page==='safety')body='<section class="panel"><h2>最近管理员审计</h2><p>最多100条；详细内容及备份通过原入口查询。</p>'+table(['编号','操作','时间'],data.audit.items.map(a=>[a.id,a.action,a.created_at]))+'</section>'+links('safety');
@@ -38,6 +40,7 @@ function render(){
  if(operationsNode){$('#content').append(operationsNode);const route=operationRoute;operationsNode.hidden=!route;if(route)operations.show(route);}
  $('#content').onclick=e=>{const button=e.target.closest('[data-operation]');if(button){e.preventDefault();openOperation(button.dataset.operation);}};
  if(page==='commissions'){const root=$('#commission-management'),g=generation;mountCommissionManagement({root,request:async(path,body)=>{if(g!==generation||page!=='commissions'||!root.isConnected)throw Error('管理会话已结束');const response=await api.request(path,body);if(g!==generation||page!=='commissions'||!root.isConnected)throw Error('管理会话已结束');return response},confirmAction:confirmChange,isCurrent:()=>g===generation&&page==='commissions'&&root.isConnected});}
+ if(page==='souvenirs'){const root=$('#souvenir-management'),g=generation;mountSouvenirManagement({root,request:async(path,body)=>{if(g!==generation||!root.isConnected)throw Error('管理会话已结束');const r=await api.request(path,body);if(g!==generation||!root.isConnected)throw Error('管理会话已结束');return r},confirmAction:confirmChange,isCurrent:()=>g===generation&&root.isConnected});}
  if(page==='titles'){const root=$('#title-management'),g=generation;mountTitleManagement({root,request:async(path,body)=>{if(g!==generation||page!=='titles'||!root.isConnected)throw Error('管理会话已结束');const response=await api.request(path,body);if(g!==generation||page!=='titles'||!root.isConnected)throw Error('管理会话已结束');return response},confirmAction:confirmChange,isCurrent:()=>g===generation&&page==='titles'&&root.isConnected});}
  if(page==='fusion')$('#quota-search').onsubmit=searchQuota;
  $('#refresh-data').onclick=refresh;if(page==='cards'){$('#card-search').oninput=renderCards;renderCards();$('#edit-card').onchange=fillCard;fillCard();$('#card-editor').onsubmit=saveCard;}

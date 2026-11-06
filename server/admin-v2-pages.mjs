@@ -9,7 +9,7 @@ export function serveAdminV2(req,res,path){
   res.end(JSON.stringify({error:'海岛控制台源码尚未完整交付',required}));return true;
  }
  const name=path.slice('/admin/v2/'.length)||'index.html';
- if(![...required,'integration.css','operations.js','operations.html','operations.css','pending-grants.js','operation-requests.js','title-management.js','commission-management.js'].includes(name)){res.writeHead(404,{'cache-control':'no-store'});res.end();return true;}
+ if(![...required,'integration.css','operations.js','operations.html','operations.css','pending-grants.js','operation-requests.js','title-management.js','souvenir-management.js','commission-management.js'].includes(name)){res.writeHead(404,{'cache-control':'no-store'});res.end();return true;}
  const type=name.endsWith('.css')?'text/css':name.endsWith('.js')?'text/javascript':'text/html';
  res.writeHead(200,{'content-type':type+'; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});
  res.end(readFileSync(new URL(name,root)));return true;
