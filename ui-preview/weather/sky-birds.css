@@ -1,0 +1,13 @@
+/* Distant seabirds: separate flight and wing transforms, no layout animation. */
+.sky-birds{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;color:#31576d;opacity:.78}
+.bird-flight{position:absolute;left:-60px;top:18%;width:27px;height:17px;animation:seabird-crossing 38s linear infinite;pointer-events:none}
+.bird-flight svg{display:block;width:100%;height:100%;fill:currentColor;stroke:currentColor;stroke-width:.6}
+.bird-wings{transform-origin:20px 15px;animation:seabird-wingbeat 3.6s ease-in-out infinite}
+.bird-flight-1{animation-delay:-8s}.bird-flight-2{top:20%;width:20px;animation-duration:44s;animation-delay:-11s}.bird-flight-3{top:17%;width:17px;animation-duration:41s;animation-delay:-10s}.bird-flight-4{top:29%;width:16px;opacity:.65;animation-duration:53s;animation-delay:-33s}.bird-flight-5{top:30%;width:13px;opacity:.55;animation-duration:56s;animation-delay:-36s}
+.bird-flight-2 .bird-wings{animation-delay:-1.2s}.bird-flight-3 .bird-wings{animation-delay:-2.1s}.bird-flight-4 .bird-wings{animation-delay:-.7s}
+@keyframes seabird-crossing{0%{transform:translate3d(0,12px,0)}35%{transform:translate3d(36vw,-14px,0)}70%{transform:translate3d(75vw,7px,0)}100%{transform:translate3d(calc(100vw + 120px),-9px,0)}}
+@keyframes seabird-wingbeat{0%,40%,100%{transform:scaleY(1)}46%,58%{transform:scaleY(.4)}52%{transform:scaleY(.85)}}
+body[data-weather=night] .sky-birds,body[data-weather=storm] .sky-birds,body[data-weather=thunder] .sky-birds{display:none}
+body[data-weather=rain] .sky-birds{opacity:.42}.paused .sky-birds *{animation-play-state:paused!important}
+@media(max-width:760px){.bird-flight{top:12%;width:19px}.bird-flight-2{top:14%;width:15px}.bird-flight-3{top:11%;width:13px}.bird-flight-4,.bird-flight-5{display:none}}
+@media(prefers-reduced-motion:reduce){.sky-birds{display:none}.sky-birds *{animation:none!important}}
